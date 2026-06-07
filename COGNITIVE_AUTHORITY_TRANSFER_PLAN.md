@@ -20,9 +20,10 @@ Objective: Move evolutionary strategy decisions from procedural infrastructure i
 
 The transfer will occur incrementally to preserve existing behavior while shifting ownership.
 
-### Step 1: Retry Authority (Current Iteration)
-- **Action**: Introduce `shouldRetry` to `IEvolutionKernel`.
-- **Delegation**: `EvolutionOrchestrator` calls `kernel.shouldRetry()` instead of hardcoding `retry <= MAX_RETRIES`.
+### Step 1: Strategy Authority (Current Iteration)
+- **Action**: Introduce \`analyze(Artifact, Evaluation)\` to \`IEvolutionKernel\`.
+- **Decision**: Kernel returns \`EvolutionDecision\` (MUTATE, STABILIZE, BACKTRACK, ABORT).
+- **Delegation**: \`EvolutionOrchestrator\` maps its \`JSONObject\` reviewer output to an \`Evaluation\` and delegates the strategy decision to the kernel.
 
 ### Step 2: Loop Authority
 - **Action**: Introduce `shouldContinue` to `IEvolutionKernel`.

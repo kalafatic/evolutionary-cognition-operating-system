@@ -1,43 +1,43 @@
 package eu.kalafatic.evolution.controller.orchestration;
 
-import eu.kalafatic.evolution.model.orchestration.Artifact;
-import eu.kalafatic.evolution.model.orchestration.Lineage;
-import eu.kalafatic.evolution.model.orchestration.Pressure;
+import eu.kalafatic.evolution.model.orchestration.*;
 
 /**
  * Skeletal implementation of the ECOS Evolution Kernel.
- * This implementation will gradually subsume the procedural logic of EvolutionOrchestrator.
  */
 public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
     public Artifact evolve(Lineage lineage, Pressure pressure, TaskContext context) throws Exception {
         context.log("Kernel: Starting evolution for lineage: " + lineage.getId());
-
-        // 1. ANALYZE (Identify what needs to change based on pressure)
-        context.log("Kernel: Analyzing pressure: " + pressure.getName());
-
-        // 2. MUTATE (Generate candidates)
-        context.log("Kernel: Generating mutations...");
-
-        // 3. EVALUATE & SELECT (Survival of the fittest)
-        context.log("Kernel: Evaluating candidates and selecting survivor...");
-
         return lineage.getSurvivor();
     }
 
     @Override
     public void applyPressure(Pressure pressure, TaskContext context) {
-        context.log("Kernel: Applying pressure: " + pressure.getName() + " - " + pressure.getDescription());
+        context.log("Kernel: Applying pressure: " + pressure.getName());
     }
 
-    @Override
-    public boolean shouldRetry(Artifact artifact, String failureFeedback, int attemptCount, TaskContext context) {
-        context.log("Kernel: Assessing failure for artifact [" + artifact.getId() + "]. Attempt: " + attemptCount);
+    private int attemptCounter = 0; // Temporary procedural remnant for stability
 
-        // For now, preserve legacy behavior (max 3 retries) but move the logic here.
-        boolean retry = attemptCount < 3;
-        context.log("Kernel: Decision - " + (retry ? "RETRY" : "ABORT"));
-        return retry;
+    @Override
+    public EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, TaskContext context) {
+        context.log("Kernel: Analyzing evaluation for artifact [" + artifact.getId() + "]");
+
+        if (evaluation.getScore() >= 1.0) {
+            attemptCounter = 0;
+            context.log("Kernel: Pressure resolved. Decision: STABILIZE");
+            return EvolutionDecision.STABILIZE;
+        }
+
+        attemptCounter++;
+        if (attemptCounter >= 3) {
+            attemptCounter = 0;
+            context.log("Kernel: Exhausted attempts. Decision: ABORT");
+            return EvolutionDecision.ABORT;
+        }
+
+        context.log("Kernel: Pressure remaining. Decision: MUTATE");
+        return EvolutionDecision.MUTATE;
     }
 }

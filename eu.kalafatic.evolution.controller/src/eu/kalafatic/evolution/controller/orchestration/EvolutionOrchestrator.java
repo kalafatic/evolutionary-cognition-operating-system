@@ -2,11 +2,8 @@ package eu.kalafatic.evolution.controller.orchestration;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.json.JSONObject;
-import eu.kalafatic.evolution.model.orchestration.Agent;
-import eu.kalafatic.evolution.model.orchestration.Task;
-import eu.kalafatic.evolution.model.orchestration.TaskStatus;
+import eu.kalafatic.evolution.model.orchestration.*;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
 
 /**
@@ -77,8 +74,7 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 // Use the Evolution Kernel for execution via the TaskAdapter
                 if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
                     context.log("Orchestrator: Delegating task to Evolution Kernel...");
-                    // Get the last (current) iteration for evolution
-                    List<eu.kalafatic.evolution.model.orchestration.Iteration> iterations = context.getOrchestrator().getSelfDevSession().getIterations();
+                    List<Iteration> iterations = context.getOrchestrator().getSelfDevSession().getIterations();
                     kernel.evolve(new IterationLineageAdapter(iterations.get(iterations.size() - 1)), null, context);
                 }
 
@@ -96,11 +92,6 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 // Handle Looping logic
                 String loopToId = task.getLoopToTaskId();
                 if (loopToId != null && !loopToId.isEmpty() && !"none".equalsIgnoreCase(loopToId)) {
-                    // Decide if we should loop. For now, if the agent or a specific 'loop' task type suggests it.
-                    // If it's a 'loop' task, we check its response or feedback to see if it should continue.
-                    // Simplified: if task type is 'loop' and response contains 'CONTINUE', or if it's just any task with a loopToId
-                    // and we haven't exceeded some internal loop limit (safety).
-
                     int loopTargetIndex = -1;
                     for (int j = 0; j < tasks.size(); j++) {
                         if (loopToId.equals(tasks.get(j).getId())) {
@@ -108,10 +99,9 @@ public class EvolutionOrchestrator implements IOrchestrator {
                             break;
                         }
                     }
-
                     if (loopTargetIndex != -1) {
                         context.log("Orchestrator: Looping back to task ID: " + loopToId);
-                        i = loopTargetIndex - 1; // -1 because the for loop will increment i
+                        i = loopTargetIndex - 1;
                     }
                 }
             }
@@ -140,45 +130,45 @@ public class EvolutionOrchestrator implements IOrchestrator {
             context.log("Orchestrator: Executing " + task.getName() + " (Attempt " + attempt + ")");
 
             try {
-                // Execute action (either via tool or reasoning)
                 String result = performAction(task, agent, context, lastFeedback);
                 task.setResponse(result);
 
-                // Evaluation
-                JSONObject evaluation = reviewer.evaluate(result, task.getName(), context);
-                if (evaluation.optBoolean("success", false)) {
-                    task.setFeedback("Success: " + evaluation.optString("comment", "Task validated."));
+                JSONObject evalJson = reviewer.evaluate(result, task.getName(), context);
+
+                Artifact artifact = new TaskArtifactAdapter(task);
+                Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
+                evaluation.setScore(evalJson.optBoolean("success", false) ? 1.0 : 0.0);
+                evaluation.setComment(evalJson.optString("feedback", ""));
+
+                EvolutionDecision decision = kernel.analyze(artifact, evaluation, context);
+
+                if (decision == EvolutionDecision.STABILIZE) {
+                    task.setFeedback("Success: " + evalJson.optString("comment", "Pressure resolved."));
                     return true;
-                } else {
-                    lastFeedback = evaluation.optString("feedback", "Task failed validation.");
-                    task.setFeedback("Attempt " + attempt + " failure: " + lastFeedback);
+                } else if (decision == EvolutionDecision.ABORT) {
+                    task.setFeedback("Kernel ABORT: " + evaluation.getComment());
+                    return false;
                 }
+
+                lastFeedback = evaluation.getComment();
+                task.setFeedback("Attempt " + attempt + " (" + decision + "): " + lastFeedback);
+
             } catch (Exception e) {
                 lastFeedback = "Exception: " + e.getMessage();
                 task.setFeedback("Attempt " + attempt + " exception: " + e.getMessage());
-            }
-
-            // Delegate retry decision to Kernel
-            if (!kernel.shouldRetry(new TaskArtifactAdapter(task), lastFeedback, attempt, context)) {
-                break;
+                return false;
             }
         }
-        return false;
     }
 
     private String performAction(Task task, IAgent agent, TaskContext context, String lastFeedback) throws Exception {
         String taskType = task.getType();
         String taskName = task.getName();
-
-        // Check if task maps directly to a tool
         if ("file".equalsIgnoreCase(taskType)) {
             FileTool fileTool = new FileTool();
-            // JavaDev/Architect will generate content first
             String content = agent.process(taskName, context, lastFeedback);
             String path = taskName.replaceFirst("(?i)Write ", "").trim();
-            // Sanitize path: remove leading slashes and drive letters (e.g., C:/)
-            path = path.replaceFirst("^([a-zA-Z]:)?(/|\\\\)+", "");
-            // Normalize path: replace backslashes with forward slashes
+            path = path.replaceFirst("^([a-zA-Z]:)?(/|\\)+", "");
             path = path.replace("\\", "/");
             return fileTool.execute("WRITE " + path + "\n" + content, context.getProjectRoot(), context);
         } else if ("maven".equalsIgnoreCase(taskType)) {
@@ -191,35 +181,23 @@ public class EvolutionOrchestrator implements IOrchestrator {
             ShellTool shellTool = new ShellTool();
             return shellTool.execute(taskName, context.getProjectRoot(), context);
         }
-
-        // Default to agent reasoning
         return agent.process(taskName, context, lastFeedback);
     }
 
     private IAgent findAgentForTask(Task task, TaskContext context) {
         String name = task.getName().toLowerCase();
         String type = task.getType().toLowerCase();
-
-        // 1. Check for explicit agent type in task name
         for (IAgent agent : availableAgents) {
-            if (name.contains(agent.getType().toLowerCase())) {
-                return agent;
-            }
+            if (name.contains(agent.getType().toLowerCase())) return agent;
         }
-
-        // 2. Map task types to default agents
         if (type.contains("maven") || type.contains("test")) return availableAgents.stream().filter(a -> a instanceof TesterAgent).findFirst().orElse(availableAgents.get(2));
         if (type.contains("file") || type.contains("java")) return availableAgents.stream().filter(a -> a instanceof JavaDevAgent).findFirst().orElse(availableAgents.get(1));
         if (type.contains("arch") || type.contains("design")) return availableAgents.stream().filter(a -> a instanceof ArchitectAgent).findFirst().orElse(availableAgents.get(0));
-
-        // Default to General Agent for reasoning or unknown tasks
         return availableAgents.stream().filter(a -> a instanceof GeneralAgent).findFirst().orElse(availableAgents.get(availableAgents.size() - 1));
     }
 
     private void updateStatus(TaskContext context, double progress, String message) {
         String id = context.getOrchestrator().getId();
-        if (id != null) {
-            OrchestrationStatusManager.getInstance().updateStatus(id, progress, message);
-        }
+        if (id != null) OrchestrationStatusManager.getInstance().updateStatus(id, progress, message);
     }
 }

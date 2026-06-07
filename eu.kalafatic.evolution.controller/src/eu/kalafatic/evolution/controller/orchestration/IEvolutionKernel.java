@@ -1,12 +1,13 @@
 package eu.kalafatic.evolution.controller.orchestration;
 
 import eu.kalafatic.evolution.model.orchestration.Artifact;
+import eu.kalafatic.evolution.model.orchestration.Evaluation;
+import eu.kalafatic.evolution.model.orchestration.EvolutionDecision;
 import eu.kalafatic.evolution.model.orchestration.Lineage;
 import eu.kalafatic.evolution.model.orchestration.Pressure;
 
 /**
  * The core ECOS Evolution Kernel interface.
- * Everything evolves through the kernel via Artifacts, Mutations, and Pressures.
  */
 public interface IEvolutionKernel {
 
@@ -21,8 +22,8 @@ public interface IEvolutionKernel {
     void applyPressure(Pressure pressure, TaskContext context);
 
     /**
-     * Decides whether a failed evolutionary step should be retried.
-     * This transfers cognitive authority from the procedural loop to the kernel.
+     * Analyzes an evaluation result against a pressure and decides the next evolutionary step.
+     * This is the primary cognitive authority method.
      */
-    boolean shouldRetry(Artifact artifact, String failureFeedback, int attemptCount, TaskContext context);
+    EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, TaskContext context);
 }
