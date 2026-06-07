@@ -9,11 +9,13 @@ import eu.kalafatic.evolution.model.orchestration.Database;
 import eu.kalafatic.evolution.model.orchestration.FileConfig;
 import eu.kalafatic.evolution.model.orchestration.Git;
 import eu.kalafatic.evolution.model.orchestration.LLM;
+import eu.kalafatic.evolution.model.orchestration.Lineage;
 import eu.kalafatic.evolution.model.orchestration.Maven;
 import eu.kalafatic.evolution.model.orchestration.NeuronAI;
 import eu.kalafatic.evolution.model.orchestration.Ollama;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.model.orchestration.Pressure;
 import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
 import eu.kalafatic.evolution.model.orchestration.Task;
 
@@ -57,6 +59,8 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getMcpServerUrl <em>Mcp Server Url</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getDatabase <em>Database</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getFileConfig <em>File Config</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getLineages <em>Lineages</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getPressures <em>Pressures</em>}</li>
  * </ul>
  *
  * @generated
@@ -383,6 +387,26 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	protected FileConfig fileConfig;
 
 	/**
+	 * The cached value of the '{@link #getLineages() <em>Lineages</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getLineages()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<Lineage> lineages;
+
+	/**
+	 * The cached value of the '{@link #getPressures() <em>Pressures</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getPressures()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<Pressure> pressures;
+
+	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -390,6 +414,32 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	@Override
 	public Database getDatabase() {
 		return database;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<Lineage> getLineages() {
+		if (lineages == null) {
+			lineages = new EObjectContainmentEList<Lineage>(Lineage.class, this, OrchestrationPackage.ORCHESTRATOR__LINEAGES);
+		}
+		return lineages;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<Pressure> getPressures() {
+		if (pressures == null) {
+			pressures = new EObjectContainmentEList<Pressure>(Pressure.class, this, OrchestrationPackage.ORCHESTRATOR__PRESSURES);
+		}
+		return pressures;
 	}
 
 	/**
@@ -1182,6 +1232,10 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return basicSetDatabase(null, msgs);
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				return basicSetFileConfig(null, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
+				return ((InternalEList<?>)getLineages()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
+				return ((InternalEList<?>)getPressures()).basicRemove(otherEnd, msgs);
 		}
 		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
@@ -1238,6 +1292,10 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return getDatabase();
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				return getFileConfig();
+			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
+				return getLineages();
+			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
+				return getPressures();
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				return getSharedMemory();
 		}
@@ -1321,6 +1379,14 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				setFileConfig((FileConfig)newValue);
 				return;
+			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
+				getLineages().clear();
+				getLineages().addAll((Collection<? extends Lineage>)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
+				getPressures().clear();
+				getPressures().addAll((Collection<? extends Pressure>)newValue);
+				return;
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				setSharedMemory((String)newValue);
 				return;
@@ -1402,6 +1468,12 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				setFileConfig((FileConfig)null);
 				return;
+			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
+				getLineages().clear();
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
+				getPressures().clear();
+				return;
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				setSharedMemory(SHARED_MEMORY_EDEFAULT);
 				return;
@@ -1461,6 +1533,10 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return database != null;
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				return fileConfig != null;
+			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
+				return lineages != null && !lineages.isEmpty();
+			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
+				return pressures != null && !pressures.isEmpty();
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				return SHARED_MEMORY_EDEFAULT == null ? sharedMemory != null : !SHARED_MEMORY_EDEFAULT.equals(sharedMemory);
 		}

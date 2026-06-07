@@ -2,6 +2,7 @@ package eu.kalafatic.evolution.controller.orchestration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.json.JSONObject;
 import eu.kalafatic.evolution.model.orchestration.*;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
@@ -70,14 +71,6 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 task.setStatus(TaskStatus.RUNNING);
                 double progress = (double) i / taskCount;
                 updateStatus(context, progress, "Executing: " + task.getName());
-
-                // Use the Evolution Kernel for execution via the TaskAdapter (Phase E Alignment)
-                if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
-                    context.log("Orchestrator: Delegating task to Evolution Kernel with SelfDevEnvironment...");
-                    Iteration iteration = context.getOrchestrator().getSelfDevSession().getIterations().get(0);
-                    IEvolutionEnvironment env = new SelfDevEnvironment(iteration.getId(), context.getProjectRoot(), context);
-                    kernel.evolve(new IterationLineageAdapter(iteration), null, env, context);
-                }
 
                 boolean success = executeTaskWithRetries(task, context);
 
@@ -194,7 +187,7 @@ public class EvolutionOrchestrator implements IOrchestrator {
             FileTool fileTool = new FileTool();
             String content = agent.process(taskName, context, lastFeedback);
             String path = taskName.replaceFirst("(?i)Write ", "").trim();
-            path = path.replaceFirst("^([a-zA-Z]:)?(/|\\)+", "");
+            path = path.replaceFirst("^([a-zA-Z]:)?(/|\\\\)+", "");
             path = path.replace("\\", "/");
             return fileTool.execute("WRITE " + path + "\n" + content, context.getProjectRoot(), context);
         } else if ("maven".equalsIgnoreCase(taskType)) {

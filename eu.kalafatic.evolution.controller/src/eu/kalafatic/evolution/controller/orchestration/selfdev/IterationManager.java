@@ -61,7 +61,7 @@ public class IterationManager {
 
             // 5. Decision (Phase D2 Fitness Authority Transfer)
             // Report facts (EvaluationResult) to Kernel and delegate decision
-            Lineage lineage = new IterationLineageAdapter(iteration);
+            Lineage lineage = context.getOrchestrator().getLineages().get(0);
             Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
             evaluation.setScore(result.isSuccess() ? 1.0 : 0.0);
             evaluation.setComment("Build/Test result: " + result.isSuccess());

@@ -19,6 +19,13 @@ public class SelfDevSupervisor {
         session.setStatus(SelfDevStatus.RUNNING);
         session.setStartTime(System.currentTimeMillis());
 
+        // Initialize Lineage for the session if it doesn't exist
+        if (context.getOrchestrator().getLineages().isEmpty()) {
+            Lineage sessionLineage = OrchestrationFactory.eINSTANCE.createLineage();
+            sessionLineage.setId(session.getId());
+            context.getOrchestrator().getLineages().add(sessionLineage);
+        }
+
         int failureCount = 0;
         RestartManager restartManager = new RestartManager(context);
 
@@ -40,7 +47,7 @@ public class SelfDevSupervisor {
 
                 // Phase D2 Fitness Authority Transfer
                 // Delegate terminal decision to Kernel based on cumulative session fitness
-                Lineage lineage = new IterationLineageAdapter(iteration);
+                Lineage lineage = context.getOrchestrator().getLineages().get(0);
                 Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
                 evaluation.setScore(result.isSuccess() ? 1.0 : 0.0);
                 evaluation.setComment("Iteration " + i + " complete. Success: " + result.isSuccess());

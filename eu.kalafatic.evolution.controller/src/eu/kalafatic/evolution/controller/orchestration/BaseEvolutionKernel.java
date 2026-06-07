@@ -9,16 +9,34 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
     public Artifact evolve(Lineage lineage, Pressure pressure, IEvolutionEnvironment environment, TaskContext context) throws Exception {
-        context.log("Kernel: Starting evolution for lineage: " + lineage.getId() + " using environment: " + environment.getClass().getSimpleName());
+        context.log("Kernel: Evolving lineage: " + lineage.getId());
 
-        // Example flow using environment facts
-        Artifact current = lineage.getSurvivor();
-        Evaluation facts = environment.reportFacts(current, context);
-        EvolutionDecision strategy = analyze(current, facts, context);
+        // 1. Identify Ancestor
+        Artifact ancestor = lineage.getSurvivor();
+        if (ancestor == null && !lineage.getCandidates().isEmpty()) {
+            ancestor = lineage.getCandidates().get(0);
+        }
+
+        // 2. Report Facts from Environment (Evaluation)
+        Evaluation evaluation = environment.reportFacts(ancestor, context);
+
+        // 3. Analyze Strategy
+        EvolutionDecision strategy = analyze(ancestor, evaluation, context);
+
+        // 4. Record the Step in History
+        EvolutionStep step = OrchestrationFactory.eINSTANCE.createEvolutionStep();
+        step.setTimestamp(System.currentTimeMillis());
+        step.getEvaluations().add(evaluation);
+        lineage.getHistory().add(step);
 
         if (strategy == EvolutionDecision.STABILIZE) {
+            lineage.setSurvivor(ancestor);
             environment.finalize(true, context);
-        } else if (strategy == EvolutionDecision.ABORT) {
+            context.log("Kernel: Lineage stabilized at artifact: " + ancestor.getId());
+        } else if (strategy == EvolutionDecision.MUTATE) {
+            // In a full implementation, this would trigger mutation generation
+            context.log("Kernel: Mutation required for lineage: " + lineage.getId());
+        } else if (strategy == EvolutionDecision.BACKTRACK || strategy == EvolutionDecision.ABORT) {
             environment.finalize(false, context);
         }
 
