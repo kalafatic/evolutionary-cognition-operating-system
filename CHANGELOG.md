@@ -13,3 +13,8 @@
 ### Added
 - Phase C Adapters: TaskArtifactAdapter and IterationLineageAdapter.
 - Bridged procedural EvolutionOrchestrator with IEvolutionKernel.
+
+## [2.6.3] - 2026-06-07
+### Changed
+- Phase D1: Transferred retry authority from EvolutionOrchestrator to EvolutionKernel.
+- Updated IEvolutionKernel with shouldRetry decision method.

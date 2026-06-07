@@ -30,4 +30,14 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
     public void applyPressure(Pressure pressure, TaskContext context) {
         context.log("Kernel: Applying pressure: " + pressure.getName() + " - " + pressure.getDescription());
     }
+
+    @Override
+    public boolean shouldRetry(Artifact artifact, String failureFeedback, int attemptCount, TaskContext context) {
+        context.log("Kernel: Assessing failure for artifact [" + artifact.getId() + "]. Attempt: " + attemptCount);
+
+        // For now, preserve legacy behavior (max 3 retries) but move the logic here.
+        boolean retry = attemptCount < 3;
+        context.log("Kernel: Decision - " + (retry ? "RETRY" : "ABORT"));
+        return retry;
+    }
 }

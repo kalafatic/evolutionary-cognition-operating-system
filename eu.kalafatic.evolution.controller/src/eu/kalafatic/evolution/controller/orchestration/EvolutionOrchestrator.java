@@ -14,7 +14,6 @@ import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
  */
 public class EvolutionOrchestrator implements IOrchestrator {
 
-    private static final int MAX_RETRIES = 3;
     private final IEvolutionKernel kernel = new BaseEvolutionKernel();
     private final PlannerAgent planner = new PlannerAgent();
     private final List<IAgent> availableAgents = new ArrayList<>();
@@ -135,8 +134,10 @@ public class EvolutionOrchestrator implements IOrchestrator {
         String lastFeedback = null;
         OrchestrationStatusManager.getInstance().updateAgentStatus(agent.getType(), "Executing: " + task.getName());
 
-        for (int retry = 1; retry <= MAX_RETRIES; retry++) {
-            context.log("Orchestrator: Executing " + task.getName() + " (Attempt " + retry + ")");
+        int attempt = 0;
+        while (true) {
+            attempt++;
+            context.log("Orchestrator: Executing " + task.getName() + " (Attempt " + attempt + ")");
 
             try {
                 // Execute action (either via tool or reasoning)
@@ -150,11 +151,16 @@ public class EvolutionOrchestrator implements IOrchestrator {
                     return true;
                 } else {
                     lastFeedback = evaluation.optString("feedback", "Task failed validation.");
-                    task.setFeedback("Retry " + retry + ": " + lastFeedback);
+                    task.setFeedback("Attempt " + attempt + " failure: " + lastFeedback);
                 }
             } catch (Exception e) {
                 lastFeedback = "Exception: " + e.getMessage();
-                task.setFeedback("Retry " + retry + " Exception: " + e.getMessage());
+                task.setFeedback("Attempt " + attempt + " exception: " + e.getMessage());
+            }
+
+            // Delegate retry decision to Kernel
+            if (!kernel.shouldRetry(new TaskArtifactAdapter(task), lastFeedback, attempt, context)) {
+                break;
             }
         }
         return false;
