@@ -71,11 +71,12 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 double progress = (double) i / taskCount;
                 updateStatus(context, progress, "Executing: " + task.getName());
 
-                // Use the Evolution Kernel for execution via the TaskAdapter
+                // Use the Evolution Kernel for execution via the TaskAdapter (Phase E Alignment)
                 if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
-                    context.log("Orchestrator: Delegating task to Evolution Kernel...");
-                    List<Iteration> iterations = context.getOrchestrator().getSelfDevSession().getIterations();
-                    kernel.evolve(new IterationLineageAdapter(iterations.get(iterations.size() - 1)), null, context);
+                    context.log("Orchestrator: Delegating task to Evolution Kernel with SelfDevEnvironment...");
+                    Iteration iteration = context.getOrchestrator().getSelfDevSession().getIterations().get(0);
+                    IEvolutionEnvironment env = new SelfDevEnvironment(iteration.getId(), context.getProjectRoot(), context);
+                    kernel.evolve(new IterationLineageAdapter(iteration), null, env, context);
                 }
 
                 boolean success = executeTaskWithRetries(task, context);

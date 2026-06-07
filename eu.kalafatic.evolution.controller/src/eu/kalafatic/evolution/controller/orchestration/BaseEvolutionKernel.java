@@ -8,8 +8,20 @@ import eu.kalafatic.evolution.model.orchestration.*;
 public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
-    public Artifact evolve(Lineage lineage, Pressure pressure, TaskContext context) throws Exception {
-        context.log("Kernel: Starting evolution for lineage: " + lineage.getId());
+    public Artifact evolve(Lineage lineage, Pressure pressure, IEvolutionEnvironment environment, TaskContext context) throws Exception {
+        context.log("Kernel: Starting evolution for lineage: " + lineage.getId() + " using environment: " + environment.getClass().getSimpleName());
+
+        // Example flow using environment facts
+        Artifact current = lineage.getSurvivor();
+        Evaluation facts = environment.reportFacts(current, context);
+        EvolutionDecision strategy = analyze(current, facts, context);
+
+        if (strategy == EvolutionDecision.STABILIZE) {
+            environment.finalize(true, context);
+        } else if (strategy == EvolutionDecision.ABORT) {
+            environment.finalize(false, context);
+        }
+
         return lineage.getSurvivor();
     }
 

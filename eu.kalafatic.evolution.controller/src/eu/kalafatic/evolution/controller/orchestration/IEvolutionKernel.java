@@ -12,7 +12,7 @@ import eu.kalafatic.evolution.model.orchestration.SelfDevDecision;
  */
 public interface IEvolutionKernel {
 
-    Artifact evolve(Lineage lineage, Pressure pressure, TaskContext context) throws Exception;
+    Artifact evolve(Lineage lineage, Pressure pressure, IEvolutionEnvironment environment, TaskContext context) throws Exception;
 
     void applyPressure(Pressure pressure, TaskContext context);
 

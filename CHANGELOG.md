@@ -31,3 +31,9 @@
 - IterationManager now delegates COMMIT/ROLLBACK decisions to the kernel.
 - SelfDevSupervisor now delegates session finalization to the kernel.
 - EvolutionKernel now manages high-level strategic transitions based on evaluation facts.
+
+## [2.6.6] - 2026-06-07
+### Added
+- Phase E: Introduced IEvolutionEnvironment and BaseEvolutionEnvironment.
+- Implemented SelfDevEnvironment to encapsulate Git and Maven infrastructure.
+- Enabled environment injection in IEvolutionKernel.
