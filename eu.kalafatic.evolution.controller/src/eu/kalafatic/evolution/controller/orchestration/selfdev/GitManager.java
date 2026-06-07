@@ -35,7 +35,17 @@ public class GitManager {
 
     public String rollback() throws Exception {
         context.log("[GIT] Rolling back changes (hard reset)");
-        return shell.execute("git reset --hard HEAD", projectRoot, context);
+        shell.execute("git reset --hard HEAD", projectRoot, context);
+        return shell.execute("git clean -fd", projectRoot, context);
+    }
+
+    public boolean verifyState() {
+        try {
+            String status = shell.execute("git status --porcelain", projectRoot, context);
+            return status.trim().isEmpty();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public String deleteBranch(String branchName) throws Exception {

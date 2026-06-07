@@ -1,43 +1,123 @@
 package eu.kalafatic.evolution.controller.orchestration;
 
-import eu.kalafatic.evolution.model.orchestration.Artifact;
-import eu.kalafatic.evolution.model.orchestration.Lineage;
-import eu.kalafatic.evolution.model.orchestration.Pressure;
+import java.util.List;
+import eu.kalafatic.evolution.model.orchestration.*;
 
 /**
  * Skeletal implementation of the ECOS Evolution Kernel.
- * This implementation will gradually subsume the procedural logic of EvolutionOrchestrator.
  */
 public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
-    public Artifact evolve(Lineage lineage, Pressure pressure, TaskContext context) throws Exception {
-        context.log("Kernel: Starting evolution for lineage: " + lineage.getId());
+    public Artifact evolve(Lineage lineage, Pressure pressure, IEvolutionEnvironment environment, TaskContext context) throws Exception {
+        if (context != null) context.log("Kernel: Evolving lineage: " + lineage.getId());
 
-        // 1. ANALYZE (Identify what needs to change based on pressure)
-        context.log("Kernel: Analyzing pressure: " + pressure.getName());
+        // 1. Identify Ancestor (latest candidate or survivor)
+        Artifact ancestor = lineage.getSurvivor();
+        if (ancestor == null && !lineage.getCandidates().isEmpty()) {
+            ancestor = lineage.getCandidates().get(lineage.getCandidates().size() - 1);
+        }
 
-        // 2. MUTATE (Generate candidates)
-        context.log("Kernel: Generating mutations...");
+        // 2. Report Facts from Environment (Evaluation)
+        Evaluation evaluation = environment.reportFacts(ancestor, context);
 
-        // 3. EVALUATE & SELECT (Survival of the fittest)
-        context.log("Kernel: Evaluating candidates and selecting survivor...");
+        // 3. Analyze Strategy
+        EvolutionDecision strategy = analyze(ancestor, evaluation, lineage, context);
+
+        // 4. Record the Step in History
+        EvolutionStep step = OrchestrationFactory.eINSTANCE.createEvolutionStep();
+        step.setTimestamp(System.currentTimeMillis());
+        step.getEvaluations().add(evaluation);
+        lineage.getHistory().add(step);
+
+        if (strategy == EvolutionDecision.STABILIZE) {
+            lineage.setSurvivor(ancestor);
+            environment.finalize(true, context);
+            if (context != null) context.log("Kernel: Lineage stabilized at artifact: " + ancestor.getId());
+        } else if (strategy == EvolutionDecision.MUTATE) {
+            // In a full implementation, this would trigger mutation generation
+            if (context != null) context.log("Kernel: Mutation required for lineage: " + lineage.getId());
+        } else if (strategy == EvolutionDecision.BACKTRACK || strategy == EvolutionDecision.ABORT) {
+            environment.finalize(false, context);
+        }
 
         return lineage.getSurvivor();
     }
 
     @Override
     public void applyPressure(Pressure pressure, TaskContext context) {
-        context.log("Kernel: Applying pressure: " + pressure.getName() + " - " + pressure.getDescription());
+        if (context != null) context.log("Kernel: Applying pressure: " + pressure.getName());
     }
 
     @Override
-    public boolean shouldRetry(Artifact artifact, String failureFeedback, int attemptCount, TaskContext context) {
-        context.log("Kernel: Assessing failure for artifact [" + artifact.getId() + "]. Attempt: " + attemptCount);
+    public EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, Lineage lineage, TaskContext context) {
+        if (evaluation == null) {
+            if (context != null) context.log("Kernel: Post-task sequence analysis for artifact [" + artifact.getId() + "]");
+            return EvolutionDecision.MUTATE;
+        }
 
-        // For now, preserve legacy behavior (max 3 retries) but move the logic here.
-        boolean retry = attemptCount < 3;
-        context.log("Kernel: Decision - " + (retry ? "RETRY" : "ABORT"));
-        return retry;
+        if (context != null) context.log("Kernel: Analyzing evaluation for artifact [" + artifact.getId() + "]");
+
+        if (evaluation.getScore() >= 0.99) {
+            if (context != null) context.log("Kernel: Pressure resolved (Fitness: " + evaluation.getScore() + "). Decision: STABILIZE");
+            return EvolutionDecision.STABILIZE;
+        }
+
+        // Phase G: Pressure-Centric Analysis
+        // Instead of procedural counters, we analyze pressure trends in the lineage history.
+        // We detect stagnation if the score hasn't improved over the last 2 steps.
+        if (lineage != null) {
+            List<EvolutionStep> history = lineage.getHistory();
+            if (history.size() >= 2) {
+                EvolutionStep lastStep = history.get(history.size() - 1);
+                EvolutionStep prevStep = history.get(history.size() - 2);
+
+                if (!lastStep.getEvaluations().isEmpty() && !prevStep.getEvaluations().isEmpty()) {
+                    Evaluation lastEval = lastStep.getEvaluations().get(0);
+                    Evaluation prevEval = prevStep.getEvaluations().get(0);
+
+                    if (evaluation.getScore() <= lastEval.getScore() && lastEval.getScore() <= prevEval.getScore()) {
+                        if (context != null) context.log("Kernel: Pressure is stagnant (No improvement in score over 3 steps). Decision: BACKTRACK");
+                        return EvolutionDecision.BACKTRACK;
+                    }
+                }
+            }
+        }
+
+        if (context != null) context.log("Kernel: Unresolved pressure detected (Fitness: " + evaluation.getScore() + "). Decision: MUTATE");
+        return EvolutionDecision.MUTATE;
+    }
+
+    @Override
+    public Artifact selectTarget(Lineage lineage, EvolutionDecision decision, TaskContext context) {
+        if (decision == EvolutionDecision.BACKTRACK) {
+            if (context != null) context.log("Kernel: Backtracking to survivor artifact: " + lineage.getSurvivor().getId());
+            return lineage.getSurvivor();
+        }
+
+        // For MUTATE or STABILIZE, the target is usually the last candidate (current state)
+        if (!lineage.getCandidates().isEmpty()) {
+            return lineage.getCandidates().get(lineage.getCandidates().size() - 1);
+        }
+
+        return lineage.getSurvivor();
+    }
+
+    @Override
+    public SelfDevDecision decideStrategicAction(Lineage lineage, Evaluation evaluation, TaskContext context) {
+        if (context != null) context.log("Kernel: Strategic assessment for lineage: " + lineage.getId());
+
+        if (evaluation == null) {
+            return SelfDevDecision.CONTINUE;
+        }
+
+        if (evaluation.getScore() >= 1.0) {
+            if (context != null) context.log("Kernel: Fitness acceptable. Decision: CONTINUE (Commit)");
+            return SelfDevDecision.CONTINUE;
+        }
+
+        // Logic for terminal failure
+        if (context != null) context.log("Kernel: Fitness unacceptable. Decision: ROLLBACK");
+        return SelfDevDecision.ROLLBACK;
     }
 }

@@ -1,8 +1,7 @@
 package eu.kalafatic.evolution.controller.orchestration.llm;
 
-import eu.kalafatic.evolution.model.orchestration.AiMode;
-import eu.kalafatic.evolution.model.orchestration.Orchestrator;
-import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.model.orchestration.*;
+import eu.kalafatic.evolution.controller.orchestration.*;
 import eu.kalafatic.evolution.controller.providers.AiProviders;
 import eu.kalafatic.evolution.controller.providers.ProviderConfig;
 
@@ -12,6 +11,7 @@ import eu.kalafatic.evolution.controller.providers.ProviderConfig;
  */
 public class LlmRouter {
 
+    private final IEvolutionKernel kernel = new BaseEvolutionKernel();
     private final ILlmProvider ollamaProvider = new OllamaProvider();
     private final ILlmProvider openAiProvider = new OpenAIProvider();
     private final ILlmProvider geminiProvider = new GeminiProvider();
@@ -82,12 +82,63 @@ public class LlmRouter {
             orchestrator.getOllama().setModel(hybridModel);
         }
 
-        String optimizationPrompt = "Analyze the following user request and optimize it for AI-to-AI communication. " +
-                "Fix errors, clarify intent, and simplify or rewrite the request to be more effective for a large language model. " +
-                "Provide ONLY the optimized request text.\n\n" +
-                "Request: " + prompt;
+        // Phase I: Evolutionary Prompt Optimization
+        if (context != null) context.log("LlmRouter: Starting evolutionary prompt optimization...");
 
-        return ollamaProvider.sendRequest(orchestrator, optimizationPrompt, temperature, proxyUrl, context);
+        Lineage promptLineage = new SimpleLineageAdapter("prompt-evolution-" + System.currentTimeMillis());
+        Artifact initialArtifact = new PromptArtifactAdapter("initial-prompt", prompt);
+        promptLineage.getCandidates().add(initialArtifact);
+
+        IEvolutionEnvironment env = new MediationEnvironment();
+        Pressure clarityPressure = OrchestrationFactory.eINSTANCE.createPressure();
+        clarityPressure.setName("Prompt Clarity");
+        clarityPressure.setDescription("Prompt must be clear and effective for AI communication.");
+
+        int iterations = 0;
+        int maxIterations = 3;
+        Artifact current = initialArtifact;
+
+        while (iterations < maxIterations) {
+            iterations++;
+            if (context != null) context.log("LlmRouter: Prompt Optimization Iteration " + iterations);
+
+            // Generate Mutation (Local Model)
+            String mutationPrompt = "Optimize this AI prompt for better results. " +
+                "Improve clarity, add necessary context, and keep it concise. " +
+                "Return ONLY the optimized prompt text.\n\n" +
+                "Current Prompt:\n" + current.getContent();
+
+            String mutatedContent = ollamaProvider.sendRequest(orchestrator, mutationPrompt, temperature, proxyUrl, context);
+
+            Artifact mutatedArtifact = new PromptArtifactAdapter("optimized-v" + iterations, mutatedContent);
+            promptLineage.getCandidates().add(mutatedArtifact);
+
+            // Evaluate and Decide via Kernel
+            Artifact survivor = kernel.evolve(promptLineage, clarityPressure, env, context);
+
+            if (promptLineage.getSurvivor() != null) {
+                current = promptLineage.getSurvivor();
+                if (context != null) context.log("LlmRouter: Prompt stabilized via survivor selection.");
+                break;
+            }
+
+            if (survivor != null && survivor.getContent().equals(current.getContent())) {
+                if (context != null) context.log("LlmRouter: Prompt stabilized via content identity.");
+                break;
+            }
+
+            current = survivor != null ? survivor : mutatedArtifact;
+        }
+
+        String finalPrompt = current.getContent();
+        if (context != null) context.log("LlmRouter: Final optimized prompt (Length: " + finalPrompt.length() + ")");
+
+        // Final fallback: if the kernel didn't explicitly select a survivor, use the best known candidate
+        if (promptLineage.getSurvivor() == null) {
+            promptLineage.setSurvivor(current);
+        }
+
+        return finalPrompt;
     }
 
     private String simplifyResponseLocally(Orchestrator orchestrator, String remoteResponse, float temperature, String proxyUrl, TaskContext context) throws Exception {

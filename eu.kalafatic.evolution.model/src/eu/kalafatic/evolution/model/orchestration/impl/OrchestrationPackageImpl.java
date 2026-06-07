@@ -43,6 +43,7 @@ public class OrchestrationPackageImpl extends EPackageImpl implements Orchestrat
     private EEnum selfDevStatusEEnum = null;
     private EEnum iterationStatusEEnum = null;
     private EEnum selfDevDecisionEEnum = null;
+    private EEnum evolutionDecisionEEnum = null;
 
     private OrchestrationPackageImpl() {
         super(eNS_URI, OrchestrationFactory.eINSTANCE);
@@ -246,6 +247,7 @@ public class OrchestrationPackageImpl extends EPackageImpl implements Orchestrat
     @Override public EEnum getSelfDevStatus() { return selfDevStatusEEnum; }
     @Override public EEnum getIterationStatus() { return iterationStatusEEnum; }
     @Override public EEnum getSelfDevDecision() { return selfDevDecisionEEnum; }
+    @Override public EEnum getEvolutionDecision() { return evolutionDecisionEEnum; }
 
     @Override public OrchestrationFactory getOrchestrationFactory() { return (OrchestrationFactory)getEFactoryInstance(); }
 
@@ -429,6 +431,16 @@ public class OrchestrationPackageImpl extends EPackageImpl implements Orchestrat
         propertyEClass = createEClass(PROPERTY);
         createEAttribute(propertyEClass, PROPERTY__KEY);
         createEAttribute(propertyEClass, PROPERTY__VALUE);
+
+        taskStatusEEnum = createEEnum(TASK_STATUS);
+        commandStatusEEnum = createEEnum(COMMAND_STATUS);
+        executionModeEEnum = createEEnum(EXECUTION_MODE);
+        neuronTypeEEnum = createEEnum(NEURON_TYPE);
+        aiModeEEnum = createEEnum(AI_MODE);
+        selfDevStatusEEnum = createEEnum(SELF_DEV_STATUS);
+        iterationStatusEEnum = createEEnum(ITERATION_STATUS);
+        selfDevDecisionEEnum = createEEnum(SELF_DEV_DECISION);
+        evolutionDecisionEEnum = createEEnum(EVOLUTION_DECISION);
     }
 
     private boolean isInitialized = false;
@@ -472,6 +484,58 @@ public class OrchestrationPackageImpl extends EPackageImpl implements Orchestrat
         initEClass(evaluationEClass, Evaluation.class, "Evaluation", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
         initEClass(pressureEClass, Pressure.class, "Pressure", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
         initEClass(propertyEClass, Property.class, "Property", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+
+        initEEnum(taskStatusEEnum, TaskStatus.class, "TaskStatus");
+        addEEnumLiteral(taskStatusEEnum, TaskStatus.PENDING);
+        addEEnumLiteral(taskStatusEEnum, TaskStatus.RUNNING);
+        addEEnumLiteral(taskStatusEEnum, TaskStatus.DONE);
+        addEEnumLiteral(taskStatusEEnum, TaskStatus.FAILED);
+        addEEnumLiteral(taskStatusEEnum, TaskStatus.WAITING_FOR_APPROVAL);
+
+        initEEnum(commandStatusEEnum, CommandStatus.class, "CommandStatus");
+        addEEnumLiteral(commandStatusEEnum, CommandStatus.PENDING);
+        addEEnumLiteral(commandStatusEEnum, CommandStatus.RUNNING);
+        addEEnumLiteral(commandStatusEEnum, CommandStatus.COMPLETED);
+        addEEnumLiteral(commandStatusEEnum, CommandStatus.FAILED);
+
+        initEEnum(executionModeEEnum, ExecutionMode.class, "ExecutionMode");
+        addEEnumLiteral(executionModeEEnum, ExecutionMode.SERIAL);
+        addEEnumLiteral(executionModeEEnum, ExecutionMode.PARALLEL);
+
+        initEEnum(neuronTypeEEnum, NeuronType.class, "NeuronType");
+        addEEnumLiteral(neuronTypeEEnum, NeuronType.MLP);
+        addEEnumLiteral(neuronTypeEEnum, NeuronType.CNN);
+        addEEnumLiteral(neuronTypeEEnum, NeuronType.RNN);
+        addEEnumLiteral(neuronTypeEEnum, NeuronType.LSTM);
+        addEEnumLiteral(neuronTypeEEnum, NeuronType.TRANSFORMER);
+
+        initEEnum(aiModeEEnum, AiMode.class, "AiMode");
+        addEEnumLiteral(aiModeEEnum, AiMode.LOCAL);
+        addEEnumLiteral(aiModeEEnum, AiMode.HYBRID);
+        addEEnumLiteral(aiModeEEnum, AiMode.REMOTE);
+
+        initEEnum(selfDevStatusEEnum, SelfDevStatus.class, "SelfDevStatus");
+        addEEnumLiteral(selfDevStatusEEnum, SelfDevStatus.RUNNING);
+        addEEnumLiteral(selfDevStatusEEnum, SelfDevStatus.STOPPED);
+        addEEnumLiteral(selfDevStatusEEnum, SelfDevStatus.FAILED);
+        addEEnumLiteral(selfDevStatusEEnum, SelfDevStatus.COMPLETED);
+
+        initEEnum(iterationStatusEEnum, IterationStatus.class, "IterationStatus");
+        addEEnumLiteral(iterationStatusEEnum, IterationStatus.PENDING);
+        addEEnumLiteral(iterationStatusEEnum, IterationStatus.RUNNING);
+        addEEnumLiteral(iterationStatusEEnum, IterationStatus.DONE);
+        addEEnumLiteral(iterationStatusEEnum, IterationStatus.FAILED);
+
+        initEEnum(selfDevDecisionEEnum, SelfDevDecision.class, "SelfDevDecision");
+        addEEnumLiteral(selfDevDecisionEEnum, SelfDevDecision.CONTINUE);
+        addEEnumLiteral(selfDevDecisionEEnum, SelfDevDecision.ROLLBACK);
+        addEEnumLiteral(selfDevDecisionEEnum, SelfDevDecision.STOP);
+
+        initEEnum(evolutionDecisionEEnum, EvolutionDecision.class, "EvolutionDecision");
+        addEEnumLiteral(evolutionDecisionEEnum, EvolutionDecision.MUTATE);
+        addEEnumLiteral(evolutionDecisionEEnum, EvolutionDecision.STABILIZE);
+        addEEnumLiteral(evolutionDecisionEEnum, EvolutionDecision.BACKTRACK);
+        addEEnumLiteral(evolutionDecisionEEnum, EvolutionDecision.ABORT);
 
         createResource(eNS_URI);
     }

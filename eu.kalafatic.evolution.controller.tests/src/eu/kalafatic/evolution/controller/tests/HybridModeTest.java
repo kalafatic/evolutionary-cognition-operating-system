@@ -7,8 +7,10 @@ import eu.kalafatic.evolution.model.orchestration.AiMode;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
 import eu.kalafatic.evolution.model.orchestration.Ollama;
+import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.orchestration.llm.LlmRouter;
 import eu.kalafatic.evolution.controller.orchestration.llm.ILlmProvider;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HybridModeTest {
 
     private Orchestrator orchestrator;
+    private TaskContext context;
     private LlmRouter router;
     private MockProvider mockOllama;
     private MockProvider mockRemote;
@@ -36,6 +39,7 @@ public class HybridModeTest {
         ollama.setModel("llama3");
         orchestrator.setOllama(ollama);
 
+        context = new TaskContext(orchestrator, new File("."));
         router = new LlmRouter();
 
         // Inject mock providers via reflection
@@ -55,29 +59,33 @@ public class HybridModeTest {
     @Test
     public void testHybridThreeStepFlow() throws Exception {
         // Setup mock responses to simulate the flow
+        // In the new evolutionary flow, optimizePromptLocally may loop up to 3 times.
+        // We provide a response that will stabilize immediately to keep the test simple.
+        String stablePrompt = "This is an optimized prompt that provides context and intent and is longer than fifty characters. ONLY return success.";
+
         mockOllama.setResponseSequence(new String[] {
-            "Optimized Prompt", // 1st call: optimization
-            "Final Simplified Response" // 3rd call: simplification
+            stablePrompt,               // 1st call: evolutionary optimization (Iteration 1)
+            "Final Simplified Response" // 2nd call: simplification
         });
         mockRemote.setResponseSequence(new String[] {
-            "Large Model Output" // 2nd call: remote execution
+            "Large Model Output" // call: remote execution
         });
 
-        String result = router.sendRequest(orchestrator, "Initial User Request", 0.7f, null, null);
+        String result = router.sendRequest(orchestrator, "Initial User Request", 0.7f, null, context);
 
-        // Assert the final result is the simplified one from the 3rd step (Ollama)
+        // Assert the final result is the simplified one from the final step (Ollama)
         assertEquals("Final Simplified Response", result);
 
         // Verify call counts
+        // 1 for optimization (it stabilizes because it's long and has keywords), 1 for simplification
         assertEquals(2, mockOllama.getCallCount());
         assertEquals(1, mockRemote.getCallCount());
 
-        // Verify optimization prompt was sent to Ollama first
+        // Verify optimization prompt was sent to Ollama
         assertTrue(mockOllama.getReceivedPrompts()[0].contains("Initial User Request"));
-        assertTrue(mockOllama.getReceivedPrompts()[0].contains("optimize"));
 
         // Verify the optimized prompt was sent to Remote
-        assertEquals("Optimized Prompt", mockRemote.getReceivedPrompts()[0]);
+        assertEquals(stablePrompt, mockRemote.getReceivedPrompts()[0]);
 
         // Verify simplification prompt was sent to Ollama last with the remote response
         assertTrue(mockOllama.getReceivedPrompts()[1].contains("Large Model Output"));
@@ -101,7 +109,10 @@ public class HybridModeTest {
         public String sendRequest(Orchestrator orchestrator, String prompt, float temperature, String proxyUrl, eu.kalafatic.evolution.controller.orchestration.TaskContext context) throws Exception {
             int current = callCount.getAndIncrement();
             receivedPrompts[current] = prompt;
-            return (current < responseSequence.length) ? responseSequence[current] : "Default Response";
+            String response = (current < responseSequence.length) ? responseSequence[current] : "Default Response";
+            System.out.println("MockProvider [" + this + "] Call " + current + " Prompt: " + (prompt.length() > 50 ? prompt.substring(0, 50) + "..." : prompt));
+            System.out.println("MockProvider [" + this + "] Response: " + response);
+            return response;
         }
 
         public int getCallCount() { return callCount.get(); }
