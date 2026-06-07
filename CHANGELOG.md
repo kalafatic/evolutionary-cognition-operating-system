@@ -18,3 +18,9 @@
 ### Changed
 - Phase D1: Transferred retry authority from EvolutionOrchestrator to EvolutionKernel.
 - Updated IEvolutionKernel with shouldRetry decision method.
+
+## [2.6.4] - 2026-06-07
+### Changed
+- Phase D1 Step 2: Transferred loop/recursion authority to EvolutionKernel.
+- Introduced selectTarget() to IEvolutionKernel for lineage navigation.
+- Enabled pressure-driven BACKTRACK and STABILIZE decisions.

@@ -26,4 +26,10 @@ public interface IEvolutionKernel {
      * This is the primary cognitive authority method.
      */
     EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, TaskContext context);
+
+    /**
+     * Determines which artifact in the lineage should be the target for the next evolutionary step.
+     * This replaces legacy procedural looping logic.
+     */
+    Artifact selectTarget(Lineage lineage, EvolutionDecision decision, TaskContext context);
 }

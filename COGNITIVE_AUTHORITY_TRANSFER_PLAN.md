@@ -25,7 +25,7 @@ The transfer will occur incrementally to preserve existing behavior while shifti
 - **Decision**: Kernel returns \`EvolutionDecision\` (MUTATE, STABILIZE, BACKTRACK, ABORT).
 - **Delegation**: \`EvolutionOrchestrator\` maps its \`JSONObject\` reviewer output to an \`Evaluation\` and delegates the strategy decision to the kernel.
 
-### Step 2: Loop Authority
+### Step 2: Loop Authority (Completed)
 - **Action**: Introduce `shouldContinue` to `IEvolutionKernel`.
 - **Delegation**: `EvolutionOrchestrator` consults the kernel after each task execution to determine if it should jump back to a previous artifact state.
 

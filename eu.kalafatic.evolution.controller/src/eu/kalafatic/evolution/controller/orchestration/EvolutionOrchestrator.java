@@ -89,7 +89,32 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 lastResult = task.getResponse();
                 context.appendSharedMemory("Task [" + task.getName() + "] completed. Result: " + lastResult);
 
-                // Handle Looping logic
+                // Transfer Loop Authority (Phase D1 Step 2)
+                // In ECOS, 'Loop' is replaced by Kernel-driven BACKTRACK or recursive EVOLVE
+                if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
+                    Iteration iteration = context.getOrchestrator().getSelfDevSession().getIterations().get(0);
+                    Lineage lineage = new IterationLineageAdapter(iteration);
+
+                    // Consult Kernel for post-task strategy
+                    EvolutionDecision decision = kernel.analyze(new TaskArtifactAdapter(task), null, context);
+                    if (decision == EvolutionDecision.BACKTRACK) {
+                        Artifact target = kernel.selectTarget(lineage, decision, context);
+                        int targetIndex = -1;
+                        for (int j = 0; j < tasks.size(); j++) {
+                            if (tasks.get(j).getId().equals(target.getId())) {
+                                targetIndex = j;
+                                break;
+                            }
+                        }
+                        if (targetIndex != -1) {
+                            context.log("Orchestrator: Kernel requested BACKTRACK to: " + target.getId());
+                            i = targetIndex - 1;
+                            continue;
+                        }
+                    }
+                }
+
+                // Legacy fallback for non-ECOS tasks (to be removed in Phase F)
                 String loopToId = task.getLoopToTaskId();
                 if (loopToId != null && !loopToId.isEmpty() && !"none".equalsIgnoreCase(loopToId)) {
                     int loopTargetIndex = -1;
@@ -100,7 +125,7 @@ public class EvolutionOrchestrator implements IOrchestrator {
                         }
                     }
                     if (loopTargetIndex != -1) {
-                        context.log("Orchestrator: Looping back to task ID: " + loopToId);
+                        context.log("Orchestrator: Legacy Looping back to task ID: " + loopToId);
                         i = loopTargetIndex - 1;
                     }
                 }

@@ -1,4 +1,4 @@
-# ECOS Architectural Status: PHASE D1 (COGNITIVE AUTHORITY TRANSFER)
+# ECOS Architectural Status: PHASE D1 STEP 2 (LOOP AUTHORITY TRANSFER)
 
 # ECOS Architecture
 
