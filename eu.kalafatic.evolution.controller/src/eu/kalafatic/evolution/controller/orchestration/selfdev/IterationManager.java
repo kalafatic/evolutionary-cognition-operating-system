@@ -64,7 +64,15 @@ public class IterationManager {
             Lineage lineage = context.getOrchestrator().getLineages().get(0);
             Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
             evaluation.setScore(result.isSuccess() ? 1.0 : 0.0);
-            evaluation.setComment("Build/Test result: " + result.isSuccess());
+            evaluation.setComment("Build/Test result: " + (result.isSuccess() ? "SUCCESS" : "FAILURE") +
+                                   " | Pass Rate: " + result.getTestPassRate());
+
+            // Phase F: Strengthen Lineage Persistence
+            // Record every major evolution step in the lineage history
+            EvolutionStep step = OrchestrationFactory.eINSTANCE.createEvolutionStep();
+            step.setTimestamp(System.currentTimeMillis());
+            step.getEvaluations().add(evaluation);
+            lineage.getHistory().add(step);
 
             SelfDevDecision decision = kernel.decideStrategicAction(lineage, evaluation, context);
             result.setDecision(decision);

@@ -16,7 +16,7 @@ public interface IEvolutionKernel {
 
     void applyPressure(Pressure pressure, TaskContext context);
 
-    EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, TaskContext context);
+    EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, Lineage lineage, TaskContext context);
 
     Artifact selectTarget(Lineage lineage, EvolutionDecision decision, TaskContext context);
 

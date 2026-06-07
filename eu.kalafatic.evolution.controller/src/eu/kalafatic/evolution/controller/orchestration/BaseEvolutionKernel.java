@@ -1,5 +1,6 @@
 package eu.kalafatic.evolution.controller.orchestration;
 
+import java.util.List;
 import eu.kalafatic.evolution.model.orchestration.*;
 
 /**
@@ -21,7 +22,7 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
         Evaluation evaluation = environment.reportFacts(ancestor, context);
 
         // 3. Analyze Strategy
-        EvolutionDecision strategy = analyze(ancestor, evaluation, context);
+        EvolutionDecision strategy = analyze(ancestor, evaluation, lineage, context);
 
         // 4. Record the Step in History
         EvolutionStep step = OrchestrationFactory.eINSTANCE.createEvolutionStep();
@@ -48,33 +49,42 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
         context.log("Kernel: Applying pressure: " + pressure.getName());
     }
 
-    private int attemptCounter = 0; // Temporary procedural remnant for stability
-
     @Override
-    public EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, TaskContext context) {
+    public EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, Lineage lineage, TaskContext context) {
         if (evaluation == null) {
-            // Post-execution analysis without immediate failure
             context.log("Kernel: Post-task sequence analysis for artifact [" + artifact.getId() + "]");
-            return EvolutionDecision.MUTATE; // Continue the sequence
+            return EvolutionDecision.MUTATE;
         }
 
         context.log("Kernel: Analyzing evaluation for artifact [" + artifact.getId() + "]");
 
         if (evaluation.getScore() >= 1.0) {
-            attemptCounter = 0;
-            context.log("Kernel: Pressure resolved. Decision: STABILIZE");
+            context.log("Kernel: Pressure resolved (Fitness: " + evaluation.getScore() + "). Decision: STABILIZE");
             return EvolutionDecision.STABILIZE;
         }
 
-        attemptCounter++;
-        if (attemptCounter >= 3) {
-            attemptCounter = 0;
-            // Instead of just ABORT, ECOS prefers BACKTRACK if a survivor exists
-            context.log("Kernel: Exhausted attempts. Decision: BACKTRACK");
-            return EvolutionDecision.BACKTRACK;
+        // Phase G: Pressure-Centric Analysis
+        // Instead of procedural counters, we analyze pressure trends in the lineage history.
+        // We detect stagnation if the score hasn't improved over the last 2 steps.
+        if (lineage != null) {
+            List<EvolutionStep> history = lineage.getHistory();
+            if (history.size() >= 2) {
+                EvolutionStep lastStep = history.get(history.size() - 1);
+                EvolutionStep prevStep = history.get(history.size() - 2);
+
+                if (!lastStep.getEvaluations().isEmpty() && !prevStep.getEvaluations().isEmpty()) {
+                    Evaluation lastEval = lastStep.getEvaluations().get(0);
+                    Evaluation prevEval = prevStep.getEvaluations().get(0);
+
+                    if (evaluation.getScore() <= lastEval.getScore() && lastEval.getScore() <= prevEval.getScore()) {
+                        context.log("Kernel: Pressure is stagnant (No improvement in score over 3 steps). Decision: BACKTRACK");
+                        return EvolutionDecision.BACKTRACK;
+                    }
+                }
+            }
         }
 
-        context.log("Kernel: Pressure remaining. Decision: MUTATE");
+        context.log("Kernel: Unresolved pressure detected (Fitness: " + evaluation.getScore() + "). Decision: MUTATE");
         return EvolutionDecision.MUTATE;
     }
 

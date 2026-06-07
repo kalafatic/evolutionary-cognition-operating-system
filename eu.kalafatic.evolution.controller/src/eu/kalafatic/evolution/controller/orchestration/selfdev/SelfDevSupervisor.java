@@ -43,7 +43,18 @@ public class SelfDevSupervisor {
                 session.getIterations().add(iteration);
 
                 IterationManager iterationManager = new IterationManager(iteration, context);
-                EvaluationResult result = iterationManager.run();
+                EvaluationResult result = null;
+                int iterAttempts = 0;
+                while (iterAttempts < 2) { // Internal iteration retry for transient infrastructure issues
+                    try {
+                        result = iterationManager.run();
+                        break;
+                    } catch (Exception e) {
+                        iterAttempts++;
+                        context.log("[SUPERVISOR] Iteration attempt " + iterAttempts + " failed: " + e.getMessage());
+                        if (iterAttempts >= 2) throw e;
+                    }
+                }
 
                 // Phase D2 Fitness Authority Transfer
                 // Delegate terminal decision to Kernel based on cumulative session fitness

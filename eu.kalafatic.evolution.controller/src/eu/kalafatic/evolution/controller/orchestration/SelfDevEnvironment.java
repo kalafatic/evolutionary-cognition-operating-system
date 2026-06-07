@@ -33,8 +33,26 @@ public class SelfDevEnvironment extends BaseEvolutionEnvironment {
 
         Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
         evaluation.setScore(result.isSuccess() ? 1.0 : 0.0);
-        evaluation.setComment("Build " + (result.isSuccess() ? "SUCCESS" : "FAILURE") +
-                               " | Pass Rate: " + result.getTestPassRate());
+
+        String status = result.isSuccess() ? "SUCCESS" : "FAILURE";
+        String comment = "Build " + status + " | Pass Rate: " + result.getTestPassRate();
+        evaluation.setComment(comment);
+
+        // Phase G: Propagate detailed pressures to the Orchestrator
+        if (!result.isSuccess()) {
+            Pressure buildPressure = OrchestrationFactory.eINSTANCE.createPressure();
+            buildPressure.setName("Build Failure");
+            buildPressure.setDescription(result.getBuildError());
+            context.getOrchestrator().getPressures().add(buildPressure);
+
+            if (result.getFailedTests() != null && !result.getFailedTests().isEmpty()) {
+                Pressure testPressure = OrchestrationFactory.eINSTANCE.createPressure();
+                testPressure.setName("Test Regressions");
+                testPressure.setDescription(String.join(", ", result.getFailedTests()));
+                context.getOrchestrator().getPressures().add(testPressure);
+            }
+        }
+
         return evaluation;
     }
 
@@ -43,9 +61,16 @@ public class SelfDevEnvironment extends BaseEvolutionEnvironment {
         if (success) {
             context.log("SelfDevEnvironment: Committing successful iteration: " + iterationId);
             gitManager.commit("Self-Development Iteration " + iterationId + " success.");
+            if (!gitManager.verifyState()) {
+                context.log("SelfDevEnvironment: WARNING - State verification failed after commit.");
+            }
         } else {
             context.log("SelfDevEnvironment: Rolling back failed iteration: " + iterationId);
             gitManager.rollback();
+            if (!gitManager.verifyState()) {
+                context.log("SelfDevEnvironment: ERROR - State verification failed after rollback.");
+                throw new Exception("Environment state corrupted after rollback.");
+            }
         }
     }
 }

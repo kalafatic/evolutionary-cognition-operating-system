@@ -90,7 +90,7 @@ public class EvolutionOrchestrator implements IOrchestrator {
                     Lineage lineage = new IterationLineageAdapter(iteration);
 
                     // Consult Kernel for post-task strategy
-                    EvolutionDecision decision = kernel.analyze(new TaskArtifactAdapter(task), null, context);
+                    EvolutionDecision decision = kernel.analyze(new TaskArtifactAdapter(task), null, lineage, context);
                     if (decision == EvolutionDecision.BACKTRACK) {
                         Artifact target = kernel.selectTarget(lineage, decision, context);
                         int targetIndex = -1;
@@ -144,9 +144,10 @@ public class EvolutionOrchestrator implements IOrchestrator {
         OrchestrationStatusManager.getInstance().updateAgentStatus(agent.getType(), "Executing: " + task.getName());
 
         int attempt = 0;
-        while (true) {
+        int maxAttempts = 5; // Hard safety backstop
+        while (attempt < maxAttempts) {
             attempt++;
-            context.log("Orchestrator: Executing " + task.getName() + " (Attempt " + attempt + ")");
+            context.log("Orchestrator: Executing " + task.getName() + " (Attempt " + attempt + " of " + maxAttempts + ")");
 
             try {
                 String result = performAction(task, agent, context, lastFeedback);
@@ -159,7 +160,13 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 evaluation.setScore(evalJson.optBoolean("success", false) ? 1.0 : 0.0);
                 evaluation.setComment(evalJson.optString("feedback", ""));
 
-                EvolutionDecision decision = kernel.analyze(artifact, evaluation, context);
+                // In Phase F/G, Orchestrator handles per-task evolution via Kernel
+                Lineage lineage = null;
+                if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
+                    lineage = new IterationLineageAdapter(context.getOrchestrator().getSelfDevSession().getIterations().get(0));
+                }
+
+                EvolutionDecision decision = kernel.analyze(artifact, evaluation, lineage, context);
 
                 if (decision == EvolutionDecision.STABILIZE) {
                     task.setFeedback("Success: " + evalJson.optString("comment", "Pressure resolved."));
