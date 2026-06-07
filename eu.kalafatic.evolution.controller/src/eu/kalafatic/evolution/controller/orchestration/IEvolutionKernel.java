@@ -19,4 +19,10 @@ public interface IEvolutionKernel {
      * Propagates pressure through the system to drive mutation selection.
      */
     void applyPressure(Pressure pressure, TaskContext context);
+
+    /**
+     * Decides whether a failed evolutionary step should be retried.
+     * This transfers cognitive authority from the procedural loop to the kernel.
+     */
+    boolean shouldRetry(Artifact artifact, String failureFeedback, int attemptCount, TaskContext context);
 }

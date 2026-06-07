@@ -1,4 +1,4 @@
-# ECOS Architectural Status: PHASE C (ADAPTER INTRODUCTION)
+# ECOS Architectural Status: PHASE D1 (COGNITIVE AUTHORITY TRANSFER)
 
 # ECOS Architecture
 
