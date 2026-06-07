@@ -2,12 +2,8 @@ package eu.kalafatic.evolution.controller.orchestration.selfdev;
 
 import java.util.List;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
-import eu.kalafatic.evolution.model.orchestration.EvaluationResult;
-import eu.kalafatic.evolution.model.orchestration.Iteration;
-import eu.kalafatic.evolution.model.orchestration.IterationStatus;
-import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
-import eu.kalafatic.evolution.model.orchestration.SelfDevDecision;
-import eu.kalafatic.evolution.model.orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.*;
+import eu.kalafatic.evolution.controller.orchestration.*;
 
 public class IterationManager {
     private final Iteration iteration;
@@ -16,6 +12,7 @@ public class IterationManager {
     private final TaskPlanner planner;
     private final TaskExecutor executor;
     private final Evaluator evaluator;
+    private final IEvolutionKernel kernel = new BaseEvolutionKernel();
 
     public IterationManager(Iteration iteration, TaskContext context) {
         this.iteration = iteration;
@@ -62,13 +59,22 @@ public class IterationManager {
             EvaluationResult result = evaluator.evaluate();
             iteration.setEvaluationResult(result);
 
-            // 5. Decision
-            if (result.getDecision() == SelfDevDecision.CONTINUE) {
-                context.log("[ITERATION] Evaluation successful. Committing.");
+            // 5. Decision (Phase D2 Fitness Authority Transfer)
+            // Report facts (EvaluationResult) to Kernel and delegate decision
+            Lineage lineage = new IterationLineageAdapter(iteration);
+            Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
+            evaluation.setScore(result.isSuccess() ? 1.0 : 0.0);
+            evaluation.setComment("Build/Test result: " + result.isSuccess());
+
+            SelfDevDecision decision = kernel.decideStrategicAction(lineage, evaluation, context);
+            result.setDecision(decision);
+
+            if (decision == SelfDevDecision.CONTINUE) {
+                context.log("[ITERATION] Kernel approved fitness. Committing.");
                 gitManager.commit("Self-Development Iteration " + iteration.getId() + " success.");
                 iteration.setStatus(IterationStatus.DONE);
             } else {
-                context.log("[ITERATION] Evaluation failed or rollback required. Decision: " + result.getDecision());
+                context.log("[ITERATION] Kernel rejected fitness. Decision: " + decision);
                 gitManager.rollback();
                 iteration.setStatus(IterationStatus.FAILED);
             }

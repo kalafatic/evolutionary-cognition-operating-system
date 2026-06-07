@@ -52,6 +52,25 @@ public class OrchestrationFactoryImpl extends EFactoryImpl implements Orchestrat
         }
     }
 
+    @Override public Object createFromString(EDataType eDataType, String initialValue) {
+        switch (eDataType.getClassifierID()) {
+            case OrchestrationPackage.TASK_STATUS: return TaskStatus.get(initialValue);
+            case OrchestrationPackage.COMMAND_STATUS: return CommandStatus.get(initialValue);
+            case OrchestrationPackage.EXECUTION_MODE: return ExecutionMode.get(initialValue);
+            case OrchestrationPackage.NEURON_TYPE: return NeuronType.get(initialValue);
+            case OrchestrationPackage.AI_MODE: return AiMode.get(initialValue);
+            case OrchestrationPackage.SELF_DEV_STATUS: return SelfDevStatus.get(initialValue);
+            case OrchestrationPackage.ITERATION_STATUS: return IterationStatus.get(initialValue);
+            case OrchestrationPackage.SELF_DEV_DECISION: return SelfDevDecision.get(initialValue);
+            case OrchestrationPackage.EVOLUTION_DECISION: return EvolutionDecision.get(initialValue);
+            default: throw new IllegalArgumentException("Unknown datatype");
+        }
+    }
+
+    @Override public String convertToString(EDataType eDataType, Object instanceValue) {
+        return instanceValue == null ? null : instanceValue.toString();
+    }
+
     @Override public Task createTask() { return new TaskImpl(); }
     @Override public Agent createAgent() { return new AgentImpl(); }
     @Override public Orchestrator createOrchestrator() { return new OrchestratorImpl(); }

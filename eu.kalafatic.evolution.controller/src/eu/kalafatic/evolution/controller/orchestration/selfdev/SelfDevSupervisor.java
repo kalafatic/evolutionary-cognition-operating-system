@@ -1,16 +1,12 @@
 package eu.kalafatic.evolution.controller.orchestration.selfdev;
 
-import eu.kalafatic.evolution.controller.orchestration.TaskContext;
-import eu.kalafatic.evolution.model.orchestration.EvaluationResult;
-import eu.kalafatic.evolution.model.orchestration.Iteration;
-import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
-import eu.kalafatic.evolution.model.orchestration.SelfDevDecision;
-import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
-import eu.kalafatic.evolution.model.orchestration.SelfDevStatus;
+import eu.kalafatic.evolution.controller.orchestration.*;
+import eu.kalafatic.evolution.model.orchestration.*;
 
 public class SelfDevSupervisor {
     private final SelfDevSession session;
     private final TaskContext context;
+    private final IEvolutionKernel kernel = new BaseEvolutionKernel();
     private static final int MAX_FAILURES = 3;
 
     public SelfDevSupervisor(SelfDevSession session, TaskContext context) {
@@ -42,6 +38,21 @@ public class SelfDevSupervisor {
                 IterationManager iterationManager = new IterationManager(iteration, context);
                 EvaluationResult result = iterationManager.run();
 
+                // Phase D2 Fitness Authority Transfer
+                // Delegate terminal decision to Kernel based on cumulative session fitness
+                Lineage lineage = new IterationLineageAdapter(iteration);
+                Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
+                evaluation.setScore(result.isSuccess() ? 1.0 : 0.0);
+                evaluation.setComment("Iteration " + i + " complete. Success: " + result.isSuccess());
+
+                SelfDevDecision decision = kernel.decideStrategicAction(lineage, evaluation, context);
+
+                if (decision == SelfDevDecision.STOP) {
+                    context.log("[SUPERVISOR] Kernel requested STOP. Terminating session.");
+                    session.setStatus(SelfDevStatus.COMPLETED);
+                    break;
+                }
+
                 if (!result.isSuccess()) {
                     failureCount++;
                     context.log("[SUPERVISOR] Iteration " + i + " failed. Total failures: " + failureCount);
@@ -50,12 +61,6 @@ public class SelfDevSupervisor {
                         session.setStatus(SelfDevStatus.FAILED);
                         break;
                     }
-                }
-
-                if (result.getDecision() == SelfDevDecision.STOP) {
-                    context.log("[SUPERVISOR] STOP decision reached. Terminating session.");
-                    session.setStatus(SelfDevStatus.COMPLETED);
-                    break;
                 }
 
                 restartManager.persistAndPrepareForRestart();

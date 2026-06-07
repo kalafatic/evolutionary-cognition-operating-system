@@ -24,3 +24,10 @@
 - Phase D1 Step 2: Transferred loop/recursion authority to EvolutionKernel.
 - Introduced selectTarget() to IEvolutionKernel for lineage navigation.
 - Enabled pressure-driven BACKTRACK and STABILIZE decisions.
+
+## [2.6.5] - 2026-06-07
+### Changed
+- Phase D2: Transferred Strategic Fitness Authority to EvolutionKernel.
+- IterationManager now delegates COMMIT/ROLLBACK decisions to the kernel.
+- SelfDevSupervisor now delegates session finalization to the kernel.
+- EvolutionKernel now manages high-level strategic transitions based on evaluation facts.

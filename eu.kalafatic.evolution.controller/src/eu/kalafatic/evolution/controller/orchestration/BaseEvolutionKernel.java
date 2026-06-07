@@ -62,4 +62,22 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
 
         return lineage.getSurvivor();
     }
+
+    @Override
+    public SelfDevDecision decideStrategicAction(Lineage lineage, Evaluation evaluation, TaskContext context) {
+        context.log("Kernel: Strategic assessment for lineage: " + lineage.getId());
+
+        if (evaluation == null) {
+            return SelfDevDecision.CONTINUE;
+        }
+
+        if (evaluation.getScore() >= 1.0) {
+            context.log("Kernel: Fitness acceptable. Decision: CONTINUE (Commit)");
+            return SelfDevDecision.CONTINUE;
+        }
+
+        // Logic for terminal failure
+        context.log("Kernel: Fitness unacceptable. Decision: ROLLBACK");
+        return SelfDevDecision.ROLLBACK;
+    }
 }

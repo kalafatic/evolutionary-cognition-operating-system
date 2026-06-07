@@ -29,9 +29,10 @@ The transfer will occur incrementally to preserve existing behavior while shifti
 - **Action**: Introduce `shouldContinue` to `IEvolutionKernel`.
 - **Delegation**: `EvolutionOrchestrator` consults the kernel after each task execution to determine if it should jump back to a previous artifact state.
 
-### Step 3: Rollback & Selection Authority
-- **Action**: Introduce `evaluateFitness` to `IEvolutionKernel`.
-- **Delegation**: `SelfDevSupervisor` delegates the "Success/Failure" decision to the kernel's evaluation of the lineage survivor.
+### Step 3: Strategic Fitness Authority (Phase D2) (Completed)
+- **Action**: Introduce \`decideStrategicAction(Lineage, Evaluation)\` to \`IEvolutionKernel\`.
+- **Decision**: Kernel returns strategic intent (COMMIT, ROLLBACK, STOP).
+- **Delegation**: \`IterationManager\` and \`SelfDevSupervisor\` report facts (build results, test rates) as \`Evaluation\` inputs and delegate action selection to the kernel.
 
 ---
 
