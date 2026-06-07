@@ -10,12 +10,12 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
     public Artifact evolve(Lineage lineage, Pressure pressure, IEvolutionEnvironment environment, TaskContext context) throws Exception {
-        context.log("Kernel: Evolving lineage: " + lineage.getId());
+        if (context != null) context.log("Kernel: Evolving lineage: " + lineage.getId());
 
-        // 1. Identify Ancestor
+        // 1. Identify Ancestor (latest candidate or survivor)
         Artifact ancestor = lineage.getSurvivor();
         if (ancestor == null && !lineage.getCandidates().isEmpty()) {
-            ancestor = lineage.getCandidates().get(0);
+            ancestor = lineage.getCandidates().get(lineage.getCandidates().size() - 1);
         }
 
         // 2. Report Facts from Environment (Evaluation)
@@ -33,10 +33,10 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
         if (strategy == EvolutionDecision.STABILIZE) {
             lineage.setSurvivor(ancestor);
             environment.finalize(true, context);
-            context.log("Kernel: Lineage stabilized at artifact: " + ancestor.getId());
+            if (context != null) context.log("Kernel: Lineage stabilized at artifact: " + ancestor.getId());
         } else if (strategy == EvolutionDecision.MUTATE) {
             // In a full implementation, this would trigger mutation generation
-            context.log("Kernel: Mutation required for lineage: " + lineage.getId());
+            if (context != null) context.log("Kernel: Mutation required for lineage: " + lineage.getId());
         } else if (strategy == EvolutionDecision.BACKTRACK || strategy == EvolutionDecision.ABORT) {
             environment.finalize(false, context);
         }
@@ -46,20 +46,20 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
     public void applyPressure(Pressure pressure, TaskContext context) {
-        context.log("Kernel: Applying pressure: " + pressure.getName());
+        if (context != null) context.log("Kernel: Applying pressure: " + pressure.getName());
     }
 
     @Override
     public EvolutionDecision analyze(Artifact artifact, Evaluation evaluation, Lineage lineage, TaskContext context) {
         if (evaluation == null) {
-            context.log("Kernel: Post-task sequence analysis for artifact [" + artifact.getId() + "]");
+            if (context != null) context.log("Kernel: Post-task sequence analysis for artifact [" + artifact.getId() + "]");
             return EvolutionDecision.MUTATE;
         }
 
-        context.log("Kernel: Analyzing evaluation for artifact [" + artifact.getId() + "]");
+        if (context != null) context.log("Kernel: Analyzing evaluation for artifact [" + artifact.getId() + "]");
 
-        if (evaluation.getScore() >= 1.0) {
-            context.log("Kernel: Pressure resolved (Fitness: " + evaluation.getScore() + "). Decision: STABILIZE");
+        if (evaluation.getScore() >= 0.99) {
+            if (context != null) context.log("Kernel: Pressure resolved (Fitness: " + evaluation.getScore() + "). Decision: STABILIZE");
             return EvolutionDecision.STABILIZE;
         }
 
@@ -77,21 +77,21 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
                     Evaluation prevEval = prevStep.getEvaluations().get(0);
 
                     if (evaluation.getScore() <= lastEval.getScore() && lastEval.getScore() <= prevEval.getScore()) {
-                        context.log("Kernel: Pressure is stagnant (No improvement in score over 3 steps). Decision: BACKTRACK");
+                        if (context != null) context.log("Kernel: Pressure is stagnant (No improvement in score over 3 steps). Decision: BACKTRACK");
                         return EvolutionDecision.BACKTRACK;
                     }
                 }
             }
         }
 
-        context.log("Kernel: Unresolved pressure detected (Fitness: " + evaluation.getScore() + "). Decision: MUTATE");
+        if (context != null) context.log("Kernel: Unresolved pressure detected (Fitness: " + evaluation.getScore() + "). Decision: MUTATE");
         return EvolutionDecision.MUTATE;
     }
 
     @Override
     public Artifact selectTarget(Lineage lineage, EvolutionDecision decision, TaskContext context) {
         if (decision == EvolutionDecision.BACKTRACK) {
-            context.log("Kernel: Backtracking to survivor artifact: " + lineage.getSurvivor().getId());
+            if (context != null) context.log("Kernel: Backtracking to survivor artifact: " + lineage.getSurvivor().getId());
             return lineage.getSurvivor();
         }
 
@@ -105,19 +105,19 @@ public class BaseEvolutionKernel implements IEvolutionKernel {
 
     @Override
     public SelfDevDecision decideStrategicAction(Lineage lineage, Evaluation evaluation, TaskContext context) {
-        context.log("Kernel: Strategic assessment for lineage: " + lineage.getId());
+        if (context != null) context.log("Kernel: Strategic assessment for lineage: " + lineage.getId());
 
         if (evaluation == null) {
             return SelfDevDecision.CONTINUE;
         }
 
         if (evaluation.getScore() >= 1.0) {
-            context.log("Kernel: Fitness acceptable. Decision: CONTINUE (Commit)");
+            if (context != null) context.log("Kernel: Fitness acceptable. Decision: CONTINUE (Commit)");
             return SelfDevDecision.CONTINUE;
         }
 
         // Logic for terminal failure
-        context.log("Kernel: Fitness unacceptable. Decision: ROLLBACK");
+        if (context != null) context.log("Kernel: Fitness unacceptable. Decision: ROLLBACK");
         return SelfDevDecision.ROLLBACK;
     }
 }

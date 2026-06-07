@@ -185,6 +185,7 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 return false;
             }
         }
+        return false;
     }
 
     private String performAction(Task task, IAgent agent, TaskContext context, String lastFeedback) throws Exception {

@@ -42,15 +42,8 @@ public class SelfDevEnvironment extends BaseEvolutionEnvironment {
         if (!result.isSuccess()) {
             Pressure buildPressure = OrchestrationFactory.eINSTANCE.createPressure();
             buildPressure.setName("Build Failure");
-            buildPressure.setDescription(result.getBuildError());
+            buildPressure.setDescription(String.join("\n", result.getErrors()));
             context.getOrchestrator().getPressures().add(buildPressure);
-
-            if (result.getFailedTests() != null && !result.getFailedTests().isEmpty()) {
-                Pressure testPressure = OrchestrationFactory.eINSTANCE.createPressure();
-                testPressure.setName("Test Regressions");
-                testPressure.setDescription(String.join(", ", result.getFailedTests()));
-                context.getOrchestrator().getPressures().add(testPressure);
-            }
         }
 
         return evaluation;
