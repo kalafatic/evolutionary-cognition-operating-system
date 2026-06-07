@@ -15,6 +15,7 @@ import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
 public class EvolutionOrchestrator implements IOrchestrator {
 
     private static final int MAX_RETRIES = 3;
+    private final IEvolutionKernel kernel = new BaseEvolutionKernel();
     private final PlannerAgent planner = new PlannerAgent();
     private final List<IAgent> availableAgents = new ArrayList<>();
     private final ReviewerAgent reviewer = new ReviewerAgent();
@@ -73,6 +74,14 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 task.setStatus(TaskStatus.RUNNING);
                 double progress = (double) i / taskCount;
                 updateStatus(context, progress, "Executing: " + task.getName());
+
+                // Use the Evolution Kernel for execution via the TaskAdapter
+                if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
+                    context.log("Orchestrator: Delegating task to Evolution Kernel...");
+                    // Get the last (current) iteration for evolution
+                    List<eu.kalafatic.evolution.model.orchestration.Iteration> iterations = context.getOrchestrator().getSelfDevSession().getIterations();
+                    kernel.evolve(new IterationLineageAdapter(iterations.get(iterations.size() - 1)), null, context);
+                }
 
                 boolean success = executeTaskWithRetries(task, context);
 
