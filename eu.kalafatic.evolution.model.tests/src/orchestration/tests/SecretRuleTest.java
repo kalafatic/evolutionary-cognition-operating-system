@@ -4,8 +4,8 @@ package orchestration.tests;
 
 import junit.textui.TestRunner;
 
-import orchestration.OrchestrationFactory;
-import orchestration.SecretRule;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.SecretRule;
 
 /**
  * <!-- begin-user-doc -->
