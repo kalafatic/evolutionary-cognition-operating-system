@@ -1,49 +1,42 @@
 package eu.kalafatic.evolution.controller.orchestration.selfdev;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
-import eu.kalafatic.evolution.controller.orchestration.EvolutionOrchestrator;
+import eu.kalafatic.evolution.controller.orchestration.IOrchestrator;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.model.orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
 
 public class TaskExecutor {
-    private final EvolutionOrchestrator orchestrator;
-    private final TaskContext context;
+    private final Orchestrator model;
+    private final IOrchestrator orchestrator;
 
-    public TaskExecutor(TaskContext context) {
-        this(context, context.getOrchestrator());
+    public TaskExecutor(Orchestrator model, IOrchestrator orchestrator) {
+        this.model = model;
+        this.orchestrator = orchestrator;
     }
 
-    public TaskExecutor(TaskContext context, eu.kalafatic.evolution.model.orchestration.Orchestrator orchestrator) {
-        this.context = context;
-        eu.kalafatic.evolution.controller.orchestration.SessionContainer session = eu.kalafatic.evolution.controller.orchestration.SessionManager.getInstance().getSession(context.getSessionId());
-        this.orchestrator = (orchestrator instanceof EvolutionOrchestrator) ? (EvolutionOrchestrator) orchestrator : new EvolutionOrchestrator(session);
-    }
-
-    public EvolutionOrchestrator getOrchestrator() {
+    public IOrchestrator getOrchestrator() {
         return orchestrator;
     }
 
-    public boolean executeTasks(List<Task> tasks) {
-        return executeTasks(tasks, null);
+    public boolean executeBuild(File dir, TaskContext context) throws Exception {
+        Task task = OrchestrationFactory.eINSTANCE.createTask();
+        task.setType(EvolutionConstants.TASK_MAVEN);
+        task.setName("clean package -DskipTests");
+        String result = orchestrator.executeTask(task, context);
+        return result != null && !result.toLowerCase().contains("fail");
     }
 
-    public boolean executeTasks(List<Task> tasks, eu.kalafatic.evolution.controller.orchestration.AiService aiService) {
-        context.log("[EXECUTOR] Routing " + tasks.size() + " tasks to the Kernel Control Plane.");
-        // If this is called, it might be from a legacy path or a recursive variant evaluation.
-        // We SHOULD NOT create a new IterationManager here if we are already in one,
-        // but TaskExecutor currently doesn't have a direct reference to its parent IterationManager
-        // to avoid circular dependencies in constructors.
-
-        // HOWEVER, EvolutionOrchestrator (which this class owns) can execute tasks directly.
-        try {
-            for (Task task : tasks) {
-                orchestrator.executeTask(task, context);
-            }
-            return true;
-        } catch (Exception e) {
-            context.log("[EXECUTOR] Direct execution failed: " + e.getMessage());
-            return false;
-        }
+    public boolean executeTests(File dir, TaskContext context) throws Exception {
+        Task task = OrchestrationFactory.eINSTANCE.createTask();
+        task.setType(EvolutionConstants.TASK_MAVEN);
+        task.setName("test");
+        String result = orchestrator.executeTask(task, context);
+        return result != null && !result.toLowerCase().contains("fail");
     }
 }

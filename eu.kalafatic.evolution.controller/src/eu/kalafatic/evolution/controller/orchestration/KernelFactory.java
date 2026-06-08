@@ -23,9 +23,9 @@ public class KernelFactory {
     public static IterationManager create(TaskContext context, SessionContainer sessionContext, AiService aiService) {
         GitManager gitManager = new GitManager(context.getProjectRoot());
         TaskPlanner taskPlanner = new TaskPlanner(sessionContext);
-        TaskExecutor taskExecutor = new TaskExecutor(context, context.getOrchestrator());
-        if (taskExecutor.getOrchestrator() != null) {
-            taskExecutor.getOrchestrator().setAiService(aiService);
+        TaskExecutor taskExecutor = new TaskExecutor(context.getOrchestrator(), context.getOrchestrator() instanceof IOrchestrator ? (IOrchestrator)context.getOrchestrator() : null);
+        if (taskExecutor.getOrchestrator() instanceof EvolutionOrchestrator) {
+            ((EvolutionOrchestrator)taskExecutor.getOrchestrator()).setAiService(aiService);
         }
         Evaluator evaluator = new Evaluator(context.getProjectRoot(), context);
 

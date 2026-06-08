@@ -275,7 +275,9 @@ public class IterationManager {
             }
         });
         darwinEngine.setAiService(aiService);
-        taskExecutor.getOrchestrator().setAiService(aiService);
+        if (taskExecutor.getOrchestrator() instanceof EvolutionOrchestrator) {
+            ((EvolutionOrchestrator)taskExecutor.getOrchestrator()).setAiService(aiService);
+        }
     }
 
     public OrchestratorResponse handle(TaskRequest taskRequest) throws Exception {
