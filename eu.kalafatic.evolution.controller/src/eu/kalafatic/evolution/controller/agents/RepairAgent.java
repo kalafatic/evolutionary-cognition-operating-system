@@ -1,5 +1,8 @@
 package eu.kalafatic.evolution.controller.agents;
 
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+
 import eu.kalafatic.evolution.controller.tools.FileTool;
 
 /**
@@ -8,7 +11,7 @@ import eu.kalafatic.evolution.controller.tools.FileTool;
 public class RepairAgent extends BaseAiAgent {
     public RepairAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Repair", "Repair", container);
-        addTool(new FileTool());
+        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_FILE));
     }
 
     @Override

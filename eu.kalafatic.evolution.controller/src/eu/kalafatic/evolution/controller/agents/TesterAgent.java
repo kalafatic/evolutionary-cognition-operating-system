@@ -1,5 +1,8 @@
 package eu.kalafatic.evolution.controller.agents;
 
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+
 import org.json.JSONObject;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.trajectory.EvaluationSignal;
@@ -16,8 +19,8 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class TesterAgent extends BaseAiAgent {
     public TesterAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Tester", "Tester", container);
-        addTool(new MavenTool());
-        addTool(new ShellTool());
+        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_MAVEN));
+        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_SHELL));
     }
 
 

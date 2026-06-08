@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import eu.kalafatic.evolution.controller.tools.ShellTool;
+import eu.kalafatic.evolution.controller.tools.ITool;
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 
-public class GitVersionControlProvider implements VersionControlProvider {
-    private ShellTool shell = new ShellTool();
+public class GitVersionControlProvider implements IRepositoryProvider {
+    private ITool shell = ToolFactory.getTool(EvolutionConstants.TOOL_SHELL);
 
     @Override
     public List<String> fetchCommits(File workingDir) throws Exception {

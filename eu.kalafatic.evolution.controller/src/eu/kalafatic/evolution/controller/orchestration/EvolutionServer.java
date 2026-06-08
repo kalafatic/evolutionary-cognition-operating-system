@@ -23,7 +23,9 @@ import org.json.JSONObject;
 
 import eu.kalafatic.evolution.controller.manager.OllamaModel;
 import eu.kalafatic.evolution.controller.manager.OllamaService;
-import eu.kalafatic.evolution.controller.tools.GitTool;
+import eu.kalafatic.evolution.controller.tools.ITool;
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 import eu.kalafatic.evolution.model.orchestration.ChatMessage;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
@@ -511,10 +513,10 @@ public class EvolutionServer extends NanoHTTPD {
                 new JSONObject().put("error", "Access denied: Root directory is outside allowed scope.").toString());
         }
 
-        GitTool gitTool = new GitTool();
+        ITool gitTool = ToolFactory.getTool(EvolutionConstants.TOOL_GIT);
         List<String> branches = Collections.emptyList();
         try {
-            branches = gitTool.getBranches(root);
+            branches = ((eu.kalafatic.evolution.controller.tools.GitTool)gitTool).getBranches(root);
         } catch (Exception e) {}
         JSONArray array = new JSONArray(branches);
 

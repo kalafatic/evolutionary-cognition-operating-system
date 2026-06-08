@@ -26,6 +26,8 @@ public class LlmRouter {
     }
 
     private ILlmProvider ollamaProvider = new OllamaProvider();
+    private ILlmProvider openAiProvider = new OpenAIProvider();
+    private ILlmProvider geminiProvider = new GeminiProvider();
 
     public void setLocalProvider(ILlmProvider provider) {
         this.ollamaProvider = provider;
@@ -35,8 +37,13 @@ public class LlmRouter {
         return ollamaProvider;
     }
 
-    private final ILlmProvider openAiProvider = new OpenAIProvider();
-    private final ILlmProvider geminiProvider = new GeminiProvider();
+    public void setOpenAiProvider(ILlmProvider provider) {
+        this.openAiProvider = provider;
+    }
+
+    public void setGeminiProvider(ILlmProvider provider) {
+        this.geminiProvider = provider;
+    }
 
     /**
      * Routes the request to the appropriate LLM provider.

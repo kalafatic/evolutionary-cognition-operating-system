@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import eu.kalafatic.evolution.controller.orchestration.FileChangeTracker;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
-import eu.kalafatic.evolution.controller.tools.GitTool;
+import eu.kalafatic.evolution.controller.tools.ITool;
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 
 /**
  * Analyzer for workspace deltas to perform semantic reality validation.
@@ -16,7 +18,7 @@ import eu.kalafatic.evolution.controller.tools.GitTool;
 public class WorkspaceDeltaAnalyzer {
     private final File projectRoot;
     private final TaskContext context;
-    private final GitTool gitTool = new GitTool();
+    private final ITool gitTool = ToolFactory.getTool(EvolutionConstants.TOOL_GIT);
 
     public WorkspaceDeltaAnalyzer(File projectRoot, TaskContext context) {
         this.projectRoot = projectRoot;

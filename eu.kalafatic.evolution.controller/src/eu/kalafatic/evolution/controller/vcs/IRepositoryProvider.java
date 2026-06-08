@@ -3,7 +3,7 @@ package eu.kalafatic.evolution.controller.vcs;
 import java.io.File;
 import java.util.List;
 
-public interface VersionControlProvider {
+public interface IRepositoryProvider {
     List<String> fetchCommits(File workingDir) throws Exception;
     String getDiff(File workingDir, String commitId) throws Exception;
     String getFileDiff(File workingDir, String commitId, String filePath) throws Exception;

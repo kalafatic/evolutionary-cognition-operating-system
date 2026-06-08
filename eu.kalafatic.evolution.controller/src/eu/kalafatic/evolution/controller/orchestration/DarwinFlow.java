@@ -25,7 +25,9 @@ import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceDeltaA
 import eu.kalafatic.evolution.controller.supervision.ActivationResolver;
 import eu.kalafatic.evolution.controller.supervision.AuthorityController;
 import eu.kalafatic.evolution.controller.supervision.DecisionSnapshot;
-import eu.kalafatic.evolution.controller.tools.GitTool;
+import eu.kalafatic.evolution.controller.tools.ITool;
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 import eu.kalafatic.evolution.controller.trajectory.ResultSynthesizer;
 import eu.kalafatic.evolution.controller.trajectory.Trajectory;
 import eu.kalafatic.evolution.controller.trajectory.TrajectoryAnalysisRecord;
@@ -345,7 +347,7 @@ public class DarwinFlow implements IOrchestrationFlow {
                 manager.checkStep(task.getId(), "GIT_STAGING", "Staging changes for task: " + task.getName());
 
                 try {
-                    GitTool gitTool = new GitTool();
+                    ITool gitTool = ToolFactory.getTool(EvolutionConstants.TOOL_GIT);
                     String diff = gitTool.execute("diff HEAD", tempDir, variantContext);
 
                     RuntimeEvent event = new RuntimeEvent(
@@ -381,7 +383,7 @@ public class DarwinFlow implements IOrchestrationFlow {
                 manager.updateVariantLifecycle(List.of(variant), variant.getId(), BranchVariant.ActivationState.SCORING, context);
             }
 
-            GitTool deltaTool = new GitTool();
+            ITool deltaTool = ToolFactory.getTool(EvolutionConstants.TOOL_GIT);
             variant.setMutationTrace(deltaTool.execute("diff " + baseCommit + " HEAD", tempDir, variantContext));
             variant.setScore(result.isSuccess() ? 0.8 + (result.getTestPassRate() * 0.2) : result.getTestPassRate() * 0.5);
 

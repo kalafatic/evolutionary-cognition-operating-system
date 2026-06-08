@@ -18,7 +18,8 @@ import eu.kalafatic.evolution.controller.orchestration.capability.CapabilityStat
 import eu.kalafatic.evolution.controller.orchestration.capability.ICapability;
 import eu.kalafatic.evolution.controller.orchestration.capability.contracts.IEvaluationContract;
 import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceArtifact;
-import eu.kalafatic.evolution.controller.tools.MavenTool;
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 import eu.kalafatic.evolution.controller.trajectory.EvaluationSignal;
 import eu.kalafatic.evolution.controller.trajectory.FitnessEvaluation;
 import eu.kalafatic.evolution.controller.trajectory.SignalSeverity;
@@ -32,7 +33,7 @@ import eu.kalafatic.evolution.model.orchestration.SelfDevDecision;
 public class Evaluator implements ICapability, IEvaluationContract {
     private final File projectRoot;
     private final TaskContext context;
-    private eu.kalafatic.evolution.controller.tools.ITool mavenTool = new MavenTool();
+    private eu.kalafatic.evolution.controller.tools.ITool mavenTool = ToolFactory.getTool(EvolutionConstants.TOOL_MAVEN);
     private CapabilityStatus status = CapabilityStatus.STOPPED;
 
     public eu.kalafatic.evolution.controller.tools.ITool getMavenTool() {

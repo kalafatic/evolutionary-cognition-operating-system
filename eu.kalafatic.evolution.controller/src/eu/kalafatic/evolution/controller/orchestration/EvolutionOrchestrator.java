@@ -4,12 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import eu.kalafatic.evolution.controller.agents.AgentFactory;
-import eu.kalafatic.evolution.controller.agents.AnalyticAgent;
 import eu.kalafatic.evolution.controller.agents.BaseAiAgent;
 import eu.kalafatic.evolution.controller.agents.IAgent;
-import eu.kalafatic.evolution.controller.agents.ProposalConsolidatorAgent;
-import eu.kalafatic.evolution.controller.agents.RepairAgent;
-import eu.kalafatic.evolution.controller.agents.ValidatorAgent;
 import eu.kalafatic.evolution.controller.orchestration.util.CodeExtractor;
 import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 import eu.kalafatic.evolution.controller.tools.ToolFactory;
@@ -23,10 +19,10 @@ import eu.kalafatic.evolution.model.orchestration.Task;
 public class EvolutionOrchestrator implements IOrchestrator {
 
     private static final int MAX_RETRIES = EvolutionConstants.MAX_TASK_RETRIES;
-    private AnalyticAgent analyticAgent;
-    private ValidatorAgent validator;
-    private RepairAgent repairAgent;
-    private ProposalConsolidatorAgent consolidator;
+    private IAgent analyticAgent;
+    private IAgent validator;
+    private IAgent repairAgent;
+    private IAgent consolidator;
     private final List<IAgent> availableAgents = new ArrayList<>();
     private AiService aiService = new AiService();
     private final SessionContainer sessionContainer;
@@ -47,10 +43,10 @@ public class EvolutionOrchestrator implements IOrchestrator {
             }
 
             availableAgents.addAll(registry.values());
-            analyticAgent = (AnalyticAgent) registry.get(EvolutionConstants.AGENT_ANALYTIC);
-            validator = (ValidatorAgent) registry.get(EvolutionConstants.AGENT_VALIDATOR);
-            repairAgent = (RepairAgent) registry.get(EvolutionConstants.AGENT_REPAIR);
-            consolidator = (ProposalConsolidatorAgent) registry.get(EvolutionConstants.AGENT_PROPOSAL_CONSOLIDATOR);
+            analyticAgent = registry.get(EvolutionConstants.AGENT_ANALYTIC);
+            validator = registry.get(EvolutionConstants.AGENT_VALIDATOR);
+            repairAgent = registry.get(EvolutionConstants.AGENT_REPAIR);
+            consolidator = registry.get(EvolutionConstants.AGENT_PROPOSAL_CONSOLIDATOR);
         } else {
             // Orchestrator without a container is now discouraged but kept for some legacy paths
             // We should ideally throw an exception here if we want STRICT isolation

@@ -11,8 +11,8 @@ import eu.kalafatic.evolution.controller.orchestration.TaskContext;
  * @evo:21:A reason=unified-validator-role
  */
 public class ValidatorAgent extends BaseAiAgent {
-    private final ReviewerAgent reviewer;
-    private final ConstraintAgent constraintAgent;
+    private final IAgent reviewer;
+    private final IAgent constraintAgent;
 
     public ValidatorAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Validator", "Validator", container);
@@ -38,15 +38,23 @@ public class ValidatorAgent extends BaseAiAgent {
         String result = change.getPatch();
 
         // 1. Review completion
-        JSONObject reviewEval = reviewer.evaluate(result, taskName, context);
-        if (!reviewEval.optBoolean("success", false)) {
+        JSONObject reviewEval = null;
+        if (reviewer instanceof ReviewerAgent) {
+            reviewEval = ((ReviewerAgent)reviewer).evaluate(result, taskName, context);
+        }
+
+        if (reviewEval != null && !reviewEval.optBoolean("success", false)) {
             context.log("Validator: Reviewer failed. Reason: " + reviewEval.optString("feedback"));
             return reviewEval;
         }
 
         // 2. Verify constraints
-        JSONObject constraintEval = constraintAgent.evaluate(result, taskName, context);
-        if (!constraintEval.optBoolean("success", false)) {
+        JSONObject constraintEval = null;
+        if (constraintAgent instanceof ConstraintAgent) {
+            constraintEval = ((ConstraintAgent)constraintAgent).evaluate(result, taskName, context);
+        }
+
+        if (constraintEval != null && !constraintEval.optBoolean("success", false)) {
             context.log("Validator: Constraint violation detected. Reason: " + constraintEval.optString("feedback"));
             return constraintEval;
         }
