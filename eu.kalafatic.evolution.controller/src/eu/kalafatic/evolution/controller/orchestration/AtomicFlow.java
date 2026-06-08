@@ -15,11 +15,6 @@ public class AtomicFlow implements IOrchestrationFlow {
     @Override
     public OrchestratorResponse execute(String request, TaskContext context) throws Exception {
         context.log("[KERNEL] Executing Atomic Flow (Delegating to DarwinFlow).");
-        try {
-            return new DarwinFlow(aiService, manager).execute(request, context);
-        } catch (Exception e) {
-            manager.getGitManager().rollback();
-            throw e;
-        }
+        return new DarwinFlow(aiService, manager).execute(request, context);
     }
 }

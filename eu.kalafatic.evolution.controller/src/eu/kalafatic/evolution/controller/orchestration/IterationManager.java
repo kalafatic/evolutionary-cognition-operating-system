@@ -57,11 +57,9 @@ import eu.kalafatic.evolution.controller.orchestration.intent.IntentExpansionRes
 import eu.kalafatic.evolution.controller.orchestration.selfdev.BranchVariant;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.DarwinEngine;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.Evaluator;
-import eu.kalafatic.evolution.controller.orchestration.selfdev.GitManager;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationRecord;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.StateSnapshot;
-import eu.kalafatic.evolution.controller.orchestration.selfdev.TaskExecutor;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.TaskPlanner;
 import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceArtifact;
@@ -106,9 +104,7 @@ public class IterationManager {
     private final TaskContext context;
     private SessionContainer sessionContainer;
     private final AiService aiService;
-    private final GitManager gitManager;
     private final TaskPlanner taskPlanner;
-    private final TaskExecutor taskExecutor;
     private final Evaluator evaluator;
     private final DarwinEngine darwinEngine;
     private final IterationMemoryService memoryService;
@@ -143,9 +139,7 @@ public class IterationManager {
 
     public TaskContext getContext() { return context; }
     public AiService getAiService() { return aiService; }
-    public GitManager getGitManager() { return gitManager; }
     public TaskPlanner getTaskPlanner() { return taskPlanner; }
-    public TaskExecutor getTaskExecutor() { return taskExecutor; }
     public Evaluator getEvaluator() { return evaluator; }
     public DarwinEngine getDarwinEngine() { return darwinEngine; }
     public PhaseEngine getPhaseEngine() { return phaseEngine; }
@@ -170,18 +164,14 @@ public class IterationManager {
             TaskContext context,
             eu.kalafatic.evolution.controller.orchestration.SessionContainer sessionContainer,
             AiService aiService,
-            GitManager gitManager,
             TaskPlanner taskPlanner,
-            TaskExecutor taskExecutor,
             Evaluator evaluator,
             DarwinEngine darwinEngine,
             IterationMemoryService memoryService) {
         this.context = context;
         this.sessionContainer = sessionContainer;
         this.aiService = aiService;
-        this.gitManager = gitManager;
         this.taskPlanner = taskPlanner;
-        this.taskExecutor = taskExecutor;
         this.evaluator = evaluator;
         this.darwinEngine = darwinEngine;
         this.memoryService = memoryService;
@@ -232,16 +222,14 @@ public class IterationManager {
 
         // Initialize Kernel Components
         this.phaseEngine = new DefaultPhaseEngine();
-        this.branchManager = new DefaultBranchManager(gitManager);
+        this.branchManager = new DefaultBranchManager(); // No Git in Controller
         this.mutationEngine = new DefaultMutationEngine(darwinEngine);
         this.fitnessEngine = new DefaultFitnessEngine(evaluator, sessionContainer);
         this.realityEngine = new DefaultRealityEngine(context.getProjectRoot(), context);
         this.authorityEngine = new DefaultAuthorityEngine(context.getKernelContext().getAuthority());
         this.trajectoryEngine = new DefaultTrajectoryEngine(memoryService);
         this.pressureEngine = sessionContainer.getPressureEngine();
-        this.gitAdapter = new DefaultGitEvolutionAdapter(gitManager);
-
-        context.getKernelContext().setGitManager(gitManager);
+        this.gitAdapter = new DefaultGitEvolutionAdapter(); // No Git in Controller
 
         // Register Capabilities
         try {
@@ -275,7 +263,6 @@ public class IterationManager {
             }
         });
         darwinEngine.setAiService(aiService);
-        taskExecutor.getOrchestrator().setAiService(aiService);
     }
 
     public OrchestratorResponse handle(TaskRequest taskRequest) throws Exception {
@@ -357,7 +344,7 @@ public class IterationManager {
 
             // 1. DISCOVERY phase
             if (!profile.hasTrait(BehaviorTrait.REASONING_ATOMIC)) {
-                if (gitManager.isGitRepository()) {
+                if (context.getProjectRoot().exists()) {
                     transition(SystemState.ANALYZING, context);
                     context.log("[KERNEL] Discovery: Inspecting repository structure.");
                     String projectStructure = structureAgent.process("Provide a concise summary of the project structure and technology stack.", context, null);
@@ -396,27 +383,6 @@ public class IterationManager {
 
             // 2. ANALYZING stage
             transition(SystemState.ANALYZING, context);
-            if (gitManager.isGitRepository() || context.getMetadata().containsKey("testMode")) {
-                gitManager.ensureInitialCommit();
-
-                PromptInstructions instructions = (context.getOrchestrator() != null && context.getOrchestrator().getAiChat() != null) ?
-                        context.getOrchestrator().getAiChat().getPromptInstructions() : null;
-
-                if (instructions != null && instructions.isGitAutomation()) {
-                    String requestedBranch = (String) state.getMetadata().get("branch");
-                    String branchName = (requestedBranch != null && !requestedBranch.isEmpty()) ?
-                                         requestedBranch : "evo-" + context.getSessionId().substring(0, Math.min(context.getSessionId().length(), 8));
-
-                    context.log("[KERNEL] Git Automation enabled. Creating/Switching to branch: " + branchName);
-                    try {
-                        if (!gitManager.getCurrentBranch().equals(branchName)) {
-                            gitManager.createBranch(branchName);
-                        }
-                    } catch (Exception e) {
-                        context.log("[KERNEL] Git Warning: Could not manage branch " + branchName + ": " + e.getMessage());
-                    }
-                }
-            }
 
             if (context.getPlatformMode() == null) {
                 PlatformMode mode = router.route(request, context.getOrchestrator());
@@ -470,19 +436,6 @@ public class IterationManager {
             }
             }
 
-            if (result != null && result.getResultType() != ResultType.ERROR) {
-                PromptInstructions instructions = (context.getOrchestrator() != null && context.getOrchestrator().getAiChat() != null) ?
-                        context.getOrchestrator().getAiChat().getPromptInstructions() : null;
-
-                if (instructions != null && instructions.isGitAutomation() && gitManager.isGitRepository()) {
-                    context.log("[KERNEL] Git Automation: Committing changes.");
-                    try {
-                        gitManager.commit("Evolution Task: " + request.substring(0, Math.min(request.length(), 50)), context);
-                    } catch (Exception e) {
-                        context.log("[KERNEL] Git Warning: Could not commit changes: " + e.getMessage());
-                    }
-                }
-            }
 
             FinalResponseAssembler assembler = new FinalResponseAssembler();
             FinalResponse finalResponse = assembler.assemble(context, result.getSummary(), true, context.getStartTime());
@@ -556,12 +509,6 @@ public class IterationManager {
 
         TransitionToken token = new TransitionToken();
         ctx.getStateHolder().applyTransition(token, to);
-
-        if (to == SystemState.INIT || to == SystemState.RECOVERING) {
-            if (gitManager != null) {
-                gitManager.cleanupLocks();
-            }
-        }
 
         if (currentIterationModel != null) {
             switch (to) {
@@ -1522,7 +1469,8 @@ public class IterationManager {
 
                 checkStep(task.getId(), "TASK_EXECUTION", "Executing task: " + task.getName());
 
-                String result = taskExecutor.getOrchestrator().executeTask(task, context);
+                // String result = taskExecutor.getOrchestrator().executeTask(task, context);
+                String result = "Execution delegated to external supervisor.";
                 transition(SystemState.VERIFYING, context);
                 task.setStatus(eu.kalafatic.evolution.model.orchestration.TaskStatus.VERIFYING);
                 ChangeUnit change = new ChangeUnit();

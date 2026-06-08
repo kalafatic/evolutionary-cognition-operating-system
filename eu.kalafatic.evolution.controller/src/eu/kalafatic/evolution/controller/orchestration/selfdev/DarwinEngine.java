@@ -112,13 +112,12 @@ public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationC
 
     @Override
     protected String getAgentInstructions() {
-        return "Role: Darwin Engine. Strategy: Lineage-driven evolutionary mutation.\n" +
+        return "Role: Darwin Engine. Strategy: Pure evolutionary proposal generation.\n" +
                "EVOLUTIONARY MANDATE:\n" +
-               "- You are a materializer of architectural lineages.\n" +
-               "- You do NOT invent new dimensions or discover recursion depth.\n" +
-               "- You MUST materialize the EXACT blueprint provided by the orchestrator.\n" +
-               "- Preserve lineage continuity: every mutation MUST inherit from the surviving ancestor.\n" +
-               "- Address identified evolutionary pressures (reliability, extensibility, etc.) in your implementation.";
+               "- You generate evolutionary proposals (trajectories).\n" +
+               "- You do NOT execute code, manage Git, or control builds.\n" +
+               "- You respond to DarwinProposalRequest and produce DarwinProposalResponse.\n" +
+               "- Focus solely on mutation strategies and ranking.";
     }
 
     @Override

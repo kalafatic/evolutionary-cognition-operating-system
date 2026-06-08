@@ -4,10 +4,8 @@ import eu.kalafatic.evolution.controller.orchestration.capability.CapabilityExce
 import eu.kalafatic.evolution.controller.orchestration.capability.CapabilityRegistry;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.DarwinEngine;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.Evaluator;
-import eu.kalafatic.evolution.controller.orchestration.selfdev.GitManager;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.SystemStateSignalProvider;
-import eu.kalafatic.evolution.controller.orchestration.selfdev.TaskExecutor;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.TaskPlanner;
 import eu.kalafatic.evolution.controller.supervision.ActivationResolver;
 
@@ -21,11 +19,9 @@ public class KernelFactory {
     }
 
     public static IterationManager create(TaskContext context, SessionContainer sessionContext, AiService aiService) {
-        GitManager gitManager = new GitManager(context.getProjectRoot());
         TaskPlanner taskPlanner = new TaskPlanner(sessionContext);
-        TaskExecutor taskExecutor = new TaskExecutor(context, context.getOrchestrator());
-        if (taskExecutor.getOrchestrator() != null) {
-            taskExecutor.getOrchestrator().setAiService(aiService);
+        if (context.getOrchestrator() instanceof EvolutionOrchestrator) {
+            ((EvolutionOrchestrator)context.getOrchestrator()).setAiService(aiService);
         }
         Evaluator evaluator = new Evaluator(context.getProjectRoot(), context);
 
@@ -55,9 +51,7 @@ public class KernelFactory {
             context,
             sessionContext,
             aiService,
-            gitManager,
             taskPlanner,
-            taskExecutor,
             evaluator,
             darwinEngine,
             memoryService

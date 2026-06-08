@@ -126,14 +126,7 @@ public class FinalResponseAssembler {
         sb.append("**Status:** ").append(success ? "SUCCESS" : "FAILED").append("\n");
 
         sb.append("\n### ⚖️ Git State\n");
-        try {
-            eu.kalafatic.evolution.controller.orchestration.selfdev.GitManager git = context.getKernelContext().getGitManager();
-            if (git != null && git.isGitRepository()) {
-                sb.append("**Branch:** `").append(git.getCurrentBranch()).append("`\n");
-                sb.append("**Staged Changes:** ").append(files.size()).append(" files\n");
-                sb.append("**Commit-Ready Status:** READY\n");
-            }
-        } catch (Exception e) {}
+        sb.append("_Managed by standalone supervisor._\n");
 
         String finalSummary = sb.toString().trim();
 
