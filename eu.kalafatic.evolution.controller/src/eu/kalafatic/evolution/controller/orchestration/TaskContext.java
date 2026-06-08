@@ -34,8 +34,7 @@ public class TaskContext {
     private final List<ApprovalListener> approvalListeners = new CopyOnWriteArrayList<>();
     private final List<InputListener> inputListeners = new CopyOnWriteArrayList<>();
     private final List<TokenRequestListener> tokenRequestListeners = new CopyOnWriteArrayList<>();
-    private CompletableFuture<Object> approvalFuture;
-    private Object selection;
+    private CompletableFuture<Boolean> approvalFuture;
 
     public interface LogListener {
         void onLog(String message);
@@ -167,7 +166,7 @@ public class TaskContext {
         }
     }
 
-    public CompletableFuture<Object> requestApproval(String message) {
+    public CompletableFuture<Boolean> requestApproval(String message) {
         approvalFuture = new CompletableFuture<>();
         for (ApprovalListener listener : approvalListeners) {
             listener.onApprovalRequested(message);
@@ -175,10 +174,9 @@ public class TaskContext {
         return approvalFuture;
     }
 
-    public void provideApproval(Object result) {
-        this.selection = result;
+    public void provideApproval(boolean approved) {
         if (approvalFuture != null) {
-            approvalFuture.complete(result);
+            approvalFuture.complete(approved);
         }
         if (inputFuture != null && !inputFuture.isDone()) {
             provideInput(approved ? "Approved" : "Rejected");
@@ -280,10 +278,6 @@ public class TaskContext {
                 }
             }
         }
-    }
-
-    public Object getSelection() {
-        return selection;
     }
 
     public CompletableFuture<String> requestToken(String providerName) {

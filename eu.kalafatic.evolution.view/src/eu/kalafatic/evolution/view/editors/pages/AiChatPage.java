@@ -227,14 +227,6 @@ public class AiChatPage extends ScrolledComposite {
             aiModeCombo.add(mode.getName());
         }
 
-        createLabel(groupMode, "Local Model:");
-        localModelCombo = new Combo(groupMode, SWT.DROP_DOWN);
-        localModelCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-        createLabel(groupMode, "Hybrid Model:");
-        hybridModelCombo = new Combo(groupMode, SWT.DROP_DOWN);
-        hybridModelCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
         aiRemoteLabel = new Label(groupMode, SWT.NONE);
         aiRemoteLabel.setText("AI Remote:");
         aiRemoteLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
@@ -295,20 +287,6 @@ public class AiChatPage extends ScrolledComposite {
         }
 
         aiModeCombo.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                syncModelWithUI();
-            }
-        });
-
-        localModelCombo.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                syncModelWithUI();
-            }
-        });
-
-        hybridModelCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 syncModelWithUI();
@@ -489,9 +467,6 @@ public class AiChatPage extends ScrolledComposite {
 
         AiMode aiMode = AiMode.get(aiModeCombo.getSelectionIndex());
         orchestrator.setAiMode(aiMode);
-
-        orchestrator.setLocalModel(localModelCombo.getText());
-        orchestrator.setHybridModel(hybridModelCombo.getText());
 
         String remoteModel = aiRemoteCombo.getText();
         orchestrator.setRemoteModel(remoteModel);
@@ -779,27 +754,6 @@ public class AiChatPage extends ScrolledComposite {
                 if (orchestrator.getLlm() != null) temp = orchestrator.getLlm().getTemperature();
                 ollamaService = new OllamaService(url, model).setTemperature(temp);
             }
-
-            // Load models if not already loaded
-            if (localModelCombo != null && !localModelCombo.isDisposed() && localModelCombo.getItemCount() == 0) {
-                new Thread(() -> {
-                    List<eu.kalafatic.evolution.controller.manager.OllamaModel> models = ollamaService.loadModels();
-                    Display.getDefault().asyncExec(() -> {
-                        if (localModelCombo.isDisposed()) return;
-                        for (eu.kalafatic.evolution.controller.manager.OllamaModel m : models) {
-                            localModelCombo.add(m.getName());
-                            hybridModelCombo.add(m.getName());
-                        }
-                        if (orchestrator.getLocalModel() != null) {
-                            localModelCombo.setText(orchestrator.getLocalModel());
-                        }
-                        if (orchestrator.getHybridModel() != null) {
-                            hybridModelCombo.setText(orchestrator.getHybridModel());
-                        }
-                    });
-                }).start();
-            }
-
             modelStatusLabel.setText(model != null ? model : "Not Configured");
             new Thread(() -> {
                 boolean isOnline = ollamaService.ping();
@@ -820,13 +774,6 @@ public class AiChatPage extends ScrolledComposite {
         this.ollamaService = null;
         if (orchestrator != null && aiModeCombo != null && !aiModeCombo.isDisposed()) {
             aiModeCombo.select(orchestrator.getAiMode().getValue());
-
-            if (orchestrator.getLocalModel() != null) {
-                localModelCombo.setText(orchestrator.getLocalModel());
-            }
-            if (orchestrator.getHybridModel() != null) {
-                hybridModelCombo.setText(orchestrator.getHybridModel());
-            }
 
             String remoteModel = orchestrator.getRemoteModel();
             if (remoteModel != null) {
