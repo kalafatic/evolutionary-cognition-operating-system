@@ -124,6 +124,17 @@ public class StabilityAnalyzer {
         int generation = trajectory.getGeneration();
         if (generation < 2) return false;
 
+        boolean isMediated = context != null && context.getBehaviorProfile().hasTrait(eu.kalafatic.evolution.controller.orchestration.behavior.BehaviorTrait.SUPERVISION_MEDIATED);
+
+        if (isMediated) {
+            // MEDIATED CONVERGENCE: Reward stabilization of context and understanding
+            boolean medConverged = stability > 0.95 || (generation >= 4 && stability > 0.90);
+            if (medConverged) {
+                context.log("[STABILITY] Mediated equilibrium reached. Context and architectural understanding converged.");
+            }
+            return medConverged;
+        }
+
         boolean converged = stability > 0.92; // Higher threshold for stability-based convergence
 
         if (converged) {
