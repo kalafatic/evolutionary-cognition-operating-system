@@ -20,6 +20,8 @@ import org.eclipse.emf.ecore.EObject;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getCoverageChange <em>Coverage Change</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getErrors <em>Errors</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getDecision <em>Decision</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getUserSatisfaction <em>User Satisfaction</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getFitnessHistory <em>Fitness History</em>}</li>
  * </ul>
  *
  * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getEvaluationResult()
@@ -129,5 +131,49 @@ public interface EvaluationResult extends EObject {
 	 * @generated
 	 */
 	void setDecision(SelfDevDecision value);
+
+	/**
+	 * Returns the value of the '<em><b>User Satisfaction</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>User Satisfaction</em>' attribute.
+	 * @see #setUserSatisfaction(int)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getEvaluationResult_UserSatisfaction()
+	 * @model
+	 * @generated
+	 */
+	int getUserSatisfaction();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getUserSatisfaction <em>User Satisfaction</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>User Satisfaction</em>' attribute.
+	 * @see #getUserSatisfaction()
+	 * @generated
+	 */
+	void setUserSatisfaction(int value);
+
+	/**
+	 * Returns the value of the '<em><b>Fitness History</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Fitness History</em>' attribute.
+	 * @see #setFitnessHistory(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getEvaluationResult_FitnessHistory()
+	 * @model
+	 * @generated
+	 */
+	String getFitnessHistory();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.EvaluationResult#getFitnessHistory <em>Fitness History</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Fitness History</em>' attribute.
+	 * @see #getFitnessHistory()
+	 * @generated
+	 */
+	void setFitnessHistory(String value);
 
 } // EvaluationResult

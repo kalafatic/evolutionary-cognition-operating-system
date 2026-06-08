@@ -30,7 +30,9 @@ import eu.kalafatic.evolution.model.orchestration.Compiler;
 import eu.kalafatic.evolution.model.orchestration.Ollama;
 import eu.kalafatic.evolution.model.orchestration.AiChat;
 import eu.kalafatic.evolution.model.orchestration.NeuronAI;
+import eu.kalafatic.evolution.model.orchestration.SupervisorSettings;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
+import eu.kalafatic.evolution.view.provider.OrchestrationNavigatorContentProvider.ModelProperty;
 
 public class OrchestrationNavigatorLabelProvider extends LabelProvider implements ITableLabelProvider {
 
@@ -67,8 +69,17 @@ public class OrchestrationNavigatorLabelProvider extends LabelProvider implement
                 return "AI Chat";
             } else if (element instanceof NeuronAI) {
                 return "Neuron AI: " + ((NeuronAI) element).getModel();
+            } else if (element instanceof SupervisorSettings) {
+                return "Supervisor";
+            } else if (element instanceof ModelProperty) {
+                return ((ModelProperty) element).label;
             }
         } else if (columnIndex == 1) {
+            if (element instanceof ModelProperty) {
+                ModelProperty mp = (ModelProperty) element;
+                Object val = mp.owner.eGet(mp.attribute);
+                return val != null ? String.valueOf(val) : "";
+            }
             if (element instanceof Task) {
                 Task task = (Task) element;
                 return task.getStatus() != null ? task.getStatus().toString() : "PENDING";
@@ -123,6 +134,10 @@ public class OrchestrationNavigatorLabelProvider extends LabelProvider implement
             return "AI Chat";
         } else if (element instanceof NeuronAI) {
             return "Neuron AI: " + ((NeuronAI) element).getModel();
+        } else if (element instanceof SupervisorSettings) {
+            return "Supervisor";
+        } else if (element instanceof ModelProperty) {
+            return ((ModelProperty) element).label;
         }
         return super.getText(element);
     }
@@ -133,42 +148,62 @@ public class OrchestrationNavigatorLabelProvider extends LabelProvider implement
             IProject project = (IProject) element;
             try {
                 if (project.isOpen() && project.hasNature("eu.kalafatic.evolution.view.evolutionNature")) {
-                    return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_project.png");
+                    return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_project_nature.svg");
                 }
             } catch (CoreException e) {}
             return PlatformUI.getWorkbench().getSharedImages().getImage(IDE.SharedImages.IMG_OBJ_PROJECT);
         } else if (element instanceof IFolder) {
             return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER);
         } else if (element instanceof IFile) {
-            String ext = ((IFile) element).getFileExtension();
-            if ("evo".equals(ext) || "xml".equals(ext)) {
-                return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_project.png");
+            IFile file = (IFile) element;
+            String ext = file.getFileExtension();
+            if ("evo".equals(ext)) {
+                return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_model.svg");
             }
+            Image image = getEditorImage(file);
+            if (image != null) return image;
             return PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE);
         } else if (element instanceof EvoProject) {
-            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_project.png");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_navigator.svg");
         } else if (element instanceof Orchestrator) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/Orchestrator.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_orchestrate.svg");
         } else if (element instanceof Agent) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/Agent.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_model.svg");
         } else if (element instanceof Task) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/Task.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_task.svg");
         } else if (element instanceof Git) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/Git.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_settings.svg");
         } else if (element instanceof Maven) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/Maven.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_graph.svg");
         } else if (element instanceof LLM) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/LLM.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_settings.svg");
         } else if (element instanceof Compiler) {
-            return getCachedImage("eu.kalafatic.evolution.model.edit", "icons/full/obj16/Compiler.gif");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_stack.svg");
         } else if (element instanceof Ollama) {
-            return getCachedImage("eu.kalafatic.evolution.view", "icons/sample.png");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_settings.svg");
         } else if (element instanceof AiChat) {
-            return getCachedImage("eu.kalafatic.evolution.view", "icons/sample.png");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_chat.svg");
         } else if (element instanceof NeuronAI) {
-            return getCachedImage("eu.kalafatic.evolution.view", "icons/sample.png");
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_settings.svg");
+        } else if (element instanceof SupervisorSettings) {
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/orchestrator.png");
+        } else if (element instanceof ModelProperty) {
+            return getCachedImage("eu.kalafatic.evolution.view", "icons/evo_settings.svg");
         }
         return super.getImage(element);
+    }
+
+    private Image getEditorImage(IFile file) {
+        String name = file.getName();
+        Image image = imageCache.get("file://" + name);
+        if (image == null) {
+            ImageDescriptor desc = PlatformUI.getWorkbench().getEditorRegistry().getImageDescriptor(name);
+            if (desc != null) {
+                image = desc.createImage();
+                imageCache.put("file://" + name, image);
+            }
+        }
+        return image;
     }
 
     private Image getCachedImage(String bundleId, String path) {

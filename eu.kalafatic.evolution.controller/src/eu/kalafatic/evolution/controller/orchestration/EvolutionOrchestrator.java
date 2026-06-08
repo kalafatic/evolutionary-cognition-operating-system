@@ -1,29 +1,85 @@
 package eu.kalafatic.evolution.controller.orchestration;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import org.json.JSONObject;
-import eu.kalafatic.evolution.model.orchestration.*;
-import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
+import java.util.Map;
+
+import eu.kalafatic.evolution.controller.agents.AgentFactory;
+import eu.kalafatic.evolution.controller.agents.AnalyticAgent;
+import eu.kalafatic.evolution.controller.agents.BaseAiAgent;
+import eu.kalafatic.evolution.controller.agents.IAgent;
+import eu.kalafatic.evolution.controller.agents.ProposalConsolidatorAgent;
+import eu.kalafatic.evolution.controller.agents.RepairAgent;
+import eu.kalafatic.evolution.controller.agents.ValidatorAgent;
+import eu.kalafatic.evolution.controller.orchestration.util.CodeExtractor;
+import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+import eu.kalafatic.evolution.controller.tools.ToolFactory;
+import eu.kalafatic.evolution.model.orchestration.Task;
+
 
 /**
- * Core Orchestrator implementation that manages the task lifecycle and execution.
+ * Core Orchestrator implementation. Blind executor of tasks.
+ * Strictly gated by SystemState.
  */
 public class EvolutionOrchestrator implements IOrchestrator {
 
-    private final IEvolutionKernel kernel = new BaseEvolutionKernel();
-    private final PlannerAgent planner = new PlannerAgent();
+    private static final int MAX_RETRIES = EvolutionConstants.MAX_TASK_RETRIES;
+    private AnalyticAgent analyticAgent;
+    private ValidatorAgent validator;
+    private RepairAgent repairAgent;
+    private ProposalConsolidatorAgent consolidator;
     private final List<IAgent> availableAgents = new ArrayList<>();
-    private final ReviewerAgent reviewer = new ReviewerAgent();
+    private AiService aiService = new AiService();
+    private final SessionContainer sessionContainer;
 
     public EvolutionOrchestrator() {
-        // Initialize default agents
-        availableAgents.add(new ArchitectAgent());
-        availableAgents.add(new JavaDevAgent());
-        availableAgents.add(new TesterAgent());
-        availableAgents.add(new ReviewerAgent());
-        availableAgents.add(new GeneralAgent());
+        this(null);
+    }
+
+    public EvolutionOrchestrator(SessionContainer container) {
+        this.sessionContainer = container;
+        if (container != null) {
+            Map<String, IAgent> registry = (container instanceof SessionContext) ?
+                    ((SessionContext)container).getAgentRegistry() : new java.util.HashMap<>();
+
+            if (registry.isEmpty()) {
+                List<IAgent> isolated = AgentFactory.createIsolatedAgents(container);
+                isolated.forEach(a -> registry.put(a.getType(), a));
+            }
+
+            availableAgents.addAll(registry.values());
+            analyticAgent = (AnalyticAgent) registry.get(EvolutionConstants.AGENT_ANALYTIC);
+            validator = (ValidatorAgent) registry.get(EvolutionConstants.AGENT_VALIDATOR);
+            repairAgent = (RepairAgent) registry.get(EvolutionConstants.AGENT_REPAIR);
+            consolidator = (ProposalConsolidatorAgent) registry.get(EvolutionConstants.AGENT_PROPOSAL_CONSOLIDATOR);
+        } else {
+            // Orchestrator without a container is now discouraged but kept for some legacy paths
+            // We should ideally throw an exception here if we want STRICT isolation
+            analyticAgent = null;
+            validator = null;
+            repairAgent = null;
+            consolidator = null;
+        }
+    }
+
+    public void setAiService(AiService aiService) {
+        this.aiService = aiService;
+        if (analyticAgent != null) analyticAgent.setAiService(aiService);
+        if (validator != null) validator.setAiService(aiService);
+        if (repairAgent != null) repairAgent.setAiService(aiService);
+        if (consolidator != null) consolidator.setAiService(aiService);
+    }
+
+    @Override
+    public OrchestratorResponse handle(TaskRequest taskRequest, TaskContext context) throws Exception {
+        SessionContainer session = sessionContainer != null ? sessionContainer : SessionManager.getInstance().getOrCreateSession(context.getSessionId());
+
+        IterationManager kernel = session.getIterationManager();
+        if (kernel == null) {
+            kernel = KernelFactory.create(context, session, aiService);
+            session.setIterationManager(kernel);
+        }
+
+        return kernel.handle(taskRequest);
     }
 
     @Override
@@ -125,106 +181,74 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 }
             }
 
-            updateStatus(context, 1.0, "Completed");
-            return lastResult != null && !lastResult.isEmpty() ? lastResult : "Orchestration successful.";
-        } catch (Exception e) {
-            context.log("Orchestrator Error: " + e.getMessage());
-            throw e;
-        } finally {
-            OrchestrationStatusManager.getInstance().updateAgentStatus("Planner", "Idle");
-            for (IAgent agent : availableAgents) {
-                OrchestrationStatusManager.getInstance().updateAgentStatus(agent.getType(), "Idle");
-            }
+    @Override
+    public String executeTask(Task task, TaskContext context) throws Exception {
+        SystemState kernelState = context.getStateHolder().getState();
+        if (kernelState != SystemState.EXECUTING && kernelState != SystemState.INIT && kernelState != SystemState.ANALYZING) {
+             throw new IllegalStateException("Kernel violation: Orchestrator executeTask() must be gated by the Control Plane. State: " + kernelState);
         }
+        return executeTaskInternal(task, context);
     }
 
-    private boolean executeTaskWithRetries(Task task, TaskContext context) throws Exception {
+    private String executeTaskInternal(Task task, TaskContext context) throws Exception {
         IAgent agent = findAgentForTask(task, context);
-        String lastFeedback = null;
-        OrchestrationStatusManager.getInstance().updateAgentStatus(agent.getType(), "Executing: " + task.getName());
-
-        int attempt = 0;
-        int maxAttempts = 5; // Hard safety backstop
-        while (attempt < maxAttempts) {
-            attempt++;
-            context.log("Orchestrator: Executing " + task.getName() + " (Attempt " + attempt + " of " + maxAttempts + ")");
-
-            try {
-                String result = performAction(task, agent, context, lastFeedback);
-                task.setResponse(result);
-
-                JSONObject evalJson = reviewer.evaluate(result, task.getName(), context);
-
-                Artifact artifact = new TaskArtifactAdapter(task);
-                Evaluation evaluation = OrchestrationFactory.eINSTANCE.createEvaluation();
-                evaluation.setScore(evalJson.optBoolean("success", false) ? 1.0 : 0.0);
-                evaluation.setComment(evalJson.optString("feedback", ""));
-
-                // In Phase F/G, Orchestrator handles per-task evolution via Kernel
-                Lineage lineage = null;
-                if (context.getOrchestrator().getSelfDevSession() != null && !context.getOrchestrator().getSelfDevSession().getIterations().isEmpty()) {
-                    lineage = new IterationLineageAdapter(context.getOrchestrator().getSelfDevSession().getIterations().get(0));
-                }
-
-                EvolutionDecision decision = kernel.analyze(artifact, evaluation, lineage, context);
-
-                if (decision == EvolutionDecision.STABILIZE) {
-                    task.setFeedback("Success: " + evalJson.optString("comment", "Pressure resolved."));
-                    return true;
-                } else if (decision == EvolutionDecision.ABORT) {
-                    task.setFeedback("Kernel ABORT: " + evaluation.getComment());
-                    return false;
-                }
-
-                lastFeedback = evaluation.getComment();
-                task.setFeedback("Attempt " + attempt + " (" + decision + "): " + lastFeedback);
-
-            } catch (Exception e) {
-                lastFeedback = "Exception: " + e.getMessage();
-                task.setFeedback("Attempt " + attempt + " exception: " + e.getMessage());
-                return false;
-            }
+        if (agent instanceof BaseAiAgent) {
+            ((BaseAiAgent)agent).setAiService(aiService);
         }
-        return false;
+
+        context.checkPause();
+
+        ContextPackage contextPkg = ContextBuilder.build(task, context, 1, task.getFeedback());
+        String contextPrompt = ContextBuilder.buildPrompt(contextPkg);
+
+        String patch = generatePatch(task, agent, context, task.getFeedback(), task.getPlan(), contextPrompt);
+        String result = applyPatch(task, agent, context, task.getFeedback(), patch);
+        task.setResponse(result);
+
+        return result;
     }
 
-    private String performAction(Task task, IAgent agent, TaskContext context, String lastFeedback) throws Exception {
+    private String generatePatch(Task task, IAgent agent, TaskContext context, String lastFeedback, String localPlan, String contextPrompt) throws Exception {
+        if ("file".equalsIgnoreCase(task.getType())) return agent.process(task.getDescription(), context, lastFeedback);
+        return contextPrompt;
+    }
+
+    private String applyPatch(Task task, IAgent agent, TaskContext context, String lastFeedback, String patch) throws Exception {
         String taskType = task.getType();
         String taskName = task.getName();
+
         if ("file".equalsIgnoreCase(taskType)) {
-            FileTool fileTool = new FileTool();
-            String content = agent.process(taskName, context, lastFeedback);
-            String path = taskName.replaceFirst("(?i)Write ", "").trim();
-            path = path.replaceFirst("^([a-zA-Z]:)?(/|\\\\)+", "");
-            path = path.replace("\\", "/");
-            return fileTool.execute("WRITE " + path + "\n" + content, context.getProjectRoot(), context);
-        } else if ("maven".equalsIgnoreCase(taskType)) {
-            MavenTool mavenTool = new MavenTool();
-            return mavenTool.execute(taskName, context.getProjectRoot(), context);
-        } else if ("git".equalsIgnoreCase(taskType)) {
-            GitTool gitTool = new GitTool();
-            return gitTool.execute(taskName, context.getProjectRoot(), context);
-        } else if ("shell".equalsIgnoreCase(taskType)) {
-            ShellTool shellTool = new ShellTool();
-            return shellTool.execute(taskName, context.getProjectRoot(), context);
+            String path = taskName.replaceFirst("(?i)^(Write|Create|Update|MKDIR|DELETE)\\s+", "").trim().split(" ")[0];
+            path = path.replaceFirst("^([a-zA-Z]:)?[/\\\\]+", "").replace('\\', '/');
+
+            if (path == null || path.isEmpty() || "null".equals(path)) {
+                throw new Exception("Kernel Violation: Attempted to write to a null or empty path: " + taskName);
+            }
+
+            String extractedCode = CodeExtractor.extractCode(patch);
+            return ToolFactory.getTool(EvolutionConstants.TOOL_FILE).execute("WRITE " + path + "\n" + extractedCode, context.getProjectRoot(), context);
+        } else if (EvolutionConstants.TASK_MAVEN.equalsIgnoreCase(taskType)) {
+            return ToolFactory.getTool(EvolutionConstants.TOOL_MAVEN).execute(taskName, context.getProjectRoot(), context);
+        } else if (EvolutionConstants.TASK_GIT.equalsIgnoreCase(taskType)) {
+            return ToolFactory.getTool(EvolutionConstants.TOOL_GIT).execute(taskName, context.getProjectRoot(), context);
+        } else if (EvolutionConstants.TASK_SHELL.equalsIgnoreCase(taskType)) {
+            return ToolFactory.getTool(EvolutionConstants.TOOL_SHELL).execute(taskName, context.getProjectRoot(), context);
         }
         return agent.process(taskName, context, lastFeedback);
     }
 
     private IAgent findAgentForTask(Task task, TaskContext context) {
-        String name = task.getName().toLowerCase();
         String type = task.getType().toLowerCase();
-        for (IAgent agent : availableAgents) {
-            if (name.contains(agent.getType().toLowerCase())) return agent;
-        }
-        if (type.contains("maven") || type.contains("test")) return availableAgents.stream().filter(a -> a instanceof TesterAgent).findFirst().orElse(availableAgents.get(2));
-        if (type.contains("file") || type.contains("java")) return availableAgents.stream().filter(a -> a instanceof JavaDevAgent).findFirst().orElse(availableAgents.get(1));
-        if (type.contains("arch") || type.contains("design")) return availableAgents.stream().filter(a -> a instanceof ArchitectAgent).findFirst().orElse(availableAgents.get(0));
-        return availableAgents.stream().filter(a -> a instanceof GeneralAgent).findFirst().orElse(availableAgents.get(availableAgents.size() - 1));
-    }
+        SessionContainer session = sessionContainer != null ? sessionContainer : SessionManager.getInstance().getSession(context.getSessionId());
 
-    private void updateStatus(TaskContext context, double progress, String message) {
-        String id = context.getOrchestrator().getId();
-        if (id != null) OrchestrationStatusManager.getInstance().updateStatus(id, progress, message);
+        if (session != null) {
+            Map<String, IAgent> registry = (session instanceof SessionContext) ?
+                    ((SessionContext)session).getAgentRegistry() : new java.util.HashMap<>();
+            if (type.equals(EvolutionConstants.TASK_FILE)) return registry.get(EvolutionConstants.AGENT_FILE);
+            if (type.equals(EvolutionConstants.TASK_MAVEN)) return registry.get(EvolutionConstants.AGENT_MAVEN);
+            return registry.get(EvolutionConstants.AGENT_GENERAL);
+        }
+
+        return null;
     }
 }

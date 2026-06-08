@@ -4,6 +4,10 @@
  */
 package eu.kalafatic.evolution.model.orchestration.validation;
 
+import eu.kalafatic.evolution.model.orchestration.ChatSession;
+import eu.kalafatic.evolution.model.orchestration.PromptInstructions;
+
+import org.eclipse.emf.common.util.EList;
 
 /**
  * A sample validator interface for {@link eu.kalafatic.evolution.model.orchestration.AiChat}.
@@ -18,4 +22,6 @@ public interface AiChatValidator {
 	boolean validateToken(String value);
 	boolean validatePrompt(String value);
 	boolean validateProxyUrl(String value);
+	boolean validateSessions(EList<ChatSession> value);
+	boolean validatePromptInstructions(PromptInstructions value);
 }

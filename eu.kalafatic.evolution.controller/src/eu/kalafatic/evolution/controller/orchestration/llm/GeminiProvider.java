@@ -23,13 +23,19 @@ public class GeminiProvider implements ILlmProvider {
 
     @Override
     public String sendRequest(Orchestrator orchestrator, String prompt, float temperature, String proxyUrl, TaskContext context) throws Exception {
-        String token = orchestrator.getOpenAiToken(); // Using OpenAiToken as general API key
         String remoteModelName = orchestrator.getRemoteModel();
 
-        ProviderConfig config = AiProviders.PROVIDERS.get(remoteModelName != null ? remoteModelName.toLowerCase() : "gemini");
+        // Use generalized resolution mechanism
+        eu.kalafatic.evolution.controller.security.TokenSecurityService.ResolvedProvider resolved =
+                eu.kalafatic.evolution.controller.security.TokenSecurityService.getInstance().resolve(orchestrator, remoteModelName);
 
-        String apiUrl = (config != null) ? config.getUrl() : DEFAULT_GEMINI_URL_TEMPLATE;
-        String model = (config != null) ? config.getDefaultModel() : remoteModelName;
+        String token = (resolved != null) ? resolved.token : null;
+        String apiUrl = (resolved != null && resolved.url != null) ? resolved.url : DEFAULT_GEMINI_URL_TEMPLATE;
+        String model = (resolved != null && resolved.model != null) ? resolved.model : remoteModelName;
+
+        if (model == null || model.isEmpty() || model.equalsIgnoreCase("gemini")) {
+            model = "gemini-1.5-pro";
+        }
 
         if (orchestrator.getAiChat() != null && orchestrator.getAiChat().getUrl() != null && !orchestrator.getAiChat().getUrl().isEmpty()) {
             apiUrl = orchestrator.getAiChat().getUrl();
@@ -43,7 +49,7 @@ public class GeminiProvider implements ILlmProvider {
             if (context != null) {
                 try {
                     token = context.requestToken(remoteModelName != null ? remoteModelName : "Gemini").get();
-                    orchestrator.setOpenAiToken(token);
+                    eu.kalafatic.evolution.controller.security.TokenSecurityService.getInstance().updateToken(orchestrator, remoteModelName, token);
                 } catch (Exception e) {
                     throw new Exception("Failed to obtain token: " + e.getMessage());
                 }

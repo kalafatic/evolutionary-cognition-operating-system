@@ -7,29 +7,29 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.net.http.HttpClient;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -64,19 +64,6 @@ public class OllamaSettingsPage extends AWizardPage {
 	private SimpleContentProposalProvider proposalProvider;
 	private Job validationJob;
 	
-	public class OllamaModel {
-	    private String name;
-	    private long size;
-
-	    public OllamaModel(String name, long size) {
-	        this.name = name;
-	        this.size = size;
-	    }
-
-	    public String getName() { return name; }
-	    public long getSize() { return size; }
-	}
-
 	public OllamaSettingsPage() {
 		super("OllamaSettingsPage");
 		setTitle("Ollama Settings");
@@ -96,6 +83,7 @@ public class OllamaSettingsPage extends AWizardPage {
 		new Label(container, SWT.NONE).setText("Model Name:");	
 		modelText = new Text(container, SWT.BORDER);
 		modelText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		modelText.setText("llama3.2:3b");
 				
 		new Label(container, SWT.NONE).setText("Select Model:");	
 		selectModel(container);
@@ -132,6 +120,8 @@ public class OllamaSettingsPage extends AWizardPage {
 		modelDecorator = new ControlDecoration(modelText, SWT.TOP | SWT.LEFT);
 		modelDecorator.setImage(FieldDecorationRegistry.getDefault()
 				.getFieldDecoration(FieldDecorationRegistry.DEC_WARNING).getImage());
+		modelDecorator.setDescriptionText("Model name is required. Choose from 'Select Model' or use 'Setup Ollama...' link.");
+		modelDecorator.setShowOnlyOnFocus(false);
 		modelDecorator.hide();
 
 		proposalProvider = new SimpleContentProposalProvider(new String[0]);
@@ -210,14 +200,14 @@ public class OllamaSettingsPage extends AWizardPage {
 	}
 
 	private Combo selectModel(Composite parent) {
-		List<OllamaModel> models = loadModels(); // Load models to populate the combo
+		List<String> models = eu.kalafatic.evolution.controller.manager.ProjectModelManager.getInstance().getLlmModels(orchestrator, eu.kalafatic.evolution.model.orchestration.AiMode.LOCAL);
 		
 		Combo combo = new Combo(parent, SWT.DROP_DOWN | SWT.READ_ONLY);	
 		combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		if (models != null) {
-		    for (OllamaModel f : models) {
-		        combo.add(f.getName());
+		    for (String name : models) {
+			combo.add(name);
 		    }
 		}
 
@@ -225,10 +215,9 @@ public class OllamaSettingsPage extends AWizardPage {
 		combo.addListener(SWT.Selection, e -> {
 		    int index = combo.getSelectionIndex();
 		    if (index >= 0) {
-		    	OllamaModel selected = models.get(index);
-		    	
-		    	modelText.setText(selected.getName());
-		        System.out.println("Selected: " + selected.getName());
+			String selectedName = combo.getItem(index);
+			modelText.setText(selectedName);
+		        System.out.println("Selected: " + selectedName);
 		    }
 		});
 		return combo;
@@ -244,6 +233,12 @@ public class OllamaSettingsPage extends AWizardPage {
 			setErrorMessage(null);
 			return;
 		}
+
+		if (modelText.getText().isEmpty()) {
+			modelDecorator.setDescriptionText("Model name is required. Choose from 'Select Model' or use 'Setup Ollama...' link.");
+			modelDecorator.show();
+		}
+
 		String path = pathText.getText();
 		File file = new File(path);
 		if (!file.exists()) {
@@ -424,47 +419,26 @@ public class OllamaSettingsPage extends AWizardPage {
 		}
 	}
 
-	public List<OllamaModel> loadModels() {
-	    List<OllamaModel> result = new ArrayList<>();
-
-	    try {
-	    	
-	        URL url = new URL(defaults.apiUrl + "/api/tags");
-	        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-	        conn.setRequestMethod("GET");
-
-	        BufferedReader reader = new BufferedReader(
-	            new InputStreamReader(conn.getInputStream())
-	        );
-
-	        StringBuilder json = new StringBuilder();
-	        String line;
-
-	        while ((line = reader.readLine()) != null) {
-	            json.append(line);
-	        }
-
-	        reader.close();
-
-	        JSONObject obj = new JSONObject(json.toString());
-	        JSONArray models = obj.getJSONArray("models");
-
-	        for (int i = 0; i < models.length(); i++) {
-	            JSONObject m = models.getJSONObject(i);
-
-	            String name = m.getString("name");
-	            long size = m.optLong("size", 0);
-
-	            result.add(new OllamaModel(name, size));
-	        }
-
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-
-	    return result;
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		if (!visible && orchestrator != null) {
+			updateModel();
+		}
 	}
-	
+
+	public void updateModel() {
+		if (orchestrator == null) return;
+		Ollama ollama = orchestrator.getOllama();
+		if (ollama == null) {
+			ollama = OrchestrationFactory.eINSTANCE.createOllama();
+			orchestrator.setOllama(ollama);
+		}
+		ollama.setUrl(getOllamaUrl());
+		ollama.setModel(getModelName());
+		ollama.setPath(getExecutablePath());
+	}
+
 	public String getOllamaUrl() {
 		return urlText.getText();
 	}

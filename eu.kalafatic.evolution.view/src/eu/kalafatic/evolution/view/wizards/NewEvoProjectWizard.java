@@ -1,6 +1,7 @@
 package eu.kalafatic.evolution.view.wizards;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,11 +21,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -41,20 +38,24 @@ import org.eclipse.ui.dialogs.WizardNewProjectCreationPage;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.wizards.newresource.BasicNewResourceWizard;
 
-import eu.kalafatic.evolution.model.orchestration.Agent;
-import eu.kalafatic.evolution.model.orchestration.AiChat;
+import eu.kalafatic.evolution.controller.manager.ProjectModelManager;
 import eu.kalafatic.evolution.model.orchestration.EvoProject;
-import eu.kalafatic.evolution.model.orchestration.Git;
-import eu.kalafatic.evolution.model.orchestration.LLM;
-import eu.kalafatic.evolution.model.orchestration.Maven;
-import eu.kalafatic.evolution.model.orchestration.NeuronAI;
-import eu.kalafatic.evolution.model.orchestration.Ollama;
-import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.NeuronType;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
 import eu.kalafatic.evolution.view.nature.EvolutionNature;
 
 public class NewEvoProjectWizard extends Wizard implements INewWizard {
+    private static final String GITIGNORE_TEMPLATE = "target/\n" +
+            ".settings/\n" +
+            ".project\n" +
+            ".classpath\n" +
+            "bin/\n" +
+            "*.class\n" +
+            "*.evo\n" +
+            "*.log\n";
+
     private IWorkbench workbench;
+    private Orchestrator orchestrator;
     private WizardNewProjectCreationPage projectPage;
     private ConfigDetailsPage configPage;
     private GitSettingsPage gitPage;
@@ -64,9 +65,11 @@ public class NewEvoProjectWizard extends Wizard implements INewWizard {
     private AiChatSettingsPage aiChatPage;
     private NeuronAISettingsPage neuronAIPage;
     private AgentSettingsPage agentPage;
+    private SupervisorSettingsPage supervisorPage;
 
     public NewEvoProjectWizard() {
         setWindowTitle("New Evo Project");
+        this.orchestrator = ProjectModelManager.getInstance().createOrchestrator("orch1", "Initial Orchestration");
     }
 
     @Override
@@ -88,6 +91,13 @@ public class NewEvoProjectWizard extends Wizard implements INewWizard {
         aiChatPage = new AiChatSettingsPage();
         neuronAIPage = new NeuronAISettingsPage();
         agentPage = new AgentSettingsPage();
+        supervisorPage = new SupervisorSettingsPage();
+
+        for (AWizardPage page : new AWizardPage[] { configPage, gitPage, ollamaPage, llmPage, mavenPage, aiChatPage, neuronAIPage, agentPage, supervisorPage }) {
+            if (page != null) {
+                page.setOrchestrator(orchestrator);
+            }
+        }
 
         addPage(projectPage);
         addPage(configPage);
@@ -98,6 +108,7 @@ public class NewEvoProjectWizard extends Wizard implements INewWizard {
         addPage(aiChatPage);
         addPage(neuronAIPage);
         addPage(agentPage);
+        addPage(supervisorPage);
     }
 
     @Override
@@ -138,6 +149,21 @@ public class NewEvoProjectWizard extends Wizard implements INewWizard {
             createFolder(project, "git", monitor);
             createFolder(project, "mvn", monitor);
 
+            // Initialize local Git repository if no remote is provided
+            if (gitPage.isSkipped() || gitPage.getRepoUrl() == null || gitPage.getRepoUrl().isEmpty()) {
+                try {
+                    File projectDir = project.getLocation().toFile();
+                    new ProcessBuilder("git", "init").directory(projectDir).start().waitFor();
+
+                    File gitignore = new File(projectDir, ".gitignore");
+                    if (!gitignore.exists()) {
+                        java.nio.file.Files.write(gitignore.toPath(), GITIGNORE_TEMPLATE.getBytes());
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to initialize local git: " + e.getMessage());
+                }
+            }
+
             // Create basic pom.xml
             IFile pomFile = project.getFile("pom.xml");
             if (!pomFile.exists()) {
@@ -154,110 +180,76 @@ public class NewEvoProjectWizard extends Wizard implements INewWizard {
             }
 
             String filePath = project.getLocation().append(fileName).toOSString();
-            ResourceSet resSet = new ResourceSetImpl();
-            resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xml", new XMIResourceFactoryImpl());
-            resSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("evo", new XMIResourceFactoryImpl());
-
-            URI fileURI = URI.createFileURI(filePath);
-            Resource resource = resSet.createResource(fileURI);
+            ProjectModelManager modelManager = ProjectModelManager.getInstance();
+            Resource resource = modelManager.createResource(filePath);
             
-         // This is the missing piece!          
-            resource.save(Collections.emptyMap());
-
-            OrchestrationFactory factory = OrchestrationFactory.eINSTANCE;
-
-            EvoProject evoProject = factory.createEvoProject();
-            evoProject.setName(projectName);
-
-            Orchestrator orchestrator = factory.createOrchestrator();
-            orchestrator.setName("Initial Orchestration");
-            orchestrator.setId("orch1");
+            EvoProject evoProject = modelManager.createProject(projectName);
 
             // Git Settings
             if (!gitPage.isSkipped()) {
-                Git git = factory.createGit();
-                git.setRepositoryUrl(gitPage.getRepoUrl());
-                git.setBranch(gitPage.getBranch());
-                git.setUsername(gitPage.getUsername());
-                git.setLocalPath(gitPage.getLocalPath());
-                orchestrator.setGit(git);
+                modelManager.updateGitSettings(orchestrator, gitPage.getRepoUrl(), gitPage.getBranch(), gitPage.getUsername(), gitPage.getPassword(), gitPage.getLocalPath());
             }
 
             // Ollama Settings
             if (!ollamaPage.isSkipped()) {
-                Ollama ollama = factory.createOllama();
-                ollama.setUrl(ollamaPage.getOllamaUrl());
-                ollama.setModel(ollamaPage.getModelName());
-                ollama.setPath(ollamaPage.getExecutablePath());
-                orchestrator.setOllama(ollama);
+                String modelName = ollamaPage.getModelName();
+                modelManager.updateOllamaSettings(orchestrator, ollamaPage.getOllamaUrl(), modelName, ollamaPage.getExecutablePath());
+                modelManager.updateLocalModel(orchestrator, modelName);
+                modelManager.updateHybridModel(orchestrator, modelName);
+            } else {
+                modelManager.updateOllamaSettings(orchestrator, "http://localhost:11434", "llama3.2:3b", null);
+                modelManager.updateLocalModel(orchestrator, "llama3.2:3b");
+                modelManager.updateHybridModel(orchestrator, "llama3.2:3b");
             }
 
             // LLM Settings
             if (!llmPage.isSkipped()) {
-                LLM llm = factory.createLLM();
-                llm.setModel(llmPage.getLlmModel());
-                try {
-                    llm.setTemperature(Float.parseFloat(llmPage.getTemperature()));
-                } catch (NumberFormatException e) {
-                    llm.setTemperature(0.7f);
-                }
-                orchestrator.setLlm(llm);
+                float temp = 0.4f;
+                try { temp = Float.parseFloat(llmPage.getTemperature()); } catch (NumberFormatException e) {}
+                modelManager.updateLlmSettings(orchestrator, llmPage.getLlmModel(), temp);
+                modelManager.updateRemoteModel(orchestrator, llmPage.getLlmModel());
+            } else {
+                modelManager.updateLlmSettings(orchestrator, "gpt-4o", 0.4f);
+                modelManager.updateRemoteModel(orchestrator, "gpt-4o");
             }
 
             // Maven Settings
             if (!mavenPage.isSkipped()) {
-                Maven maven = factory.createMaven();
                 String goals = mavenPage.getGoals();
-                if (goals != null && !goals.isEmpty()) {
-                    maven.getGoals().addAll(Arrays.asList(goals.split("[,\\s]+")));
-                }
+                java.util.List<String> goalsList = goals != null && !goals.isEmpty() ? Arrays.asList(goals.split("[,\\s]+")) : null;
                 String profiles = mavenPage.getProfiles();
-                if (profiles != null && !profiles.isEmpty()) {
-                    maven.getProfiles().addAll(Arrays.asList(profiles.split("[,\\s]+")));
-                }
-                orchestrator.setMaven(maven);
+                java.util.List<String> profilesList = profiles != null && !profiles.isEmpty() ? Arrays.asList(profiles.split("[,\\s]+")) : null;
+                modelManager.updateMavenSettings(orchestrator, goalsList, profilesList);
             }
 
             // AiChat Settings
             if (!aiChatPage.isSkipped()) {
-                AiChat aiChat = factory.createAiChat();
-                aiChat.setUrl(aiChatPage.getChatUrl());
-                aiChat.setToken(aiChatPage.getToken());
-                aiChat.setPrompt(aiChatPage.getPrompt());
-                aiChat.setProxyUrl(aiChatPage.getProxyUrl());
-                orchestrator.setAiChat(aiChat);
+                modelManager.updateAiChatSettings(orchestrator, aiChatPage.getChatUrl(), aiChatPage.getToken(), aiChatPage.getPrompt(), aiChatPage.getProxyUrl());
             }
 
             // Neuron AI Settings
             if (!neuronAIPage.isSkipped()) {
-                NeuronAI neuronAI = factory.createNeuronAI();
-                neuronAI.setUrl(neuronAIPage.getUrl());
-                neuronAI.setModel(neuronAIPage.getModelName());
-                neuronAI.setType(neuronAIPage.getModelType());
-                orchestrator.setNeuronAI(neuronAI);
+                modelManager.updateNeuronAISettings(orchestrator, neuronAIPage.getUrl(), neuronAIPage.getModelName(), neuronAIPage.getModelType());
             }
 
             // Agent Settings
             if (!agentPage.isSkipped()) {
-                String agentsData = agentPage.getAgentsData();
-                if (agentsData != null && !agentsData.isEmpty()) {
-                    String[] lines = agentsData.split("\\r?\\n");
-                    for (String line : lines) {
-                        String[] parts = line.split(":");
-                        if (parts.length >= 2) {
-                            Agent agent = factory.createAgent();
-                            agent.setId(parts[0].trim());
-                            agent.setType(parts[1].trim());
-                            orchestrator.getAgents().add(agent);
-                        }
-                    }
+                for (AgentSettingsPage.AgentEntry entry : agentPage.getSelectedAgents()) {
+                    modelManager.addAgent(orchestrator, entry.id, entry.type);
                 }
             }
+
+            // Supervisor Settings
+            if (!supervisorPage.isSkipped()) {
+                modelManager.updateSupervisorSettings(orchestrator, supervisorPage.getExecutablePath(), supervisorPage.getSourcePath(), supervisorPage.getCommands(), supervisorPage.getSettings(), supervisorPage.isDeployed());
+            }
+
+            modelManager.setFileConfig(orchestrator, project.getLocation().append("resources").toOSString());
 
             evoProject.getOrchestrations().add(orchestrator);
             resource.getContents().add(evoProject);
                        
-            resource.save(Collections.emptyMap());
+            modelManager.saveResource(resource);
             project.refreshLocal(IProject.DEPTH_INFINITE, null);
 
             
@@ -302,7 +294,7 @@ public class NewEvoProjectWizard extends Wizard implements INewWizard {
                                 try {
                                     IViewPart view = page.showView("eu.kalafatic.views.EvoNavigator");
                                     if (view instanceof eu.kalafatic.evolution.view.views.EvoNavigator) {
-                                        ((eu.kalafatic.evolution.view.views.EvoNavigator) view).refresh();
+                                        ((eu.kalafatic.evolution.view.views.EvoNavigator) view).refreshAndExpand(project);
                                     }
                                 } catch (PartInitException e) {
                                     e.printStackTrace();

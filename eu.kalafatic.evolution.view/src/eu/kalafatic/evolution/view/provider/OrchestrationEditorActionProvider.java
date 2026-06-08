@@ -35,7 +35,10 @@ import eu.kalafatic.evolution.view.editors.OrchestratorEditorInput;
 public class OrchestrationEditorActionProvider extends CommonActionProvider {
 
     private Action refreshAction;
-    private Action deleteAction;
+    private Action removeAction;
+    private Action rateTaskAction;
+    private Action startSelfDevAction;
+    private Action compareWithEachOtherAction;
 
     @Override
     public void init(ICommonActionExtensionSite aSite) {
@@ -48,7 +51,7 @@ public class OrchestrationEditorActionProvider extends CommonActionProvider {
                 ISelection selection = event.getSelection();
                 if (selection instanceof IStructuredSelection) {
                     Object element = ((IStructuredSelection) selection).getFirstElement();
-                    if (element instanceof IFile || element instanceof EvoProject || element instanceof Orchestrator) {
+                    if (element instanceof IFile || element instanceof EvoProject || element instanceof Orchestrator || element instanceof org.eclipse.core.resources.IProject) {
                         Action openAction = createOpenAction(element);
                         if (openAction != null) {
                             openAction.run();
@@ -68,7 +71,7 @@ public class OrchestrationEditorActionProvider extends CommonActionProvider {
         };
         refreshAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ELCL_SYNCED));
 
-        deleteAction = new Action("Delete") {
+        removeAction = new Action("Remove") {
             @Override
             public void run() {
                 ISelection selection = getContext().getSelection();
@@ -93,7 +96,77 @@ public class OrchestrationEditorActionProvider extends CommonActionProvider {
                 }
             }
         };
-        deleteAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
+        removeAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
+        removeAction.setActionDefinitionId("org.eclipse.ui.edit.delete");
+        refreshAction.setActionDefinitionId("org.eclipse.ui.file.refresh");
+
+        rateTaskAction = new Action("Rate Task...") {
+            @Override
+            public void run() {
+                ISelection selection = getContext().getSelection();
+                if (selection instanceof IStructuredSelection) {
+                    Object element = ((IStructuredSelection) selection).getFirstElement();
+                    if (element instanceof Task) {
+                        Task task = (Task) element;
+                        org.eclipse.jface.dialogs.InputDialog dialog = new org.eclipse.jface.dialogs.InputDialog(
+                            PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+                            "Rate Task", "Enter rating (1-5):", String.valueOf(task.getRating()),
+                            new org.eclipse.jface.dialogs.IInputValidator() {
+                                @Override
+                                public String isValid(String newText) {
+                                    try {
+                                        int val = Integer.parseInt(newText);
+                                        if (val < 1 || val > 5) return "Rating must be between 1 and 5";
+                                    } catch (NumberFormatException e) { return "Must be a number"; }
+                                    return null;
+                                }
+                            });
+                        if (dialog.open() == org.eclipse.jface.window.Window.OK) {
+                            task.setRating(Integer.parseInt(dialog.getValue()));
+                            MessageDialog.openInformation(null, "Success", "Task rated successfully.");
+                        }
+                    }
+                }
+            }
+        };
+
+        compareWithEachOtherAction = new Action("Compare with each other") {
+            @Override
+            public void run() {
+                ISelection selection = getContext().getSelection();
+                if (selection instanceof IStructuredSelection) {
+                    IStructuredSelection ssel = (IStructuredSelection) selection;
+                    if (ssel.size() == 2) {
+                        Object first = ssel.toArray()[0];
+                        Object second = ssel.toArray()[1];
+                        if (first instanceof IFile && second instanceof IFile) {
+                            org.eclipse.compare.CompareConfiguration config = new org.eclipse.compare.CompareConfiguration();
+                            config.setLeftLabel(((IFile) first).getName());
+                            config.setRightLabel(((IFile) second).getName());
+                            eu.kalafatic.evolution.view.editors.compare.ResourceCompareInput input =
+                                new eu.kalafatic.evolution.view.editors.compare.ResourceCompareInput(config, first, second);
+                            org.eclipse.compare.CompareUI.openCompareEditor(input);
+                        }
+                    }
+                }
+            }
+        };
+
+        startSelfDevAction = new Action("Start Self-Dev Session") {
+            @Override
+            public void run() {
+                ISelection selection = getContext().getSelection();
+                if (selection instanceof IStructuredSelection) {
+                    Object element = ((IStructuredSelection) selection).getFirstElement();
+                    if (element instanceof Orchestrator) {
+                        Orchestrator orchestrator = (Orchestrator) element;
+                        openOrchestrator(orchestrator);
+                        // In a real RCP app, we would trigger the specific command or find the editor
+                        MessageDialog.openInformation(null, "Self-Dev", "Switch to 'Ai Chat' tab in the opened editor and click '🚀 Self-Dev' to start.");
+                    }
+                }
+            }
+        };
     }
 
     @Override
@@ -105,8 +178,21 @@ public class OrchestrationEditorActionProvider extends CommonActionProvider {
             if (openAction != null) {
                 menu.insertAfter(ICommonMenuConstants.GROUP_OPEN, openAction);
             }
+            if (firstElement instanceof Task) {
+                menu.appendToGroup(ICommonMenuConstants.GROUP_EDIT, rateTaskAction);
+            }
+            if (firstElement instanceof Orchestrator) {
+                menu.appendToGroup(ICommonMenuConstants.GROUP_OPEN, startSelfDevAction);
+            }
+            if (((IStructuredSelection) selection).size() == 2) {
+                Object first = ((IStructuredSelection) selection).toArray()[0];
+                Object second = ((IStructuredSelection) selection).toArray()[1];
+                if (first instanceof IFile && second instanceof IFile) {
+                    menu.appendToGroup(ICommonMenuConstants.GROUP_OPEN, compareWithEachOtherAction);
+                }
+            }
         }
-        menu.appendToGroup(ICommonMenuConstants.GROUP_EDIT, deleteAction);
+        menu.appendToGroup(ICommonMenuConstants.GROUP_EDIT, removeAction);
         menu.appendToGroup(ICommonMenuConstants.GROUP_BUILD, refreshAction);
         menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
     }
@@ -218,7 +304,7 @@ public class OrchestrationEditorActionProvider extends CommonActionProvider {
         };
         actionBars.setGlobalActionHandler(ICommonActionConstants.OPEN, openAction);
         actionBars.setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
-        actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), deleteAction);
+        actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(), removeAction);
         actionBars.updateActionBars();
     }
 }

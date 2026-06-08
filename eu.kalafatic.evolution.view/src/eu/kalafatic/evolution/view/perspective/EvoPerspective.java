@@ -3,6 +3,7 @@ package eu.kalafatic.evolution.view.perspective;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
+import org.eclipse.ui.console.IConsoleConstants;
 
 import eu.kalafatic.evolution.view.views.AIOutputView;
 import eu.kalafatic.evolution.view.views.InternalBrowserView;
@@ -27,6 +28,22 @@ public class EvoPerspective implements IPerspectiveFactory {
         IFolderLayout left = layout.createFolder(EFolder.TOP_LEFT.ID, IPageLayout.LEFT, 0.20f, editorArea);
         left.addView("eu.kalafatic.views.EvoNavigator");
         //left.addView(IPageLayout.ID_PROJECT_EXPLORER);
+
+        // Bottom column - Console - 30%
+        //IFolderLayout bottom = layout.createFolder(EFolder.BOTTOM_LEFT.ID, IPageLayout.BOTTOM, 0.70f, EFolder.TOP_LEFT.ID);
+        //bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
+        
+		IFolderLayout bottomLeft = layout.createFolder(EFolder.BOTTOM_LEFT.ID, IPageLayout.BOTTOM, 0.50f, EFolder.TOP_LEFT.ID);
+		bottomLeft.addView(IConsoleConstants.ID_CONSOLE_VIEW);
+        
+        // 1. Create the Left column (top-left) relative to the Editor Area
+//        IFolderLayout left = layout.createFolder("leftFolder", IPageLayout.LEFT, 0.20f, editorArea);
+//        left.addView("eu.kalafatic.views.EvoNavigator");
+//
+//        // 2. Create the Bottom column relative to the "leftFolder" 
+//        // Use 0.70f to give the Navigator 30% and the Console 70% of that left strip
+//        IFolderLayout bottom = layout.createFolder("bottomLeftFolder", IPageLayout.BOTTOM, 0.30f, "leftFolder");
+//        bottom.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 
         // Bottom Area (relative to Editor Area) - Orchestration Graph, AI Output, and Properties - 30% of total height
         //IFolderLayout bottom = layout.createFolder(EFolder.BOTTOM_RIGHT.ID, IPageLayout.BOTTOM, 0.30f, editorArea);
@@ -55,6 +72,7 @@ public class EvoPerspective implements IPerspectiveFactory {
     private void addViewShortcuts(IPageLayout layout) {
         layout.addShowViewShortcut(IPageLayout.ID_PROJECT_EXPLORER);
         layout.addShowViewShortcut("eu.kalafatic.views.EvoNavigator");
+        layout.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
         layout.addShowViewShortcut(AIOutputView.ID);
         layout.addShowViewShortcut(OrchestrationZestView.ID);
         layout.addShowViewShortcut(InternalBrowserView.ID);
@@ -70,6 +88,7 @@ public class EvoPerspective implements IPerspectiveFactory {
         layout.addNewWizardShortcut("eu.kalafatic.evolution.view.wizards.NewEvoProjectWizard");
         layout.addNewWizardShortcut("eu.kalafatic.evolution.view.wizards.AddOrchestrationWizard");
         layout.addNewWizardShortcut("eu.kalafatic.evolution.view.wizards.NewEvoTaskWizard");
+        layout.addNewWizardShortcut("eu.kalafatic.evolution.view.newSessionWizard");
         layout.addNewWizardShortcut("org.eclipse.ui.wizards.new.folder");
         layout.addNewWizardShortcut("org.eclipse.ui.wizards.new.file");
     }

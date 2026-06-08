@@ -1,0 +1,360 @@
+package eu.kalafatic.evolution.view.editors.pages;
+
+import org.eclipse.emf.common.notify.Adapter;
+import org.eclipse.emf.common.notify.Notification;
+import org.eclipse.emf.ecore.util.EContentAdapter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.SharedScrolledComposite;
+
+import eu.kalafatic.evolution.controller.orchestration.behavior.BitState;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.model.orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.TaskStatus;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
+import eu.kalafatic.evolution.view.editors.MultiPageEditor;
+import eu.kalafatic.evolution.view.editors.pages.taskstack.*;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class TaskStackPage extends AEvoPage {
+
+    private Composite body;
+    private boolean isUpdating = false;
+
+    private GlobalActionsGroup globalActionsGroup;
+    private TaskStackGroup taskStackGroup;
+    private List<Task> executionQueue = new ArrayList<>();
+    private Task currentlyExecutingTask = null;
+
+    private Adapter modelAdapter = new EContentAdapter() {
+        @Override
+        public void notifyChanged(Notification notification) {
+            super.notifyChanged(notification);
+            if (notification.isTouch()) return;
+
+            if (currentlyExecutingTask != null && notification.getNotifier() == currentlyExecutingTask && notification.getFeatureID(Task.class) == OrchestrationPackage.TASK__STATUS) {
+                TaskStatus newStatus = (TaskStatus) notification.getNewValue();
+                if (newStatus == TaskStatus.DONE || newStatus == TaskStatus.FAILED) {
+                    currentlyExecutingTask = null;
+                    processNextInQueue();
+                }
+            }
+
+            if (!isUpdating) {
+                scheduleRefresh();
+            }
+        }
+    };
+
+    public TaskStackPage(Composite parent, MultiPageEditor editor, Orchestrator orchestrator) {
+        super(parent, editor, orchestrator);
+
+        body = toolkit.createComposite(this);
+        body.setLayout(new GridLayout(1, false));
+        setContent(body);
+
+        globalActionsGroup = new GlobalActionsGroup(toolkit, body, editor, orchestrator, this);
+        taskStackGroup = new TaskStackGroup(toolkit, body, editor, orchestrator, this);
+
+        setOrchestrator(orchestrator);
+        // startTimer();
+    }
+
+    private void startTimer() {
+        /*
+        Display.getDefault().timerExec(1000, new Runnable() {
+            @Override
+            public void run() {
+                if (isDisposed()) return;
+                checkAutoExecution();
+                updateUIFromModel();
+                Display.getDefault().timerExec(1000, this);
+            }
+        });
+        */
+    }
+
+    private void checkAutoExecution() {
+        /*
+        long now = System.currentTimeMillis();
+
+        // Count currently running tasks
+        long runningCount = orchestrator.getTasks().stream()
+                .filter(t -> t.getStatus() == TaskStatus.RUNNING)
+                .count();
+
+        for (Task task : orchestrator.getTasks()) {
+            if (task.getStatus() == TaskStatus.PENDING) {
+                Long execTime = autoExecuteTimes.get(task);
+                if (execTime == null) {
+                    autoExecuteTimes.put(task, now + AUTO_EXECUTION_DELAY_MS);
+                } else if (now >= execTime) {
+                    // Try to start it
+                    if (globalActionsGroup.isParallel()) {
+                        if (runningCount < MAX_PARALLEL_PLANS) {
+                            autoExecuteTimes.remove(task);
+                            runPlan(task);
+                            runningCount++; // Increment local count to prevent over-starting
+                        }
+                    } else {
+                        if (runningCount == 0) {
+                            autoExecuteTimes.remove(task);
+                            runPlan(task);
+                            runningCount++;
+                        }
+                    }
+                }
+            } else {
+                autoExecuteTimes.remove(task);
+            }
+        }
+        */
+    }
+
+    
+    public String getCountdown(Task task) {
+        return "";
+        /*
+        if (task.getStatus() != TaskStatus.PENDING) return "";
+        Long execTime = autoExecuteTimes.get(task);
+        if (execTime == null) return "";
+        long remaining = execTime - System.currentTimeMillis();
+        if (remaining <= 0) return "00:00";
+        long seconds = (remaining / 1000) % 60;
+        long minutes = (remaining / 1000) / 60;
+        return String.format("%02d:%02d", minutes, seconds);
+        */
+    }
+
+
+    public void setOrchestrator(Orchestrator orchestrator) {
+        if (this.orchestrator != null) {
+            this.orchestrator.eAdapters().remove(modelAdapter);
+        }
+        super.setOrchestrator(orchestrator);
+        if (this.orchestrator != null) {
+            this.orchestrator.eAdapters().add(modelAdapter);
+        }
+    }
+
+    @Override
+    protected void refreshUI() {
+        if (isUpdating || orchestrator == null || body == null || body.isDisposed()) return;
+        isUpdating = true;
+        taskStackGroup.refreshUI();
+        body.layout(true, true);
+        this.setMinSize(body.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        this.reflow(true);
+        isUpdating = false;
+    }
+
+    public void updateUIFromModel() {
+        scheduleRefresh();
+    }
+
+    public void selectAll(boolean select) {
+        for (Task task : orchestrator.getTasks()) {
+            task.setSelected(select);
+            
+            for (Task subTask : task.getSubTasks()) {
+            	subTask.setSelected(select);
+            }
+        }
+        updateUIFromModel();
+        setDirty(true);
+    }
+
+    public void addNewPlan() {
+        Task newPlan = OrchestrationFactory.eINSTANCE.createTask();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
+        String timestamp = sdf.format(new Date());
+        newPlan.setId("P-" + timestamp);
+        newPlan.setName("New Plan Session");
+        newPlan.setStatus(TaskStatus.READY);
+        newPlan.setSelected(true);
+        orchestrator.getTasks().add(newPlan);
+        setDirty(true);
+    }
+
+    public void addDefaultModeTests() {
+        String[] modes = {"SIMPLE_CHAT", "ASSISTED_CODING", "DARWIN_MODE", "SELF_DEV_MODE", "HEADLESS_MODE", "PROMPT_HELLO", "PROMPT_CREATE_LOCAL", "PROMPT_CREATE_MEDIATED", "PROMPT_ANALYZE_MEDIATED"};
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
+        String timestamp = sdf.format(new Date());
+        for (String mode : modes) {
+            String name = switch(mode) {
+                case "PROMPT_HELLO" -> "Hello Task";
+                case "PROMPT_CREATE_LOCAL" -> "Create Java Class (LOCAL)";
+                case "PROMPT_CREATE_MEDIATED" -> "Create Java Class (MEDIATED)";
+                case "PROMPT_ANALYZE_MEDIATED" -> "Analyze IterationManager (MEDIATED)";
+                default -> "Default Test: " + mode;
+            };
+
+            boolean exists = orchestrator.getTasks().stream().anyMatch(t -> name.equals(t.getName()));
+            if (!exists) {
+                Task testPlan = OrchestrationFactory.eINSTANCE.createTask();
+                testPlan.setId("DT-" + mode + "-" + timestamp);
+                testPlan.setName(name);
+                testPlan.setType(mode.startsWith("PROMPT_") ? "coding" : mode);
+                testPlan.setStatus(TaskStatus.READY);
+                testPlan.setSelected(true);
+
+                String description = switch(mode) {
+                    case "SIMPLE_CHAT" -> "Explain the purpose of this project.";
+                    case "ASSISTED_CODING" -> "Add a new utility method to stringify JSON in eu.kalafatic.utils.";
+                    case "DARWIN_MODE" -> "Optimize the EvolutionOrchestrator performance.";
+                    case "SELF_DEV_MODE" -> "Improve the TaskStackPage UI with better execution controls.";
+                    case "HEADLESS_MODE" -> "Verify headless execution using the Self-Development Supervisor.";
+                    case "PROMPT_HELLO" -> "hello";
+                    case "PROMPT_CREATE_LOCAL" -> "create java class which can print text";
+                    case "PROMPT_CREATE_MEDIATED" -> "create java class which can print text";
+                    case "PROMPT_ANALYZE_MEDIATED" -> "analyze IterationManager.java";
+                    default -> "";
+                };
+                testPlan.setDescription(description);
+                testPlan.setPrompt(description);
+
+                // Configure BitState for PROMPT modes
+                if (mode.equals("PROMPT_CREATE_LOCAL")) {
+                    testPlan.setBitState(BitState.encode(BitState.MODE_LOCAL, BitState.SUPERVISION_AUTO, BitState.INTERACTION_CONTINUOUS, BitState.REASONING_DARWIN, BitState.WORKFLOW_TASK_ORIENTED));
+                    testPlan.setDarwinMode(true);
+                } else if (mode.equals("PROMPT_CREATE_MEDIATED")) {
+                    testPlan.setBitState(BitState.encode(BitState.MODE_MEDIATED, BitState.SUPERVISION_MANUAL, BitState.INTERACTION_CONTINUOUS, BitState.REASONING_DARWIN, BitState.WORKFLOW_TASK_ORIENTED));
+                    testPlan.setDarwinMode(true);
+                } else if (mode.equals("PROMPT_ANALYZE_MEDIATED")) {
+                    testPlan.setBitState(BitState.encode(BitState.MODE_MEDIATED, BitState.SUPERVISION_MANUAL, BitState.INTERACTION_CONTINUOUS, BitState.REASONING_DARWIN, BitState.WORKFLOW_SELF_DEV));
+                    testPlan.setDarwinMode(true);
+                    testPlan.setSelfIterativeMode(true);
+                }
+
+                String[] subtaskNames = switch(mode) {
+                    case "SIMPLE_CHAT" -> new String[]{"Intent Analysis (Skip Loop)", "Direct Agent Dispatch", "Response Generation"};
+                    case "ASSISTED_CODING" -> new String[]{"Plan Generation", "User Approval Wait", "Atomic Task Execution", "Result Verification"};
+                    case "DARWIN_MODE" -> new String[]{"Variant Generation", "Parallel Execution", "Scoring & Selection", "Merge fittest solution"};
+                    case "SELF_DEV_MODE" -> new String[]{"Supervisor Session Start", "Iterative Darwin Loop", "Self-Modification Check", "Regression Testing"};
+                    case "HEADLESS_MODE" -> new String[]{"Supervisor Initialization", "Headless Maven Build", "External Loop Execution", "Result Aggregation"};
+                    default -> new String[0];
+                };
+
+                for (String stName : subtaskNames) {
+                    Task subTask = OrchestrationFactory.eINSTANCE.createTask();
+                    subTask.setName(stName);
+                    subTask.setStatus(TaskStatus.READY);
+                    testPlan.getSubTasks().add(subTask);
+                }
+
+                orchestrator.getTasks().add(testPlan);
+            }
+        }
+        setDirty(true);
+        updateUIFromModel();
+    }
+
+    public void addNewTaskToSelectedPlan() {
+        Task selectedPlan = null;
+        for (Task plan : orchestrator.getTasks()) {
+            if (plan.isSelected()) {
+                selectedPlan = plan;
+                break;
+            }
+        }
+        if (selectedPlan == null && !orchestrator.getTasks().isEmpty()) {
+            selectedPlan = orchestrator.getTasks().get(0);
+        }
+
+        if (selectedPlan != null) {
+            Task newTask = OrchestrationFactory.eINSTANCE.createTask();
+            newTask.setName("New Sub-Task");
+            newTask.setStatus(TaskStatus.READY);
+            selectedPlan.getSubTasks().add(newTask);
+            setDirty(true);
+        }
+    }
+
+    public void removeSelected() {
+        List<Task> toRemove = new ArrayList<>();
+        for (Task task : orchestrator.getTasks()) {
+            if (task.isSelected()) {
+                toRemove.add(task);
+            } else {
+                removeSelectedSubtasks(task);
+            }
+        }
+        orchestrator.getTasks().removeAll(toRemove);
+        setDirty(true);
+        updateUIFromModel();
+    }
+
+    private void removeSelectedSubtasks(Task parent) {
+        List<Task> subTasksToRemove = new ArrayList<>();
+        for (Task subTask : parent.getSubTasks()) {
+            if (subTask.isSelected()) {
+                subTasksToRemove.add(subTask);
+            } else {
+                removeSelectedSubtasks(subTask);
+            }
+        }
+        parent.getSubTasks().removeAll(subTasksToRemove);
+    }
+
+    public void executeSelected() {
+        List<Task> selectedTasks = new ArrayList<>();
+        collectSelectedTasks(orchestrator.getTasks(), selectedTasks);
+
+        if (selectedTasks.isEmpty()) return;
+
+        executionQueue.addAll(selectedTasks);
+        processNextInQueue();
+    }
+
+    private void collectSelectedTasks(List<Task> tasks, List<Task> collected) {
+        for (Task task : tasks) {
+            if (task.isSelected() && (task.getStatus() == TaskStatus.READY || task.getStatus() == TaskStatus.PENDING)) {
+                collected.add(task);
+            }
+            collectSelectedTasks(task.getSubTasks(), collected);
+        }
+    }
+
+    public void runSingleTask(Task task) {
+        if (currentlyExecutingTask == null) {
+            currentlyExecutingTask = task;
+            editor.runTaskInChat(task);
+        } else {
+            executionQueue.add(task);
+        }
+    }
+
+    private void processNextInQueue() {
+        if (currentlyExecutingTask != null || executionQueue.isEmpty()) return;
+
+        currentlyExecutingTask = executionQueue.remove(0);
+        editor.runTaskInChat(currentlyExecutingTask);
+    }
+
+    public void setDirty(boolean dirty) {
+        editor.setDirty(dirty);
+    }
+
+    @Override
+    public void dispose() {
+        if (orchestrator != null) orchestrator.eAdapters().remove(modelAdapter);
+        super.dispose();
+    }
+
+    // Compatibility methods
+    public void registerTaskRow(Task task, org.eclipse.swt.widgets.Button check, org.eclipse.swt.widgets.Text nameText, org.eclipse.swt.widgets.Text timeText, org.eclipse.swt.widgets.Label statusLabel) {}
+    public void registerTaskRowCheck(Task task, org.eclipse.swt.widgets.Button check) {}
+
+	public TaskStackGroup getTaskStackGroup() {
+		return taskStackGroup;
+	}
+}

@@ -68,7 +68,7 @@ This document analyzes the ECOS architectural primitives introduced in Phase C a
 
 The ECOS model supports **true lineage evolution** rather than generic document storage because it enforces **Decision Traceability**.
 
-In generic document storage, the system would simply store `Artifact_V1`, `Artifact_V2`, etc.
+In generic document storage, the system would simply store `Artifact_V1`, `Artifact_V2`, etc. 
 
 In the ECOS model:
 1.  Every transition is governed by `Pressure` (The "Why").

@@ -1,4 +1,5 @@
 package eu.kalafatic.evolution.controller.tests;
+import eu.kalafatic.evolution.controller.orchestration.SessionManager;
 
 import static org.junit.Assert.*;
 import java.io.File;
@@ -45,6 +46,6 @@ public class OrchestrationTest {
         assertEquals("value", context.getState("key"));
 
         context.log("test log");
-        assertTrue(context.getLogs().contains("test log"));
+        assertTrue(context.getLogs().get(0).contains("test log"));
     }
 }

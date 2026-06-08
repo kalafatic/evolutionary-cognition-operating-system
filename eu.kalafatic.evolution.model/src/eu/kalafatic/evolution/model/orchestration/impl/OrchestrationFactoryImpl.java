@@ -1,103 +1,905 @@
+/**
+ */
 package eu.kalafatic.evolution.model.orchestration.impl;
 
-import eu.kalafatic.evolution.model.orchestration.*;
-import org.eclipse.emf.ecore.*;
+import eu.kalafatic.evolution.model.orchestration.AIProvider;
+import eu.kalafatic.evolution.model.orchestration.AccessRule;
+import eu.kalafatic.evolution.model.orchestration.Agent;
+import eu.kalafatic.evolution.model.orchestration.AiChat;
+import eu.kalafatic.evolution.model.orchestration.AiMode;
+import eu.kalafatic.evolution.model.orchestration.ChangeSet;
+import eu.kalafatic.evolution.model.orchestration.ChatMessage;
+import eu.kalafatic.evolution.model.orchestration.ChatSession;
+import eu.kalafatic.evolution.model.orchestration.Command;
+import eu.kalafatic.evolution.model.orchestration.CommandStatus;
+import eu.kalafatic.evolution.model.orchestration.Comment;
+import eu.kalafatic.evolution.model.orchestration.Database;
+import eu.kalafatic.evolution.model.orchestration.DiffHunk;
+import eu.kalafatic.evolution.model.orchestration.Eclipse;
+import eu.kalafatic.evolution.model.orchestration.EvaluationResult;
+import eu.kalafatic.evolution.model.orchestration.EvoProject;
+import eu.kalafatic.evolution.model.orchestration.ExecutionMode;
+import eu.kalafatic.evolution.model.orchestration.FeedbackLevel;
+import eu.kalafatic.evolution.model.orchestration.FileChange;
+import eu.kalafatic.evolution.model.orchestration.FileConfig;
+import eu.kalafatic.evolution.model.orchestration.Git;
+import eu.kalafatic.evolution.model.orchestration.Iteration;
+import eu.kalafatic.evolution.model.orchestration.IterationStatus;
+import eu.kalafatic.evolution.model.orchestration.LLM;
+import eu.kalafatic.evolution.model.orchestration.LogLevel;
+import eu.kalafatic.evolution.model.orchestration.Maven;
+import eu.kalafatic.evolution.model.orchestration.MemoryRule;
+import eu.kalafatic.evolution.model.orchestration.MonitoringData;
+import eu.kalafatic.evolution.model.orchestration.NetworkRule;
+import eu.kalafatic.evolution.model.orchestration.NeuronAI;
+import eu.kalafatic.evolution.model.orchestration.NeuronType;
+import eu.kalafatic.evolution.model.orchestration.Ollama;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.model.orchestration.PromptInstructions;
+import eu.kalafatic.evolution.model.orchestration.ReviewDecision;
+import eu.kalafatic.evolution.model.orchestration.ReviewSession;
+import eu.kalafatic.evolution.model.orchestration.SecretRule;
+import eu.kalafatic.evolution.model.orchestration.SelfDevDecision;
+import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
+import eu.kalafatic.evolution.model.orchestration.SelfDevStatus;
+import eu.kalafatic.evolution.model.orchestration.ServerSession;
+import eu.kalafatic.evolution.model.orchestration.ServerSettings;
+import eu.kalafatic.evolution.model.orchestration.SupervisorSettings;
+import eu.kalafatic.evolution.model.orchestration.SessionType;
+import eu.kalafatic.evolution.model.orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.TaskStatus;
+import eu.kalafatic.evolution.model.orchestration.Test;
+import eu.kalafatic.evolution.model.orchestration.TestStatus;
+
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EDataType;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EPackage;
+
 import org.eclipse.emf.ecore.impl.EFactoryImpl;
+
 import org.eclipse.emf.ecore.plugin.EcorePlugin;
 
+/**
+ * <!-- begin-user-doc -->
+ * An implementation of the model <b>Factory</b>.
+ * <!-- end-user-doc -->
+ * @generated
+ */
 public class OrchestrationFactoryImpl extends EFactoryImpl implements OrchestrationFactory {
-    public static OrchestrationFactory init() {
-        try {
-            OrchestrationFactory theOrchestrationFactory = (OrchestrationFactory)EPackage.Registry.INSTANCE.getEFactory(OrchestrationPackage.eNS_URI);
-            if (theOrchestrationFactory != null) return theOrchestrationFactory;
-        } catch (Exception exception) {
-            EcorePlugin.INSTANCE.log(exception);
-        }
-        return new OrchestrationFactoryImpl();
-    }
+	/**
+	 * Creates the default factory implementation.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public static OrchestrationFactory init() {
+		try {
+			OrchestrationFactory theOrchestrationFactory = (OrchestrationFactory)EPackage.Registry.INSTANCE.getEFactory(OrchestrationPackage.eNS_URI);
+			if (theOrchestrationFactory != null) {
+				return theOrchestrationFactory;
+			}
+		}
+		catch (Exception exception) {
+			EcorePlugin.INSTANCE.log(exception);
+		}
+		return new OrchestrationFactoryImpl();
+	}
 
-    public OrchestrationFactoryImpl() { super(); }
+	/**
+	 * Creates an instance of the factory.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public OrchestrationFactoryImpl() {
+		super();
+	}
 
-    @Override public EObject create(EClass eClass) {
-        switch (eClass.getClassifierID()) {
-            case OrchestrationPackage.TASK: return createTask();
-            case OrchestrationPackage.AGENT: return createAgent();
-            case OrchestrationPackage.ORCHESTRATOR: return createOrchestrator();
-            case OrchestrationPackage.GIT: return createGit();
-            case OrchestrationPackage.MAVEN: return createMaven();
-            case OrchestrationPackage.LLM: return createLLM();
-            case OrchestrationPackage.COMPILER: return createCompiler();
-            case OrchestrationPackage.COMMAND: return createCommand();
-            case OrchestrationPackage.OLLAMA: return createOllama();
-            case OrchestrationPackage.AI_CHAT: return createAiChat();
-            case OrchestrationPackage.NEURON_AI: return createNeuronAI();
-            case OrchestrationPackage.EVO_PROJECT: return createEvoProject();
-            case OrchestrationPackage.ACCESS_RULE: return createAccessRule();
-            case OrchestrationPackage.NETWORK_RULE: return createNetworkRule();
-            case OrchestrationPackage.MEMORY_RULE: return createMemoryRule();
-            case OrchestrationPackage.SECRET_RULE: return createSecretRule();
-            case OrchestrationPackage.SELF_DEV_SESSION: return createSelfDevSession();
-            case OrchestrationPackage.ITERATION: return createIteration();
-            case OrchestrationPackage.EVALUATION_RESULT: return createEvaluationResult();
-            case OrchestrationPackage.DATABASE: return createDatabase();
-            case OrchestrationPackage.FILE_CONFIG: return createFileConfig();
-            case OrchestrationPackage.ARTIFACT: return createArtifact();
-            case OrchestrationPackage.LINEAGE: return createLineage();
-            case OrchestrationPackage.EVOLUTION_STEP: return createEvolutionStep();
-            case OrchestrationPackage.MUTATION: return createMutation();
-            case OrchestrationPackage.EVALUATION: return createEvaluation();
-            case OrchestrationPackage.PRESSURE: return createPressure();
-            case OrchestrationPackage.PROPERTY: return createProperty();
-            default: throw new IllegalArgumentException("Unknown class");
-        }
-    }
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EObject create(EClass eClass) {
+		switch (eClass.getClassifierID()) {
+			case OrchestrationPackage.TASK: return createTask();
+			case OrchestrationPackage.AGENT: return createAgent();
+			case OrchestrationPackage.ORCHESTRATOR: return createOrchestrator();
+			case OrchestrationPackage.SERVER_SETTINGS: return createServerSettings();
+			case OrchestrationPackage.SERVER_SESSION: return createServerSession();
+			case OrchestrationPackage.MONITORING_DATA: return createMonitoringData();
+			case OrchestrationPackage.AI_PROVIDER: return createAIProvider();
+			case OrchestrationPackage.GIT: return createGit();
+			case OrchestrationPackage.MAVEN: return createMaven();
+			case OrchestrationPackage.LLM: return createLLM();
+			case OrchestrationPackage.COMPILER: return createCompiler();
+			case OrchestrationPackage.COMMAND: return createCommand();
+			case OrchestrationPackage.OLLAMA: return createOllama();
+			case OrchestrationPackage.AI_CHAT: return createAiChat();
+			case OrchestrationPackage.NEURON_AI: return createNeuronAI();
+			case OrchestrationPackage.EVO_PROJECT: return createEvoProject();
+			case OrchestrationPackage.ACCESS_RULE: return createAccessRule();
+			case OrchestrationPackage.NETWORK_RULE: return createNetworkRule();
+			case OrchestrationPackage.MEMORY_RULE: return createMemoryRule();
+			case OrchestrationPackage.SECRET_RULE: return createSecretRule();
+			case OrchestrationPackage.SELF_DEV_SESSION: return createSelfDevSession();
+			case OrchestrationPackage.DATABASE: return createDatabase();
+			case OrchestrationPackage.FILE_CONFIG: return createFileConfig();
+			case OrchestrationPackage.ITERATION: return createIteration();
+			case OrchestrationPackage.ECLIPSE: return createEclipse();
+			case OrchestrationPackage.EVALUATION_RESULT: return createEvaluationResult();
+			case OrchestrationPackage.TEST: return createTest();
+			case OrchestrationPackage.COMMENT: return createComment();
+			case OrchestrationPackage.DIFF_HUNK: return createDiffHunk();
+			case OrchestrationPackage.FILE_CHANGE: return createFileChange();
+			case OrchestrationPackage.CHANGE_SET: return createChangeSet();
+			case OrchestrationPackage.REVIEW_SESSION: return createReviewSession();
+			case OrchestrationPackage.CHAT_SESSION: return createChatSession();
+			case OrchestrationPackage.CHAT_MESSAGE: return createChatMessage();
+			case OrchestrationPackage.SUPERVISOR_SETTINGS: return createSupervisorSettings();
+			case OrchestrationPackage.PROMPT_INSTRUCTIONS: return createPromptInstructions();
+			default:
+				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
+		}
+	}
 
-    @Override public Object createFromString(EDataType eDataType, String initialValue) {
-        switch (eDataType.getClassifierID()) {
-            case OrchestrationPackage.TASK_STATUS: return TaskStatus.get(initialValue);
-            case OrchestrationPackage.COMMAND_STATUS: return CommandStatus.get(initialValue);
-            case OrchestrationPackage.EXECUTION_MODE: return ExecutionMode.get(initialValue);
-            case OrchestrationPackage.NEURON_TYPE: return NeuronType.get(initialValue);
-            case OrchestrationPackage.AI_MODE: return AiMode.get(initialValue);
-            case OrchestrationPackage.SELF_DEV_STATUS: return SelfDevStatus.get(initialValue);
-            case OrchestrationPackage.ITERATION_STATUS: return IterationStatus.get(initialValue);
-            case OrchestrationPackage.SELF_DEV_DECISION: return SelfDevDecision.get(initialValue);
-            case OrchestrationPackage.EVOLUTION_DECISION: return EvolutionDecision.get(initialValue);
-            default: throw new IllegalArgumentException("Unknown datatype");
-        }
-    }
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public SupervisorSettings createSupervisorSettings() {
+		SupervisorSettingsImpl supervisorSettings = new SupervisorSettingsImpl();
+		return supervisorSettings;
+	}
 
-    @Override public String convertToString(EDataType eDataType, Object instanceValue) {
-        return instanceValue == null ? null : instanceValue.toString();
-    }
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Object createFromString(EDataType eDataType, String initialValue) {
+		switch (eDataType.getClassifierID()) {
+			case OrchestrationPackage.TASK_STATUS:
+				return createTaskStatusFromString(eDataType, initialValue);
+			case OrchestrationPackage.LOG_LEVEL:
+				return createLogLevelFromString(eDataType, initialValue);
+			case OrchestrationPackage.FEEDBACK_LEVEL:
+				return createFeedbackLevelFromString(eDataType, initialValue);
+			case OrchestrationPackage.SESSION_TYPE:
+				return createSessionTypeFromString(eDataType, initialValue);
+			case OrchestrationPackage.COMMAND_STATUS:
+				return createCommandStatusFromString(eDataType, initialValue);
+			case OrchestrationPackage.EXECUTION_MODE:
+				return createExecutionModeFromString(eDataType, initialValue);
+			case OrchestrationPackage.NEURON_TYPE:
+				return createNeuronTypeFromString(eDataType, initialValue);
+			case OrchestrationPackage.AI_MODE:
+				return createAiModeFromString(eDataType, initialValue);
+			case OrchestrationPackage.SELF_DEV_STATUS:
+				return createSelfDevStatusFromString(eDataType, initialValue);
+			case OrchestrationPackage.ITERATION_STATUS:
+				return createIterationStatusFromString(eDataType, initialValue);
+			case OrchestrationPackage.SELF_DEV_DECISION:
+				return createSelfDevDecisionFromString(eDataType, initialValue);
+			case OrchestrationPackage.TEST_STATUS:
+				return createTestStatusFromString(eDataType, initialValue);
+			case OrchestrationPackage.REVIEW_DECISION:
+				return createReviewDecisionFromString(eDataType, initialValue);
+			default:
+				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
+		}
+	}
 
-    @Override public Task createTask() { return new TaskImpl(); }
-    @Override public Agent createAgent() { return new AgentImpl(); }
-    @Override public Orchestrator createOrchestrator() { return new OrchestratorImpl(); }
-    @Override public Git createGit() { return new GitImpl(); }
-    @Override public Maven createMaven() { return new MavenImpl(); }
-    @Override public LLM createLLM() { return new LLMImpl(); }
-    @Override public Compiler createCompiler() { return new CompilerImpl(); }
-    @Override public Command createCommand() { return new CommandImpl(); }
-    @Override public Ollama createOllama() { return new OllamaImpl(); }
-    @Override public AiChat createAiChat() { return new AiChatImpl(); }
-    @Override public NeuronAI createNeuronAI() { return new NeuronAIImpl(); }
-    @Override public EvoProject createEvoProject() { return new EvoProjectImpl(); }
-    @Override public AccessRule createAccessRule() { return new AccessRuleImpl(); }
-    @Override public NetworkRule createNetworkRule() { return new NetworkRuleImpl(); }
-    @Override public MemoryRule createMemoryRule() { return new MemoryRuleImpl(); }
-    @Override public SecretRule createSecretRule() { return new SecretRuleImpl(); }
-    @Override public SelfDevSession createSelfDevSession() { return new SelfDevSessionImpl(); }
-    @Override public Iteration createIteration() { return new IterationImpl(); }
-    @Override public EvaluationResult createEvaluationResult() { return new EvaluationResultImpl(); }
-    @Override public Database createDatabase() { return new DatabaseImpl(); }
-    @Override public FileConfig createFileConfig() { return new FileConfigImpl(); }
-    @Override public Artifact createArtifact() { return new ArtifactImpl(); }
-    @Override public Lineage createLineage() { return new LineageImpl(); }
-    @Override public EvolutionStep createEvolutionStep() { return new EvolutionStepImpl(); }
-    @Override public Mutation createMutation() { return new MutationImpl(); }
-    @Override public Evaluation createEvaluation() { return new EvaluationImpl(); }
-    @Override public Pressure createPressure() { return new PressureImpl(); }
-    @Override public Property createProperty() { return new PropertyImpl(); }
-    @Override public OrchestrationPackage getOrchestrationPackage() { return (OrchestrationPackage)getEPackage(); }
-}
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String convertToString(EDataType eDataType, Object instanceValue) {
+		switch (eDataType.getClassifierID()) {
+			case OrchestrationPackage.TASK_STATUS:
+				return convertTaskStatusToString(eDataType, instanceValue);
+			case OrchestrationPackage.LOG_LEVEL:
+				return convertLogLevelToString(eDataType, instanceValue);
+			case OrchestrationPackage.FEEDBACK_LEVEL:
+				return convertFeedbackLevelToString(eDataType, instanceValue);
+			case OrchestrationPackage.SESSION_TYPE:
+				return convertSessionTypeToString(eDataType, instanceValue);
+			case OrchestrationPackage.COMMAND_STATUS:
+				return convertCommandStatusToString(eDataType, instanceValue);
+			case OrchestrationPackage.EXECUTION_MODE:
+				return convertExecutionModeToString(eDataType, instanceValue);
+			case OrchestrationPackage.NEURON_TYPE:
+				return convertNeuronTypeToString(eDataType, instanceValue);
+			case OrchestrationPackage.AI_MODE:
+				return convertAiModeToString(eDataType, instanceValue);
+			case OrchestrationPackage.SELF_DEV_STATUS:
+				return convertSelfDevStatusToString(eDataType, instanceValue);
+			case OrchestrationPackage.ITERATION_STATUS:
+				return convertIterationStatusToString(eDataType, instanceValue);
+			case OrchestrationPackage.SELF_DEV_DECISION:
+				return convertSelfDevDecisionToString(eDataType, instanceValue);
+			case OrchestrationPackage.TEST_STATUS:
+				return convertTestStatusToString(eDataType, instanceValue);
+			case OrchestrationPackage.REVIEW_DECISION:
+				return convertReviewDecisionToString(eDataType, instanceValue);
+			default:
+				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
+		}
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Task createTask() {
+		TaskImpl task = new TaskImpl();
+		return task;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Agent createAgent() {
+		AgentImpl agent = new AgentImpl();
+		return agent;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Orchestrator createOrchestrator() {
+		OrchestratorImpl orchestrator = new OrchestratorImpl();
+		return orchestrator;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ServerSettings createServerSettings() {
+		ServerSettingsImpl serverSettings = new ServerSettingsImpl();
+		return serverSettings;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ServerSession createServerSession() {
+		ServerSessionImpl serverSession = new ServerSessionImpl();
+		return serverSession;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public MonitoringData createMonitoringData() {
+		MonitoringDataImpl monitoringData = new MonitoringDataImpl();
+		return monitoringData;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public AIProvider createAIProvider() {
+		AIProviderImpl aiProvider = new AIProviderImpl();
+		return aiProvider;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Git createGit() {
+		GitImpl git = new GitImpl();
+		return git;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Maven createMaven() {
+		MavenImpl maven = new MavenImpl();
+		return maven;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public LLM createLLM() {
+		LLMImpl llm = new LLMImpl();
+		return llm;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public eu.kalafatic.evolution.model.orchestration.Compiler createCompiler() {
+		CompilerImpl compiler = new CompilerImpl();
+		return compiler;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Command createCommand() {
+		CommandImpl command = new CommandImpl();
+		return command;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Ollama createOllama() {
+		OllamaImpl ollama = new OllamaImpl();
+		return ollama;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public AiChat createAiChat() {
+		AiChatImpl aiChat = new AiChatImpl();
+		return aiChat;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public NeuronAI createNeuronAI() {
+		NeuronAIImpl neuronAI = new NeuronAIImpl();
+		return neuronAI;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EvoProject createEvoProject() {
+		EvoProjectImpl evoProject = new EvoProjectImpl();
+		return evoProject;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public AccessRule createAccessRule() {
+		AccessRuleImpl accessRule = new AccessRuleImpl();
+		return accessRule;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public NetworkRule createNetworkRule() {
+		NetworkRuleImpl networkRule = new NetworkRuleImpl();
+		return networkRule;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public MemoryRule createMemoryRule() {
+		MemoryRuleImpl memoryRule = new MemoryRuleImpl();
+		return memoryRule;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public SecretRule createSecretRule() {
+		SecretRuleImpl secretRule = new SecretRuleImpl();
+		return secretRule;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public SelfDevSession createSelfDevSession() {
+		SelfDevSessionImpl selfDevSession = new SelfDevSessionImpl();
+		return selfDevSession;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Database createDatabase() {
+		DatabaseImpl database = new DatabaseImpl();
+		return database;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public FileConfig createFileConfig() {
+		FileConfigImpl fileConfig = new FileConfigImpl();
+		return fileConfig;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Iteration createIteration() {
+		IterationImpl iteration = new IterationImpl();
+		return iteration;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Eclipse createEclipse() {
+		EclipseImpl eclipse = new EclipseImpl();
+		return eclipse;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EvaluationResult createEvaluationResult() {
+		EvaluationResultImpl evaluationResult = new EvaluationResultImpl();
+		return evaluationResult;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Test createTest() {
+		TestImpl test = new TestImpl();
+		return test;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Comment createComment() {
+		CommentImpl comment = new CommentImpl();
+		return comment;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public DiffHunk createDiffHunk() {
+		DiffHunkImpl diffHunk = new DiffHunkImpl();
+		return diffHunk;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public FileChange createFileChange() {
+		FileChangeImpl fileChange = new FileChangeImpl();
+		return fileChange;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ChangeSet createChangeSet() {
+		ChangeSetImpl changeSet = new ChangeSetImpl();
+		return changeSet;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ReviewSession createReviewSession() {
+		ReviewSessionImpl reviewSession = new ReviewSessionImpl();
+		return reviewSession;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ChatSession createChatSession() {
+		ChatSessionImpl chatSession = new ChatSessionImpl();
+		return chatSession;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ChatMessage createChatMessage() {
+		ChatMessageImpl chatMessage = new ChatMessageImpl();
+		return chatMessage;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public PromptInstructions createPromptInstructions() {
+		PromptInstructionsImpl promptInstructions = new PromptInstructionsImpl();
+		return promptInstructions;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public TaskStatus createTaskStatusFromString(EDataType eDataType, String initialValue) {
+		TaskStatus result = TaskStatus.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertTaskStatusToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public LogLevel createLogLevelFromString(EDataType eDataType, String initialValue) {
+		LogLevel result = LogLevel.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertLogLevelToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public FeedbackLevel createFeedbackLevelFromString(EDataType eDataType, String initialValue) {
+		FeedbackLevel result = FeedbackLevel.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertFeedbackLevelToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public SessionType createSessionTypeFromString(EDataType eDataType, String initialValue) {
+		SessionType result = SessionType.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertSessionTypeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public CommandStatus createCommandStatusFromString(EDataType eDataType, String initialValue) {
+		CommandStatus result = CommandStatus.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertCommandStatusToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public ExecutionMode createExecutionModeFromString(EDataType eDataType, String initialValue) {
+		ExecutionMode result = ExecutionMode.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertExecutionModeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NeuronType createNeuronTypeFromString(EDataType eDataType, String initialValue) {
+		NeuronType result = NeuronType.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertNeuronTypeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public AiMode createAiModeFromString(EDataType eDataType, String initialValue) {
+		AiMode result = AiMode.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertAiModeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public SelfDevStatus createSelfDevStatusFromString(EDataType eDataType, String initialValue) {
+		SelfDevStatus result = SelfDevStatus.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertSelfDevStatusToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public IterationStatus createIterationStatusFromString(EDataType eDataType, String initialValue) {
+		IterationStatus result = IterationStatus.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertIterationStatusToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public SelfDevDecision createSelfDevDecisionFromString(EDataType eDataType, String initialValue) {
+		SelfDevDecision result = SelfDevDecision.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertSelfDevDecisionToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public TestStatus createTestStatusFromString(EDataType eDataType, String initialValue) {
+		TestStatus result = TestStatus.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertTestStatusToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public ReviewDecision createReviewDecisionFromString(EDataType eDataType, String initialValue) {
+		ReviewDecision result = ReviewDecision.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertReviewDecisionToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public OrchestrationPackage getOrchestrationPackage() {
+		return (OrchestrationPackage)getEPackage();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @deprecated
+	 * @generated
+	 */
+	@Deprecated
+	public static OrchestrationPackage getPackage() {
+		return OrchestrationPackage.eINSTANCE;
+	}
+
+} //OrchestrationFactoryImpl

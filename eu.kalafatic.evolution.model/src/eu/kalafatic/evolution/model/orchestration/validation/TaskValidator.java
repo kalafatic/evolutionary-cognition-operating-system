@@ -4,6 +4,8 @@
  */
 package eu.kalafatic.evolution.model.orchestration.validation;
 
+import eu.kalafatic.evolution.model.orchestration.FeedbackLevel;
+import eu.kalafatic.evolution.model.orchestration.LogLevel;
 import eu.kalafatic.evolution.model.orchestration.Task;
 import eu.kalafatic.evolution.model.orchestration.TaskStatus;
 
@@ -26,8 +28,33 @@ public interface TaskValidator {
 	boolean validateSubTasks(EList<Task> value);
 	boolean validateResponse(String value);
 	boolean validateFeedback(String value);
-
 	boolean validateApprovalRequired(boolean value);
-
 	boolean validateLoopToTaskId(String value);
+	boolean validatePriority(int value);
+	boolean validateResultSummary(String value);
+	boolean validateDescription(String value);
+	boolean validateRating(int value);
+	boolean validateLikes(boolean value);
+	boolean validateRationale(String value);
+	boolean validateScheduledTime(String value);
+	boolean validateSelected(boolean value);
+	boolean validateGoal(String value);
+	boolean validatePlan(String value);
+	boolean validateArtifacts(String value);
+	boolean validatePrompt(String value);
+	boolean validateAttachments(EList<String> value);
+	boolean validateLogLevel(LogLevel value);
+	boolean validateFeedbackLevel(FeedbackLevel value);
+	boolean validateAutoEscalate(boolean value);
+	boolean validateIterativeMode(boolean value);
+	boolean validateSelfIterativeMode(boolean value);
+	boolean validateDarwinMode(boolean value);
+	boolean validateGitAutomation(boolean value);
+	boolean validateMaxIterations(int value);
+
+	boolean validateStepMode(boolean value);
+
+	boolean validateBitState(long value);
+
+	boolean validateJustification(String value);
 }

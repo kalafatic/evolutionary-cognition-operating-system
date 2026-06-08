@@ -1,0 +1,125 @@
+package eu.kalafatic.evolution.view.editors.pages.tools;
+
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+
+import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.tools.DatabaseTool;
+import eu.kalafatic.evolution.model.orchestration.Database;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.view.editors.MultiPageEditor;
+import eu.kalafatic.utils.factories.GUIFactory;
+import java.io.File;
+
+public class DatabaseGroup extends AToolGroup {
+    private Text dbUrlText, dbUsernameText, dbPasswordText, dbDriverText;
+
+    public DatabaseGroup(FormToolkit toolkit, Composite parent, MultiPageEditor editor, Orchestrator orchestrator, Color successColor) {
+        super(editor, orchestrator, successColor);
+        createControl(toolkit, parent);
+    }
+
+    private void createControl(FormToolkit toolkit, Composite parent) {
+        group = GUIFactory.INSTANCE.createExpandableGroup(toolkit, parent, "Database Tool Settings", 3, false);
+        GUIFactory.INSTANCE.createLabel(group, "JDBC URL:");
+        dbUrlText = GUIFactory.INSTANCE.createText(group);
+        dbUrlText.setText(orchestrator.getDatabase() != null && orchestrator.getDatabase().getUrl() != null ? orchestrator.getDatabase().getUrl() : "");
+        GUIFactory.INSTANCE.createEditButton(group, dbUrlText);
+
+        GUIFactory.INSTANCE.createLabel(group, "Driver Class:");
+        dbDriverText = GUIFactory.INSTANCE.createText(group);
+        dbDriverText.setText(orchestrator.getDatabase() != null && orchestrator.getDatabase().getDriver() != null ? orchestrator.getDatabase().getDriver() : "");
+        GUIFactory.INSTANCE.createEditButton(group, dbDriverText);
+
+        GUIFactory.INSTANCE.createLabel(group, "Username:");
+        dbUsernameText = GUIFactory.INSTANCE.createText(group);
+        dbUsernameText.setText(orchestrator.getDatabase() != null && orchestrator.getDatabase().getUsername() != null ? orchestrator.getDatabase().getUsername() : "");
+        GUIFactory.INSTANCE.createEditButton(group, dbUsernameText);
+
+        GUIFactory.INSTANCE.createLabel(group, "Password:");
+        dbPasswordText = GUIFactory.INSTANCE.createPasswordText(group);
+        dbPasswordText.setText(orchestrator.getDatabase() != null && orchestrator.getDatabase().getPassword() != null ? orchestrator.getDatabase().getPassword() : "");
+        GUIFactory.INSTANCE.createEditButton(group, dbPasswordText);
+
+        GUIFactory.INSTANCE.createLabel(group, "");
+        Button testBtn = GUIFactory.INSTANCE.createButton(group, "Test DB");
+        testBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                testDatabase();
+            }
+        });
+    }
+
+    private void testDatabase() {
+        try {
+            DatabaseTool tool = new DatabaseTool();
+            File workingDir = getWorkingDir();
+            TaskContext context = new TaskContext(orchestrator, workingDir);
+            String result = tool.execute("TEST_CONNECTION", workingDir, context);
+            MessageDialog.openInformation(group.getShell(), "Database Test", result);
+            if (orchestrator.getDatabase() != null) {
+                orchestrator.getDatabase().setTestStatus("SUCCESS");
+                updateGroupStatus();
+            }
+        } catch (Exception e) {
+            MessageDialog.openError(group.getShell(), "Database Test Failed", e.getMessage());
+            if (orchestrator.getDatabase() != null) {
+                orchestrator.getDatabase().setTestStatus("FAILED");
+                updateGroupStatus();
+            }
+        }
+    }
+
+    private File getWorkingDir() {
+        return new File(System.getProperty("java.io.tmpdir"));
+    }
+
+    @Override
+    protected void refreshUI() {
+        if (orchestrator.getDatabase() != null) {
+            Database db = orchestrator.getDatabase();
+            setTextSafe(dbUrlText, db.getUrl());
+            setTextSafe(dbDriverText, db.getDriver());
+            setTextSafe(dbUsernameText, db.getUsername());
+            setTextSafe(dbPasswordText, db.getPassword());
+            updateGroupStatus();
+        }
+    }
+
+    @Override
+    public void updateModel() {
+        if (orchestrator.getDatabase() == null) {
+            orchestrator.setDatabase(OrchestrationFactory.eINSTANCE.createDatabase());
+        }
+        Database db = orchestrator.getDatabase();
+        db.setUrl(dbUrlText.getText());
+        db.setDriver(dbDriverText.getText());
+        db.setUsername(dbUsernameText.getText());
+        db.setPassword(dbPasswordText.getText());
+    }
+
+    @Override
+    protected String getTestStatus() {
+        return orchestrator.getDatabase() != null ? orchestrator.getDatabase().getTestStatus() : null;
+    }
+
+    @Override
+    protected void clearTestStatus() {
+        if (orchestrator.getDatabase() != null) {
+            orchestrator.getDatabase().setTestStatus(null);
+        }
+    }
+
+    @Override
+    public Text[] getTextFields() {
+        return new Text[] { dbUrlText, dbUsernameText, dbPasswordText, dbDriverText };
+    }
+}

@@ -2,6 +2,8 @@
  */
 package eu.kalafatic.evolution.model.orchestration;
 
+import org.eclipse.emf.common.util.EList;
+
 import org.eclipse.emf.ecore.EObject;
 
 /**
@@ -17,6 +19,8 @@ import org.eclipse.emf.ecore.EObject;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.AiChat#getToken <em>Token</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.AiChat#getPrompt <em>Prompt</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.AiChat#getProxyUrl <em>Proxy Url</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.AiChat#getSessions <em>Sessions</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.AiChat#getPromptInstructions <em>Prompt Instructions</em>}</li>
  * </ul>
  *
  * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getAiChat()
@@ -111,5 +115,39 @@ public interface AiChat extends EObject {
 	 * @generated
 	 */
 	void setProxyUrl(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Sessions</b></em>' containment reference list.
+	 * The list contents are of type {@link eu.kalafatic.evolution.model.orchestration.ChatSession}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Sessions</em>' containment reference list.
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getAiChat_Sessions()
+	 * @model containment="true"
+	 * @generated
+	 */
+	EList<ChatSession> getSessions();
+
+	/**
+	 * Returns the value of the '<em><b>Prompt Instructions</b></em>' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Prompt Instructions</em>' containment reference.
+	 * @see #setPromptInstructions(PromptInstructions)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getAiChat_PromptInstructions()
+	 * @model containment="true"
+	 * @generated
+	 */
+	PromptInstructions getPromptInstructions();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.AiChat#getPromptInstructions <em>Prompt Instructions</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Prompt Instructions</em>' containment reference.
+	 * @see #getPromptInstructions()
+	 * @generated
+	 */
+	void setPromptInstructions(PromptInstructions value);
 
 } // AiChat

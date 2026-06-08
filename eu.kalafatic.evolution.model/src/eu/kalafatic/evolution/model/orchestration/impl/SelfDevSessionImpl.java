@@ -3,7 +3,6 @@
 package eu.kalafatic.evolution.model.orchestration.impl;
 
 import eu.kalafatic.evolution.model.orchestration.Iteration;
-import eu.kalafatic.evolution.model.orchestration.IterationStatus;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
 import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
 import eu.kalafatic.evolution.model.orchestration.SelfDevStatus;
@@ -37,6 +36,8 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.SelfDevSessionImpl#getMaxIterations <em>Max Iterations</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.SelfDevSessionImpl#getStatus <em>Status</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.SelfDevSessionImpl#getIterations <em>Iterations</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.SelfDevSessionImpl#getRationale <em>Rationale</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.SelfDevSessionImpl#getInitialRequest <em>Initial Request</em>}</li>
  * </ul>
  *
  * @generated
@@ -90,7 +91,7 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 	 * @generated
 	 * @ordered
 	 */
-	protected static final int MAX_ITERATIONS_EDEFAULT = 0;
+	protected static final int MAX_ITERATIONS_EDEFAULT = 4;
 
 	/**
 	 * The cached value of the '{@link #getMaxIterations() <em>Max Iterations</em>}' attribute.
@@ -131,6 +132,46 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 	 * @ordered
 	 */
 	protected EList<Iteration> iterations;
+
+	/**
+	 * The default value of the '{@link #getRationale() <em>Rationale</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRationale()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String RATIONALE_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getRationale() <em>Rationale</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRationale()
+	 * @generated
+	 * @ordered
+	 */
+	protected String rationale = RATIONALE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getInitialRequest() <em>Initial Request</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getInitialRequest()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String INITIAL_REQUEST_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getInitialRequest() <em>Initial Request</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getInitialRequest()
+	 * @generated
+	 * @ordered
+	 */
+	protected String initialRequest = INITIAL_REQUEST_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -262,6 +303,52 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 	 * @generated
 	 */
 	@Override
+	public String getRationale() {
+		return rationale;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setRationale(String newRationale) {
+		String oldRationale = rationale;
+		rationale = newRationale;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.SELF_DEV_SESSION__RATIONALE, oldRationale, rationale));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getInitialRequest() {
+		return initialRequest;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setInitialRequest(String newInitialRequest) {
+		String oldInitialRequest = initialRequest;
+		initialRequest = newInitialRequest;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.SELF_DEV_SESSION__INITIAL_REQUEST, oldInitialRequest, initialRequest));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case OrchestrationPackage.SELF_DEV_SESSION__ITERATIONS:
@@ -288,6 +375,10 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 				return getStatus();
 			case OrchestrationPackage.SELF_DEV_SESSION__ITERATIONS:
 				return getIterations();
+			case OrchestrationPackage.SELF_DEV_SESSION__RATIONALE:
+				return getRationale();
+			case OrchestrationPackage.SELF_DEV_SESSION__INITIAL_REQUEST:
+				return getInitialRequest();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -317,6 +408,12 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 				getIterations().clear();
 				getIterations().addAll((Collection<? extends Iteration>)newValue);
 				return;
+			case OrchestrationPackage.SELF_DEV_SESSION__RATIONALE:
+				setRationale((String)newValue);
+				return;
+			case OrchestrationPackage.SELF_DEV_SESSION__INITIAL_REQUEST:
+				setInitialRequest((String)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -344,6 +441,12 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 			case OrchestrationPackage.SELF_DEV_SESSION__ITERATIONS:
 				getIterations().clear();
 				return;
+			case OrchestrationPackage.SELF_DEV_SESSION__RATIONALE:
+				setRationale(RATIONALE_EDEFAULT);
+				return;
+			case OrchestrationPackage.SELF_DEV_SESSION__INITIAL_REQUEST:
+				setInitialRequest(INITIAL_REQUEST_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -366,6 +469,10 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 				return status != STATUS_EDEFAULT;
 			case OrchestrationPackage.SELF_DEV_SESSION__ITERATIONS:
 				return iterations != null && !iterations.isEmpty();
+			case OrchestrationPackage.SELF_DEV_SESSION__RATIONALE:
+				return RATIONALE_EDEFAULT == null ? rationale != null : !RATIONALE_EDEFAULT.equals(rationale);
+			case OrchestrationPackage.SELF_DEV_SESSION__INITIAL_REQUEST:
+				return INITIAL_REQUEST_EDEFAULT == null ? initialRequest != null : !INITIAL_REQUEST_EDEFAULT.equals(initialRequest);
 		}
 		return super.eIsSet(featureID);
 	}
@@ -388,6 +495,10 @@ public class SelfDevSessionImpl extends MinimalEObjectImpl.Container implements 
 		result.append(maxIterations);
 		result.append(", status: ");
 		result.append(status);
+		result.append(", rationale: ");
+		result.append(rationale);
+		result.append(", initialRequest: ");
+		result.append(initialRequest);
 		result.append(')');
 		return result.toString();
 	}

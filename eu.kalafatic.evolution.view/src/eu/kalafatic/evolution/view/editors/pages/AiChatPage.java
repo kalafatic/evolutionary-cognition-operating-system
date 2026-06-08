@@ -2,13 +2,13 @@ package eu.kalafatic.evolution.view.editors.pages;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.bindings.keys.KeyStroke;
@@ -18,45 +18,44 @@ import org.eclipse.jface.fieldassist.IContentProposalProvider;
 import org.eclipse.jface.fieldassist.IControlContentAdapter;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.forms.widgets.SharedScrolledComposite;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.FillLayout;
 import eu.kalafatic.evolution.controller.manager.NeuronService;
+import eu.kalafatic.evolution.controller.manager.OllamaManager;
 import eu.kalafatic.evolution.controller.manager.OllamaService;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
 import eu.kalafatic.evolution.controller.orchestration.EvolutionOrchestrator;
+import eu.kalafatic.evolution.controller.orchestration.OrchestratorResponse;
+import eu.kalafatic.evolution.controller.orchestration.ResultType;
+import eu.kalafatic.evolution.controller.orchestration.OrchestratorServiceImpl;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.orchestration.TaskRequest;
+import eu.kalafatic.evolution.controller.orchestration.TaskResult;
 import eu.kalafatic.evolution.controller.orchestration.llm.LlmRouter;
-import eu.kalafatic.evolution.controller.orchestration.mcp.McpClient;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.SelfDevSupervisor;
 import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.controller.providers.AiProviders;
 import eu.kalafatic.evolution.controller.providers.ProviderConfig;
 import eu.kalafatic.evolution.model.orchestration.AiMode;
+import eu.kalafatic.evolution.model.orchestration.ChatSession;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.model.orchestration.PromptInstructions;
 import eu.kalafatic.evolution.view.editors.MultiPageEditor;
 import eu.kalafatic.evolution.view.factories.SWTFactory;
 
@@ -631,6 +630,21 @@ public class AiChatPage extends ScrolledComposite {
             if (orchestrator.getId() == null || orchestrator.getId().isEmpty()) {
                 orchestrator.setId("selfdev-" + System.currentTimeMillis());
             }
+        } else if (trimmedText.startsWith("Final Response: ")) {
+            sender = "Final Response";
+            content = trimmedText.substring(16);
+            agentType = "final-response";
+            priority = MessagePriority.FINAL;
+        } else if (trimmedText.startsWith("Error: ")) {
+            sender = "Error";
+            content = trimmedText.substring(7);
+            agentType = "error";
+            priority = MessagePriority.FINAL;
+        } else if (trimmedText.startsWith("Result Summary: ")) {
+            sender = "Result Summary";
+            content = trimmedText.substring(16);
+            agentType = "result-summary";
+            priority = MessagePriority.FINAL;
         }
 
         if (!responseText.getText().isEmpty()) {
@@ -767,250 +781,196 @@ public class AiChatPage extends ScrolledComposite {
                 if (index >= 0) aiRemoteCombo.select(index);
             }
 
-            remoteTokenText.setText(orchestrator.getOpenAiToken() != null ? orchestrator.getOpenAiToken() : "");
-            remoteUrlText.setText((orchestrator.getAiChat() != null && orchestrator.getAiChat().getUrl() != null) ? orchestrator.getAiChat().getUrl() : "");
-
-            AiMode mode = orchestrator.getAiMode();
-            boolean remoteVisible = mode == AiMode.HYBRID || mode == AiMode.REMOTE;
-            aiRemoteLabel.setVisible(remoteVisible);
-            aiRemoteCombo.setVisible(remoteVisible);
-            remoteTokenLabel.setVisible(remoteVisible);
-            remoteTokenText.setVisible(remoteVisible);
-            remoteUrlLabel.setVisible(remoteVisible);
-            remoteUrlText.setVisible(remoteVisible);
-        }
-        updateStatusInfo();
-        updateModeDisplay();
-    }
-
-    private void showApprovalUI(String message) {
-        if (approvalComposite.isDisposed()) return;
-        approvalLabel.setText(message);
-        approvalComposite.setVisible(true);
-        ((GridData)approvalComposite.getLayoutData()).exclude = false;
-        updateScrolledContent();
-    }
-
-    private void hideApprovalUI() {
-        if (approvalComposite.isDisposed()) return;
-        approvalComposite.setVisible(false);
-        ((GridData)approvalComposite.getLayoutData()).exclude = true;
-        updateScrolledContent();
-    }
-
-    private void appendStyledText(String text, Color color, int style) {
-        if (responseText.isDisposed()) return;
-        int start = responseText.getCharCount();
-        responseText.append(text);
-        int length = text.length();
-        StyleRange range = new StyleRange(start, length, color, null, style);
-        responseText.setStyleRange(range);
-        responseText.setSelection(responseText.getCharCount());
-    }
-
-    private void setupContextAssist() {
-        IContentProposalProvider proposalProvider = new IContentProposalProvider() {
-            @Override
-            public IContentProposal[] getProposals(String contents, int position) {
-                String prefix = contents.substring(0, position);
-                int lastSpace = prefix.lastIndexOf(' ');
-                if (lastSpace != -1) {
-                    prefix = prefix.substring(lastSpace + 1);
-                }
-
-                String finalPrefix = prefix;
-                String[] proposals = NeuronService.getInstance().getProposals(orchestrator, finalPrefix);
-
-                IContentProposal[] result = new IContentProposal[proposals.length];
-                for (int i = 0; i < proposals.length; i++) {
-                    final String proposal = proposals[i];
-                    result[i] = new IContentProposal() {
-                        @Override
-                        public String getContent() { return proposal; }
-                        @Override
-                        public int getCursorPosition() { return proposal.length(); }
-                        @Override
-                        public String getLabel() { return proposal; }
-                        @Override
-                        public String getDescription() { return null; }
-                    };
-                }
-                return result;
+        java.util.regex.Pattern approvedPattern = java.util.regex.Pattern.compile("\\[(APPROVED|REJECTED|KEPT):([^]]+)\\]");
+        java.util.regex.Matcher approvedMatcher = approvedPattern.matcher(content);
+        if (approvedMatcher.find()) {
+            String status = approvedMatcher.group(1).toLowerCase();
+            String variantId = approvedMatcher.group(2);
+            if (!agentType.contains(status)) {
+                agentType = agentType.replace("waiting", "").trim();
+                if (agentType.isEmpty()) agentType = "ai";
+                agentType += " " + status + ":" + variantId;
             }
-        };
+            content = content.replace(approvedMatcher.group(0), "").trim();
 
-        IControlContentAdapter contentAdapter = new IControlContentAdapter() {
-            @Override
-            public void setControlContents(org.eclipse.swt.widgets.Control control, String contents, int cursorPosition) {
-                ((StyledText) control).setText(contents);
-                ((StyledText) control).setSelection(cursorPosition);
+            // If this was a darwin-branches message that is now resolved,
+            // we strip the JSON to keep the history clean, as the UI already rendered the selection.
+            if (agentType.contains("darwin-branches")) {
+                 content = content.replaceAll("\\[[\\s\\S]*\\]", "").trim();
+                 if (content.isEmpty()) content = "Variant " + variantId + " " + status + ".";
             }
-            @Override
-            public void insertControlContents(org.eclipse.swt.widgets.Control control, String contents, int cursorPosition) {
-                StyledText text = (StyledText) control;
-                String currentText = text.getText();
-                int selectionStart = text.getSelection().x;
 
-                // Find where the word starts
-                int wordStart = selectionStart;
-                while (wordStart > 0 && !Character.isWhitespace(currentText.charAt(wordStart - 1))) {
-                    wordStart--;
-                }
-
-                String newText = currentText.substring(0, wordStart) + contents + currentText.substring(selectionStart);
-                text.setText(newText);
-                text.setSelection(wordStart + cursorPosition);
-            }
-            @Override
-            public String getControlContents(org.eclipse.swt.widgets.Control control) {
-                return ((StyledText) control).getText();
-            }
-            @Override
-            public int getCursorPosition(org.eclipse.swt.widgets.Control control) {
-                return ((StyledText) control).getCaretOffset();
-            }
-            @Override
-            public org.eclipse.swt.graphics.Rectangle getInsertionBounds(org.eclipse.swt.widgets.Control control) {
-                StyledText text = (StyledText) control;
-                return text.getBounds();
-            }
-            @Override
-            public void setCursorPosition(org.eclipse.swt.widgets.Control control, int index) {
-                ((StyledText) control).setSelection(index);
-            }
-        };
-
-        KeyStroke keyStroke = null;
-        try {
-            keyStroke = KeyStroke.getInstance("Ctrl+Space");
-        } catch (Exception e) {
-            e.printStackTrace();
+            priority = MessagePriority.NORMAL;
         }
 
-        ContentProposalAdapter adapter = new ContentProposalAdapter(requestText, contentAdapter, proposalProvider, keyStroke, null);
-        adapter.setProposalAcceptanceStyle(ContentProposalAdapter.PROPOSAL_REPLACE);
-        adapter.setAutoActivationDelay(200);
-        adapter.setAutoActivationCharacters(new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' });
-    }
+        boolean needsApproval = (content.toLowerCase().contains("waiting for user") ||
+                content.toLowerCase().contains("guidance?") ||
+                content.toLowerCase().contains("clarify") ||
+                content.toLowerCase().contains("clarification") ||
+                content.contains("[PROPOSAL:") ||
+                content.toLowerCase().contains("ambiguous") ||
+                content.toLowerCase().contains("approve") ||
+                content.toLowerCase().contains("approval") ||
+                content.toLowerCase().contains("proceed?")) &&
+                !content.contains("AUTO_INFER") &&
+                !content.contains("BRANCH_PARALLEL") &&
+                !content.contains("Interpretation State: CLEAR");
 
-    private void testAiConnectionRemote() {
-        if (orchestrator == null) return;
-
-        // Get values from UI first
-        final int modeIndex = aiModeCombo.getSelectionIndex();
-        final String remoteModel = aiRemoteCombo.getText();
-        final String token = remoteTokenText.getText();
-        final String apiUrl = remoteUrlText.getText();
-
-        new Thread(() -> {
-            try {
-                // Create a temporary orchestrator for testing to avoid side effects
-                Orchestrator tempOrch = OrchestrationFactory.eINSTANCE.createOrchestrator();
-                tempOrch.setAiMode(AiMode.get(modeIndex));
-                tempOrch.setRemoteModel(remoteModel);
-                tempOrch.setOpenAiToken(token);
-                tempOrch.setAiChat(OrchestrationFactory.eINSTANCE.createAiChat());
-                tempOrch.getAiChat().setUrl(apiUrl);
-                tempOrch.setLlm(OrchestrationFactory.eINSTANCE.createLLM());
-
-                // Inherit hybrid/local models if needed by testConnection
-                tempOrch.setHybridModel(orchestrator.getHybridModel());
-                tempOrch.setLocalModel(orchestrator.getLocalModel());
-                if (orchestrator.getOllama() != null) {
-                    tempOrch.setOllama(OrchestrationFactory.eINSTANCE.createOllama());
-                    tempOrch.getOllama().setUrl(orchestrator.getOllama().getUrl());
-                    tempOrch.getOllama().setModel(orchestrator.getOllama().getModel());
-                }
-
-                LlmRouter router = new LlmRouter();
-                float temp = 0.7f;
-                if (orchestrator.getLlm() != null) temp = orchestrator.getLlm().getTemperature();
-                                
-                String proxyUrl = (orchestrator.getAiChat() != null) ? orchestrator.getAiChat().getProxyUrl() : null;
-
-                TaskContext context = new TaskContext(tempOrch, null);
-                context.addTokenRequestListener((provider, future) -> {
-                    Display.getDefault().asyncExec(() -> {
-                        InputDialog dlg = new InputDialog(getShell(), "API Token Required", "Please enter the API token for " + provider + ":", "", null);
-                        if (dlg.open() == Window.OK) {
-                            String token = dlg.getValue();
-                            remoteTokenText.setText(token);
-                            syncModelWithUI();
-                            future.complete(token);
-                        } else {
-                            future.completeExceptionally(new Exception("Token request cancelled by user."));
-                        }
-                    });
-                });
-                String response = router.testConnection(tempOrch, temp, proxyUrl, context);
-
-                Display.getDefault().asyncExec(() -> {
-                    if (isDisposed()) return;
-
-                    // On success, sync to real model
-                    orchestrator.setAiMode(AiMode.get(modeIndex));
-                    orchestrator.setRemoteModel(remoteModel);
-                    orchestrator.setOpenAiToken(token);
-                    if (orchestrator.getAiChat() == null) {
-                        orchestrator.setAiChat(OrchestrationFactory.eINSTANCE.createAiChat());
-                    }
-                    orchestrator.getAiChat().setUrl(apiUrl);
-                    if (orchestrator.getLlm() == null) {
-                        orchestrator.setLlm(OrchestrationFactory.eINSTANCE.createLLM());
-                    }
-
-                    editor.setDirty(true);
-                    updateModeDisplay();
-                    updateStatusInfo();
-
-                    MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
-                    mb.setText("AI Connection Success");
-                    mb.setMessage("Connected to AI provider successfully and settings saved.\nResponse: " + response);
-                    mb.open();
-                });
-            } catch (Exception ex) {
-                Display.getDefault().asyncExec(() -> {
-                    if (isDisposed()) return;
-                    MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
-                    mb.setText("AI Connection Failed");
-                    mb.setMessage("Error connecting to AI provider (settings NOT saved): " + ex.getMessage());
-                    mb.open();
-                });
-            }
-        }).start();
-    }
-
-    private void processLogEntry(String log) {
-        if (log == null || log.isEmpty()) return;
-
-        Color color = null;
-        int style = SWT.NORMAL;
-
-        if (log.startsWith("Orchestrator:")) {
-            color = colorEvolution;
-            style = SWT.ITALIC;
-        } else if (log.contains("Agent [") && log.contains("Planner")) {
-            color = colorPlanner;
-            style = SWT.BOLD;
-        } else if (log.contains("Agent [") && log.contains("Architect")) {
-            color = colorArchitect;
-            style = SWT.BOLD;
-        } else if (log.contains("Agent [") && log.contains("JavaDev")) {
-            color = colorJavaDev;
-            style = SWT.BOLD;
-        } else if (log.contains("Agent [") && log.contains("Tester")) {
-            color = colorTester;
-            style = SWT.BOLD;
-        } else if (log.contains("Agent [") && log.contains("Reviewer")) {
-            color = colorReviewer;
-            style = SWT.BOLD;
-        } else if (log.startsWith("Orchestrator Error:") || log.contains("Exception:")) {
-            color = colorError;
-            style = SWT.BOLD;
+        if (needsApproval && !agentType.contains("user")) {
+		if (!agentType.contains("waiting")) agentType += " waiting";
+            priority = MessagePriority.USER_ACTION_REQUIRED;
         }
 
-        appendStyledText("\n" + log, color, style);
-    }
-    
+        // Clean up technical markers for human-readability
+        content = content.replaceAll("\\[KERNEL\\]", "")
+                        .replaceAll("\\[STRATEGY\\]", "")
+                        .replaceAll("\\[ANALYSIS\\]", "")
+                        .replaceAll("\\[DIAGNOSIS\\]", "")
+                        .replaceAll("\\[SUPERVISOR\\]", "")
+                        .replaceAll("\\[EVO\\]", "")
+                        .replaceAll("\\[DARWIN\\]", "")
+                        .replaceAll("\\[DARWINENGINE\\]", "")
+                        .replaceAll("\\[THINKING\\]", "")
+                        .replaceAll("\\[ORCHESTRATOR\\]", "")
+                        .trim();
 
+        outputController.submitMessage(sessionId, currentTurnId != null ? currentTurnId : sessionId, sender, content, agentType, priority, priority == MessagePriority.FINAL);
+	}
+
+	public String getCurrentSessionName() { return currentSession != null ? currentSession.getId() : "Default"; }
+
+	public ChatSession getCurrentSession() { return currentSession; }
+
+	public MultiPageEditor getEditor() { return editor; }
+
+	public FormToolkit getToolkit() { return toolkit; }
+
+	/**
+	 * @evo:14:A reason=categorized-assist
+	 */
+	private String getCategory() {
+		if (instructionsGroup != null) {
+			if (instructionsGroup.isSelfIterative() || instructionsGroup.isIterative() || instructionsGroup.isDarwin()) return "coding";
+		}
+		return "chat";
+	}
+
+	public void setupContextAssist(StyledText text) {
+		IContentProposalProvider proposalProvider = (contents, position) -> {
+			String prefix = contents.substring(0, position);
+			int lastSpace = prefix.lastIndexOf(' '); if (lastSpace != -1) prefix = prefix.substring(lastSpace + 1);
+			String finalPrefix = prefix;
+
+			List<String> allProposals = new java.util.ArrayList<>();
+
+			// Magic Commands
+			if (contents.startsWith("/")) {
+				allProposals.add("/create class ");
+				allProposals.add("/create test for ");
+				allProposals.add("/fix all warnings");
+				allProposals.add("/analyze project structure");
+				allProposals.add("/refactor ");
+				allProposals.add("/explain ");
+				allProposals.add("/apply best practices");
+				allProposals.add("/generate javadoc");
+				allProposals.add("/optimize imports");
+				allProposals.add("/find security vulnerabilities");
+				allProposals.add("/help");
+			}
+
+			// Neuron Proposals
+			String category = getCategory();
+			String[] neuronProposals = NeuronService.getInstance().getProposals(orchestrator, finalPrefix, category);
+			for (String p : neuronProposals) {
+				if (!allProposals.contains(p)) allProposals.add(p);
+			}
+
+			IContentProposal[] result = new IContentProposal[allProposals.size()];
+			for (int i = 0; i < allProposals.size(); i++) {
+				final String proposal = allProposals.get(i);
+				result[i] = new IContentProposal() {
+					@Override public String getContent() { return proposal; }
+					@Override public int getCursorPosition() { return proposal.length(); }
+					@Override public String getLabel() { return proposal; }
+					@Override public String getDescription() { return null; }
+				};
+			}
+			return result;
+		};
+		IControlContentAdapter contentAdapter = new IControlContentAdapter() {
+			@Override public void setControlContents(org.eclipse.swt.widgets.Control control, String contents, int cursorPosition) {
+				StyledText st = (StyledText) control;
+				st.setText(contents);
+				st.setSelection(cursorPosition);
+			}
+			@Override public void insertControlContents(org.eclipse.swt.widgets.Control control, String contents, int cursorPosition) {
+				StyledText st = (StyledText) control;
+				String textContent = st.getText();
+				int selectionStart = st.getCaretOffset();
+				int wordStart = selectionStart;
+				while (wordStart > 0 && !Character.isWhitespace(textContent.charAt(wordStart - 1))) {
+					wordStart--;
+				}
+				st.replaceTextRange(wordStart, selectionStart - wordStart, contents);
+				st.setSelection(wordStart + cursorPosition);
+				st.setFocus();
+			}
+			@Override public String getControlContents(org.eclipse.swt.widgets.Control control) { return ((StyledText) control).getText(); }
+			@Override public int getCursorPosition(org.eclipse.swt.widgets.Control control) { return ((StyledText) control).getCaretOffset(); }
+			@Override public org.eclipse.swt.graphics.Rectangle getInsertionBounds(org.eclipse.swt.widgets.Control control) { return ((StyledText) control).getBounds(); }
+			@Override public void setCursorPosition(org.eclipse.swt.widgets.Control control, int index) { ((StyledText) control).setSelection(index); }
+		};
+		KeyStroke ks = null; try { ks = KeyStroke.getInstance("Ctrl+Space"); } catch (Exception e) {}
+		assistAdapter = new ContentProposalAdapter(text, contentAdapter, proposalProvider, ks, null);
+		assistAdapter.setProposalAcceptanceStyle(ContentProposalAdapter.PROPOSAL_INSERT);
+		assistAdapter.setAutoActivationDelay(100);
+		assistAdapter.setAutoActivationCharacters("abcdefghijklmnopqrstuvwxyz/".toCharArray());
+	}
+
+
+	public void testAiConnectionRemote(int modeIndex, String remoteModel, String token, String apiUrl) {
+		new Thread(() -> {
+			try {
+				Orchestrator tempOrch = OrchestrationFactory.eINSTANCE.createOrchestrator();
+				tempOrch.setAiMode(AiMode.get(modeIndex)); tempOrch.setRemoteModel(remoteModel); tempOrch.setOpenAiToken(token);
+
+				// Copy custom providers for resolution during test
+				if (orchestrator != null) {
+				    tempOrch.getAiProviders().addAll(org.eclipse.emf.ecore.util.EcoreUtil.copyAll(orchestrator.getAiProviders()));
+				}
+
+				tempOrch.setAiChat(OrchestrationFactory.eINSTANCE.createAiChat()); tempOrch.getAiChat().setUrl(apiUrl);
+				tempOrch.setLlm(OrchestrationFactory.eINSTANCE.createLLM());
+				tempOrch.setHybridModel(orchestrator.getHybridModel()); tempOrch.setLocalModel(orchestrator.getLocalModel());
+				if (orchestrator.getOllama() != null) {
+					tempOrch.setOllama(OrchestrationFactory.eINSTANCE.createOllama());
+					tempOrch.getOllama().setUrl(orchestrator.getOllama().getUrl()); tempOrch.getOllama().setModel(orchestrator.getOllama().getModel());
+				}
+				LlmRouter router = new LlmRouter();
+				float temp = orchestrator.getLlm() != null ? orchestrator.getLlm().getTemperature() : 0.7f;
+				String proxyUrl = (orchestrator.getAiChat() != null) ? orchestrator.getAiChat().getProxyUrl() : null;
+				TaskContext context = new TaskContext(tempOrch, null);
+				context.addTokenRequestListener((provider, future) -> Display.getDefault().asyncExec(() -> {
+					String newToken = requestToken(provider);
+					if (newToken != null) {
+					    eu.kalafatic.evolution.controller.security.TokenSecurityService.getInstance().updateToken(orchestrator, provider, newToken);
+					    future.complete(newToken);
+					} else future.completeExceptionally(new Exception("Token request cancelled by user."));
+				}));
+				String response = router.testConnection(tempOrch, temp, proxyUrl, context);
+				Display.getDefault().asyncExec(() -> {
+					if (isDisposed()) return;
+					orchestrator.setAiMode(AiMode.get(modeIndex)); orchestrator.setRemoteModel(remoteModel); orchestrator.setOpenAiToken(token);
+					if (orchestrator.getAiChat() == null) orchestrator.setAiChat(OrchestrationFactory.eINSTANCE.createAiChat());
+					orchestrator.getAiChat().setUrl(apiUrl);
+					if (orchestrator.getLlm() == null) orchestrator.setLlm(OrchestrationFactory.eINSTANCE.createLLM());
+					editor.setDirty(true); updateModeDisplay(); updateStatusInfo();
+					saveLastUsedSettings();
+					MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK); mb.setText("AI Connection Success"); mb.setMessage("Connected to AI provider successfully and settings saved.\nResponse: " + response); mb.open();
+				});
+			} catch (Exception ex) {
+				Display.getDefault().asyncExec(() -> { if (isDisposed()) return; MessageBox mb = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK); mb.setText("AI Connection Failed"); mb.setMessage("Error connecting to AI provider (settings NOT saved): " + ex.getMessage()); mb.open(); });
+			}
+		}).start();
+	}
 }

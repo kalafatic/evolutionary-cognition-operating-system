@@ -3,18 +3,6 @@
 <plugin>
 
    <extension
-         id="eu.kalafatic.evolution.view.application.Application"
-         name="EVO"
-         point="org.eclipse.core.runtime.applications">
-      <application
-            visible="true">
-         <run
-               class="eu.kalafatic.evolution.view.application.Application">
-         </run>
-      </application>
-   </extension>
-
-   <extension
          id="eu.kalafatic.evolution.view.product"
          point="org.eclipse.core.runtime.products">
       <product
@@ -46,6 +34,18 @@
          </property>
       </product>
    </extension>
+
+   <extension
+         id="eu.kalafatic.evolution.view.application.Application"
+         name="EVO"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            visible="true">
+         <run
+               class="eu.kalafatic.evolution.view.application.Application">
+         </run>
+      </application>
+   </extension>
       <extension
          point="org.eclipse.ui.perspectives">
       <perspective
@@ -56,48 +56,68 @@
       </perspective>
    </extension>
    <extension
+         id="eu.kalafatic.views.EvoNavigator"
+         name="Evo Navigator"
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+         <view
+               id="eu.kalafatic.views.EvoNavigator"
+               ratio="0.5"
+               relationship="stack"
+               relative="org.eclipse.ui.navigator.ProjectExplorer">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
          point="org.eclipse.ui.views">
       <view
             name="Orchestration Graph"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_graph.svg"
             class="eu.kalafatic.evolution.view.views.OrchestrationZestView"
             id="eu.kalafatic.evolution.view.orchestrationZestView">
       </view>
       <view
             name="Properties"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_settings.svg"
             class="eu.kalafatic.evolution.view.views.PropertiesView"
             id="eu.kalafatic.evolution.view.propertiesView">
       </view>
       <view
             class="eu.kalafatic.evolution.view.views.TaskTreeView"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_diagram.svg"
             id="eu.kalafatic.evolution.view.taskTreeView"
             name="Task Tree">
       </view>
       <view
             class="eu.kalafatic.evolution.view.views.CommandStackView"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_stack.svg"
             id="eu.kalafatic.evolution.view.commandStackView"
             name="Command Stack">
       </view>
       <view
             class="eu.kalafatic.evolution.view.views.AIOutputView"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_chat.svg"
             id="eu.kalafatic.evolution.view.aiOutputView"
             name="AI Output">
       </view>
       <view
             class="eu.kalafatic.evolution.view.views.EvoNavigator"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_navigator.svg"
             id="eu.kalafatic.views.EvoNavigator"
             name="Evo Navigator">
       </view>
       <view
             class="eu.kalafatic.evolution.view.views.InternalBrowserView"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_browser.svg"
             id="eu.kalafatic.evolution.view.views.InternalBrowserView"
             name="Internal Browser">
+      </view>
+      <view
+            class="eu.kalafatic.utils.views.ConsoleView"
+            icon="icons/evo_chat.svg"
+            id="eu.kalafatic.gemini.core.views.ConsoleView"
+            name="Log Console">
       </view>
    </extension>
    <extension
@@ -249,6 +269,7 @@
                label="Setup">
             <command
                   commandId="eu.kalafatic.evolution.view.setupOllama"
+                  icon="icons/evo_settings.svg"
                   label="Setup Ollama"
                   style="push">
             </command>
@@ -259,6 +280,7 @@
             </command>
             <command
                   commandId="eu.kalafatic.evolution.view.setupLLM"
+                  icon="icons/evo_settings.svg"
                   label="Setup LLM"
                   style="push">
             </command>
@@ -292,6 +314,7 @@
             </command>
             <command
                   commandId="eu.kalafatic.evolution.controller.orchestrationCommand"
+                  icon="icons/evo_orchestrate.svg"
                   label="Orchestrate"
                   style="push">
             </command>
@@ -417,6 +440,7 @@
             </separator>
             <command
                   commandId="eu.kalafatic.evolution.controller.orchestrationCommand"
+                  icon="icons/evo_orchestrate.svg"
                   label="Orchestrate"
                   style="push">
             </command>
@@ -500,11 +524,13 @@
             </separator>
             <command
                   commandId="eu.kalafatic.evolution.view.setupOllama"
+                  icon="icons/evo_settings.svg"
                   label="Setup Ollama"
                   style="push">
             </command>
             <command
                   commandId="eu.kalafatic.evolution.view.setupLLM"
+                  icon="icons/evo_settings.svg"
                   label="Setup LLM"
                   style="push">
             </command>
@@ -518,7 +544,7 @@
             contributorClass="eu.kalafatic.evolution.view.editors.MultiPageEditorContributor"
             default="true"
             extensions="xml,evo"
-            icon="icons/eclipse16.png"
+            icon="icons/evo_editor.svg"
             id="eu.kalafatic.evolution.view.editors.MultiPageEditor"
             name="Evo Multi-page Editor">
       </editor>
@@ -564,6 +590,12 @@
             class="eu.kalafatic.evolution.view.wizards.AddOrchestrationWizard"
             id="eu.kalafatic.evolution.view.addOrchestrationWizard"
             name="Add Orchestration">
+      </wizard>
+      <wizard
+            category="eu.kalafatic.evolution.view.category"
+            class="eu.kalafatic.evolution.view.wizards.NewAiSessionWizard"
+            id="eu.kalafatic.evolution.view.newSessionWizard"
+            name="New Session">
       </wizard>
    </extension>
    <extension
@@ -620,6 +652,22 @@
             id="eu.kalafatic.evolution.view.refreshNavigator"
             name="Refresh Navigator">
       </command>
+      <command
+            id="eu.kalafatic.evolution.view.newAiSession"
+            name="New AI Session">
+      </command>
+      <command
+            id="eu.kalafatic.evolution.view.mediatedAnalysis"
+            name="General Mediated Analysis">
+      </command>
+      <command
+            id="eu.kalafatic.utils.p2.update"
+            name="Check for Updates">
+      </command>
+      <command
+            id="eu.kalafatic.utils.p2.install"
+            name="Install New Software...">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -659,6 +707,22 @@
             class="eu.kalafatic.evolution.view.handlers.RefreshNavigatorHandler"
             commandId="eu.kalafatic.evolution.view.refreshNavigator">
       </handler>
+      <handler
+            class="eu.kalafatic.evolution.view.handlers.NewAiSessionHandler"
+            commandId="eu.kalafatic.evolution.view.newAiSession">
+      </handler>
+      <handler
+            class="eu.kalafatic.evolution.view.handlers.MediatedAnalysisHandler"
+            commandId="eu.kalafatic.evolution.view.mediatedAnalysis">
+      </handler>
+      <handler
+            class="eu.kalafatic.utils.p2.UpdateHandler"
+            commandId="eu.kalafatic.utils.p2.update">
+      </handler>
+      <handler
+            class="eu.kalafatic.utils.p2.InstallHandler"
+            commandId="eu.kalafatic.utils.p2.install">
+      </handler>
    </extension>
    <extension
          id="eu.kalafatic.evolution.view.evolutionNature"
@@ -673,35 +737,30 @@
    <extension
          point="org.eclipse.ui.ide.projectNatureImages">
       <image
-            icon="icons/evo_project.png"
+            icon="icons/evo_project_nature.svg"
             id="eu.kalafatic.evolution.view.evolutionNatureImage"
             natureId="eu.kalafatic.evolution.view.evolutionNature">
       </image>
    </extension>
    <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="eu.kalafatic.evolution.view.newAiSession"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M3+T">
+      </key>
+   </extension>
+   <extension
          point="org.eclipse.ui.splashHandlers">
       <splashHandlerProductBinding
             productId="eu.kalafatic.evolution.view.product"
-            splashId="eu.kalafatic.evolution.view.splashHandlers.EvoSplashHandler">
+            splashId="eu.kalafatic.evolution.controller.splashHandlers.EvolutionSplashHandler">
       </splashHandlerProductBinding>
       <splashHandler
-            class="eu.kalafatic.evolution.view.splashHandlers.EvoSplashHandler"
-            id="eu.kalafatic.evolution.view.splashHandlers.EvoSplashHandler">
+            class="eu.kalafatic.evolution.controller.splashHandlers.EvolutionSplashHandler"
+            id="eu.kalafatic.evolution.controller.splashHandlers.EvolutionSplashHandler">
       </splashHandler>
-   </extension>
-   <extension
-         id="eu.kalafatic.views.EvoNavigator"
-         name="Evo Navigator"
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.ui.resourcePerspective">
-         <view
-               id="eu.kalafatic.views.EvoNavigator"
-               ratio="0.5"
-               relationship="stack"
-               relative="org.eclipse.ui.navigator.ProjectExplorer">
-         </view>
-      </perspectiveExtension>
    </extension>
    
 </plugin>
