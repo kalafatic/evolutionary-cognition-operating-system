@@ -1344,7 +1344,7 @@ public class IterationManager {
             String executionInstructions = null;
 
             if (winningCandidate != null) {
-                context.log("[KERNEL] Mediated Mode: Using evolved mediation candidate.");
+                context.log("[KERNEL] Mediated Mode: Using final evolved winning candidate (Convergence Reached).");
                 selectedPaths = new ArrayList<>();
                 if (winningCandidate.getSelectedFiles() != null) {
                     for (String p : winningCandidate.getSelectedFiles()) {
@@ -1352,18 +1352,12 @@ public class IterationManager {
                     }
                 }
 
-                // Ensure context completeness: If LLM failed to select enough files, fall back to curation
+                // Strictly enforce 4-16 file range for the winner
                 if (selectedPaths.size() < 4 && snapshot != null) {
-                    context.log("[KERNEL] Mediated Mode: Evolved candidate contains insufficient context (" + selectedPaths.size() + " files). Supplementing with curated files.");
-                    ContextCurator curator = new ContextCurator();
-                    List<String> curated = curator.selectContext(snapshot, request, 16);
-                    for (String path : curated) {
-                        if (path != null && !selectedPaths.contains(path)) selectedPaths.add(path);
-                    }
+                    context.log("[KERNEL] Mediated Mode: Warning: Winning candidate has sparse context (" + selectedPaths.size() + " files).");
                 }
-
-                // Final safety limit
                 if (selectedPaths.size() > 16) {
+                    context.log("[KERNEL] Mediated Mode: Enforcing strict 16-file export limit (Noise Reduction).");
                     selectedPaths = selectedPaths.subList(0, 16);
                 }
 

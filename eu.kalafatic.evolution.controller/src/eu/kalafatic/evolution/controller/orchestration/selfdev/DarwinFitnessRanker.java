@@ -101,40 +101,50 @@ public class DarwinFitnessRanker {
         if (med == null) return 0.0;
         double medScore = 0.0;
 
-        // 1. File Selection Count (Sweet spot: 4-16 files)
+        // 1. Context Size (Sweet spot: 4-16 files, preferred 6-12)
+        // Information Density = (Coverage / Size) - Noise
         JSONArray files = med.optJSONArray("selected_files");
-        if (files != null) {
-            int count = files.length();
-            if (count >= 4 && count <= 16) {
-                medScore += 0.2; // Reward ideal range
-            } else if (count > 0 && count < 4) {
-                medScore += 0.05; // Penalize too small
-            } else if (count > 16) {
-                medScore -= Math.min(0.3, (count - 16) * 0.02); // Penalize bloat aggressively
-            }
+        int count = (files != null) ? files.length() : 0;
+
+        if (count >= 4 && count <= 16) {
+            medScore += 0.25; // Base reward for correct scale
+            if (count >= 6 && count <= 12) medScore += 0.05; // Extra reward for optimal density
+        } else if (count > 0 && count < 4) {
+            medScore += 0.1; // Minimal context reward
+        } else if (count > 16) {
+            // Aggressive penalty for noise/bloat: -0.05 per file over 16
+            medScore -= Math.min(0.5, (count - 16) * 0.05);
+        } else {
+            medScore -= 0.2; // Penalty for empty context
         }
 
-        // 2. Information Density (Completeness of summaries)
-        if (med.optString("architecture_summary").length() > 50) medScore += 0.05;
-        if (med.optString("dependencies").length() > 30) medScore += 0.05;
-        if (med.optString("execution_instructions").length() > 50) medScore += 0.05;
-        if (med.optString("prompt").length() > 100) medScore += 0.05;
+        // 2. Information Density (Coverage of mandatory summaries)
+        String arch = med.optString("architecture_summary");
+        String deps = med.optString("dependencies");
+        String inst = med.optString("execution_instructions");
+        String prompt = med.optString("prompt");
 
-        // 3. Signal to Noise (Self-evaluation)
-        String evaluation = med.optString("evaluation").toLowerCase();
-        if (evaluation.contains("density") || evaluation.contains("signal") || evaluation.contains("distilled") || evaluation.contains("centrality")) {
-            medScore += 0.05;
-        }
+        if (arch.length() > 100) medScore += 0.05;
+        if (deps.length() > 50) medScore += 0.05;
+        if (inst.length() > 100) medScore += 0.05;
+        if (prompt.length() > 200) medScore += 0.05;
 
-        // 4. Architectural Signal (Reward entrypoints and dependency influence)
-        String summary = med.optString("architecture_summary").toLowerCase();
-        if (summary.contains("entrypoint") || summary.contains("bootstrap") || summary.contains("orchestration")) {
-            medScore += 0.05;
-        }
-        if (summary.contains("dependency") || summary.contains("wiring") || summary.contains("skeleton")) {
-            medScore += 0.05;
-        }
+        // 3. Redundancy / Noise Penalty (Synthetic check for repetitive content)
+        if (arch.toLowerCase().contains("same as above") || arch.toLowerCase().contains("tbd")) medScore -= 0.1;
+        if (prompt.toLowerCase().contains("do what the goal says")) medScore -= 0.1;
 
-        return medScore;
+        // 4. Architectural Coverage (Signal Quality)
+        String summary = arch.toLowerCase();
+        if (summary.contains("entrypoint") || summary.contains("bootstrap") || summary.contains("main")) medScore += 0.05;
+        if (summary.contains("orchestration") || summary.contains("controller") || summary.contains("kernel")) medScore += 0.05;
+        if (summary.contains("interface") || summary.contains("abstract") || summary.contains("api")) medScore += 0.05;
+        if (summary.contains("wiring") || summary.contains("dependency") || summary.contains("injection")) medScore += 0.05;
+
+        // 5. Behavioral Coverage
+        String instructions = inst.toLowerCase();
+        if (instructions.contains("mutation") || instructions.contains("modify") || instructions.contains("refactor")) medScore += 0.05;
+        if (instructions.contains("test") || instructions.contains("verify") || instructions.contains("validation")) medScore += 0.05;
+
+        return Math.max(-0.5, medScore); // Allow negative mediation fitness to influence overall score
     }
 }

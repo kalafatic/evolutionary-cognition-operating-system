@@ -207,27 +207,25 @@ public class DarwinVariantSpawner {
           .append("- Output your response within <BEGIN_DARWIN_JSON> and <END_DARWIN_JSON> tags.\n\n");
 
         if (isMediated) {
-            sb.append("MEDIATED MODE COGNITION RULES (CRITICAL):\n")
-              .append("- Focus on ARCHITECTURAL UNDERSTANDING, not code.\n")
-              .append("- USE ONLY REAL repository evidence from the provided candidate list.\n")
-              .append("- Follow the 4-Phase Darwin Process: Scan, Seed, Branching, and Consolidation.\n")
-              .append("- Focus on INFORMATION VALUE and DENSITY: smallest set of files explaining architecture, flow, and mutation points.\n")
-              .append("- You MUST select 4-16 high-signal files for the FINAL mediation package.\n")
-              .append("- CONSOLIDATION RULES: KEEP if in 2+ lineages, extreme centrality, or critical flow; REMOVE if redundant or leaf-only.\n")
-              .append("- Ranked selected files by importance (1 = highest) in the reasoning focus.\n")
-              .append("- Strictly avoid context bloat (> 16 files is PENALIZED).\n")
-              .append("- Your goal is to produce a high-quality mediation candidate for external LLM processing.\n\n");
+            sb.append("MEDIATED MODE EVOLUTION RULES (CRITICAL):\n")
+              .append("- OBJECTIVE: Evolve UNDERSTANDING, not code. Maximize INFORMATION DENSITY.\n")
+              .append("- Information Density = (Architectural Coverage + Behavioral Coverage + Modification Coverage) - (Noise + Redundancy).\n")
+              .append("- THEORY-DRIVEN SELECTION: Do not use file extensions. Propose a theory: Why do these files matter for an external LLM?\n")
+              .append("- TARGET CONTEXT: 4-16 high-signal files. Aggressively penalize bloat (> 16 files).\n")
+              .append("- EVOLVE CANDIDATE: Mutate the prompt, context set, architecture summary, and instructions from the ancestor.\n")
+              .append("- GROUNDING: Use ONLY real repository evidence from the provided candidate list.\n")
+              .append("- SUCCESS: The minimum context that produces maximum understanding for an external intelligence.\n\n");
 
             if (context != null && context.getOrchestrationState() != null) {
                 var metadata = context.getOrchestrationState().getMetadata();
                 if (metadata.get("current_understanding") != null) {
-                    sb.append("→ CURRENT EVOLVED UNDERSTANDING: ").append(metadata.get("current_understanding")).append("\n");
+                    sb.append("→ ANCESTOR UNDERSTANDING: ").append(metadata.get("current_understanding")).append("\n");
                 }
                 if (metadata.get("current_reasoning_focus") != null) {
-                    sb.append("→ CURRENT REASONING FOCUS: ").append(metadata.get("current_reasoning_focus")).append("\n");
+                    sb.append("→ ANCESTOR REASONING FOCUS: ").append(metadata.get("current_reasoning_focus")).append("\n");
                 }
                 if (metadata.get("current_selected_files") != null) {
-                    sb.append("→ CURRENT SELECTED FILES: ").append(metadata.get("current_selected_files")).append("\n");
+                    sb.append("→ ANCESTOR SELECTED FILES: ").append(metadata.get("current_selected_files")).append("\n");
                 }
                 sb.append("\n");
             }
@@ -388,30 +386,25 @@ public class DarwinVariantSpawner {
           .append("- Do NOT include conversation or markdown blocks.\n\n");
 
         if (isMediated) {
-            sb.append("MEDIATED MODE COGNITION RULES (CRITICAL):\n")
-              .append("- You are performing ITERATIVE REPOSITORY COGNITION.\n")
-              .append("- Your goal is to EVOLVE ARCHITECTURAL UNDERSTANDING, not code.\n")
-              .append("- DO NOT hallucinate synthetic runtime context, sensors, or memory systems.\n")
-              .append("- USE ONLY REAL repository evidence from the provided candidate list (files, structure, technologies).\n")
-              .append("- Follow the 4-Phase Darwin Process: Scan, Seed, Branching, and Consolidation.\n")
-              .append("- Focus on INFORMATION VALUE and DENSITY: smallest set of files explaining architecture, flow, and mutation points.\n")
-              .append("- You MUST select 4-16 high-signal files for the FINAL mediation package.\n")
-              .append("- CONSOLIDATION RULES: KEEP if in 2+ lineages, extreme centrality, or critical flow; REMOVE if redundant or leaf-only.\n")
-              .append("- Ranked selected files by importance (1 = highest) in the reasoning focus.\n")
-              .append("- Strictly avoid context bloat (> 16 files is PENALIZED).\n")
-              .append("- Focus on producing high-quality mediation candidates (prompt, context, instructions).\n")
-              .append("- Strictly prohibit invented APIs or fictitious infrastructure.\n\n");
+            sb.append("MEDIATED MODE EVOLUTION RULES (CRITICAL):\n")
+              .append("- MISSION: Evolve the MINIMUM context that produces MAXIMUM understanding.\n")
+              .append("- Information Density = (Coverage) - (Noise + Redundancy).\n")
+              .append("- EVOLUTIONARY UNIT: MediationCandidate { Prompt, SelectedFiles, Architecture, Dependencies, Instructions }.\n")
+              .append("- REASONING STRATEGIES: Generate alternative reasoning strategies (Architecture-Analysis, Refactoring, Bug-Investigation).\n")
+              .append("- CONTEXT FITNESS: Smallest useful context wins (4-16 files preferred).\n")
+              .append("- PROHIBITED: Hallucinating APIs, runtime state, or sensors. Use ONLY provided repository evidence.\n")
+              .append("- ITERATIVE REFINEMENT: Mutate the ancestor candidate to improve density and signal quality.\n\n");
 
             if (context != null && context.getOrchestrationState() != null) {
                 var metadata = context.getOrchestrationState().getMetadata();
                 if (metadata.get("current_understanding") != null) {
-                    sb.append("→ CURRENT EVOLVED UNDERSTANDING: ").append(metadata.get("current_understanding")).append("\n");
+                    sb.append("→ ANCESTOR UNDERSTANDING: ").append(metadata.get("current_understanding")).append("\n");
                 }
                 if (metadata.get("current_reasoning_focus") != null) {
-                    sb.append("→ CURRENT REASONING FOCUS: ").append(metadata.get("current_reasoning_focus")).append("\n");
+                    sb.append("→ ANCESTOR REASONING FOCUS: ").append(metadata.get("current_reasoning_focus")).append("\n");
                 }
                 if (metadata.get("current_selected_files") != null) {
-                    sb.append("→ CURRENT SELECTED FILES: ").append(metadata.get("current_selected_files")).append("\n");
+                    sb.append("→ ANCESTOR SELECTED FILES: ").append(metadata.get("current_selected_files")).append("\n");
                 }
                 sb.append("\n");
             }
