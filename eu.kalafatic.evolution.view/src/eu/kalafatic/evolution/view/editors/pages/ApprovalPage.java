@@ -42,115 +42,18 @@ public class ApprovalPage extends AEvoPage {
 	}
 
 	private void createControl() {
-		this.setLayout(new GridLayout(1, false));
+		Composite comp = toolkit.createComposite(this);
+		comp.setLayout(new GridLayout(1, false));
 
-		// Summary Group
-		Group summaryGroup = SWTFactory.createGroup(this, "Approval Summary", 2);
-		SWTFactory.createLabel(summaryGroup, "Session ID:");
-		sessionIdLabel = new Label(summaryGroup, SWT.NONE);
-		sessionIdLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		summaryGroup = new SummaryGroup(toolkit, comp, editor, orchestrator);
+		sessionGroup = new SelfDevSessionGroup(toolkit, comp, editor, orchestrator);
+		reviewGroup = new ReviewGroup(toolkit, comp, editor, orchestrator);
+		feedbackGroup = new FeedbackGroup(toolkit, comp, editor, orchestrator, this);
+		proposedTasksGroup = new ProposedTasksGroup(toolkit, comp, editor, orchestrator, this);
+		actionsGroup = new ActionsGroup(toolkit, comp, editor, orchestrator, this);
 
-		SWTFactory.createLabel(summaryGroup, "Status:");
-		statusLabel = new Label(summaryGroup, SWT.NONE);
-		statusLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		SWTFactory.createLabel(summaryGroup, "Iterations:");
-		iterationsLabel = new Label(summaryGroup, SWT.NONE);
-		iterationsLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		SWTFactory.createLabel(summaryGroup, "Git Branch:");
-		branchLabel = new Label(summaryGroup, SWT.NONE);
-		branchLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		// Task Management Group
-		Group taskGroup = SWTFactory.createGroup(this, "Proposed Tasks", 1);
-		taskGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		((GridData)taskGroup.getLayoutData()).heightHint = 180;
-
-		Composite taskTableComposite = new Composite(taskGroup, SWT.NONE);
-		taskTableComposite.setLayout(new GridLayout(2, false));
-		taskTableComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-		tableViewer = new TableViewer(taskTableComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
-		Table table = tableViewer.getTable();
-		table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-		table.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-		createColumns();
-		tableViewer.setContentProvider(ArrayContentProvider.getInstance());
-
-		Composite taskActions = new Composite(taskTableComposite, SWT.NONE);
-		taskActions.setLayout(new GridLayout(1, false));
-		taskActions.setLayoutData(new GridData(SWT.BEGINNING, SWT.FILL, false, false));
-
-		Button upBtn = SWTFactory.createButton(taskActions, "Move Up", 80);
-		upBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
-			@Override
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				handleMoveTask(-1);
-			}
-		});
-
-		Button downBtn = SWTFactory.createButton(taskActions, "Move Down", 80);
-		downBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
-			@Override
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				handleMoveTask(1);
-			}
-		});
-
-		Button deleteBtn = SWTFactory.createButton(taskActions, "Delete", 80);
-		deleteBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
-			@Override
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				handleDeleteTask();
-			}
-		});
-
-		// Visualization Area
-		Group vizGroup = SWTFactory.createGroup(this, "AI Network & Process Flow", 1);
-		vizGroup.setLayoutData(new GridData(GridData.FILL_BOTH));
-		vizGroup.setLayout(new FillLayout());
-
-		browser = new Browser(vizGroup, SWT.NONE);
-		browser.addProgressListener(new ProgressAdapter() {
-			@Override
-			public void completed(ProgressEvent event) {
-				isLoaded = true;
-				refreshBrowser();
-			}
-		});
-		browser.addLocationListener(new LocationAdapter() {
-			@Override
-			public void changing(LocationEvent event) {
-				if (event.location.startsWith("file://") || event.location.equals("about:blank")) {
-					if (!event.location.equals("about:blank")) {
-						event.doit = false;
-						browser.setText(getHtmlTemplate());
-					}
-				}
-			}
-		});
-		browser.setText(getHtmlTemplate());
-
-		// Actions Area
-		Group actionsGroup = SWTFactory.createGroup(this, "Review Actions", 2);
-		Button approveBtn = SWTFactory.createButton(actionsGroup, "Approve & Apply", 150);
-		approveBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
-			@Override
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				handleApprove();
-			}
-		});
-
-		Button rejectBtn = SWTFactory.createButton(actionsGroup, "Reject & Request Changes", 200);
-		rejectBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
-			@Override
-			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
-				handleReject();
-			}
-		});
+		this.setContent(comp);
+		this.setMinSize(comp.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 	}
 
 	@Override
@@ -290,7 +193,7 @@ public class ApprovalPage extends AEvoPage {
 		}
 	}
 
-	private void handleApprove() {
+	public void handleApproveAll() {
 		if (editor.getCurrentContext() != null) {
 			editor.getCurrentContext().setAutoApprove(true);
 			editor.getCurrentContext().provideApproval(true);
