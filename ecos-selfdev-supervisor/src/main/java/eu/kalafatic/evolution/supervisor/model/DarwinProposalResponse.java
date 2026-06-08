@@ -3,6 +3,7 @@ package eu.kalafatic.evolution.supervisor.model;
 import java.util.List;
 
 public class DarwinProposalResponse {
+    private String protocolVersion = "1.0.0";
     private List<Proposal> proposals;
 
     public static class Proposal {
@@ -20,6 +21,9 @@ public class DarwinProposalResponse {
         public double getScore() { return score; }
         public void setScore(double score) { this.score = score; }
     }
+
+    public String getProtocolVersion() { return protocolVersion; }
+    public void setProtocolVersion(String protocolVersion) { this.protocolVersion = protocolVersion; }
 
     public List<Proposal> getProposals() { return proposals; }
     public void setProposals(List<Proposal> proposals) { this.proposals = proposals; }

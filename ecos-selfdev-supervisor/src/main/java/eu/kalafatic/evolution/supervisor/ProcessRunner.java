@@ -83,7 +83,8 @@ public class ProcessRunner {
         List<String> command = new ArrayList<>();
         command.add("java");
         command.add("-cp");
-        command.add("target/classes:target/dependency/*"); // Assuming dependencies are here
+        String cpSep = System.getProperty("path.separator");
+        command.add("target/classes" + cpSep + "target/dependency/*"); // Assuming dependencies are here
         command.add(mainClass);
         for (String arg : args) command.add(arg);
 

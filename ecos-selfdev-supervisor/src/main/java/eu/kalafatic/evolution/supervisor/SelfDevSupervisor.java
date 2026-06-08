@@ -19,9 +19,11 @@ public class SelfDevSupervisor {
     private final GitManager git;
     private final ObjectMapper mapper = new ObjectMapper();
     private final File runDir;
+    private final String goal;
 
-    public SelfDevSupervisor(File baseDir) {
+    public SelfDevSupervisor(File baseDir, String goal) {
         this.baseDir = baseDir;
+        this.goal = goal;
         this.git = new GitManager(baseDir);
         this.runDir = new File(baseDir, "self-dev-run");
         if (!runDir.exists()) runDir.mkdirs();
@@ -29,6 +31,11 @@ public class SelfDevSupervisor {
 
     public void run() {
         System.out.println("[SUPERVISOR] Starting Standalone Evolution Loop...");
+
+        // Start Darwin Engine Headless
+        System.out.println("[SUPERVISOR] Spawning Darwin Evolution Engine...");
+        runner.runApplication(baseDir, "eu.kalafatic.evolution.controller.headless.HeadlessEvolutionServer", baseDir.getAbsolutePath());
+
         try {
             for (int i = 1; i <= 10; i++) { // Max 10 iterations for safety
                 System.out.println("\n--- ITERATION " + i + " ---");
@@ -38,7 +45,7 @@ public class SelfDevSupervisor {
 
                 // 2. Request Proposals from Darwin (via file protocol)
                 DarwinProposalRequest request = new DarwinProposalRequest();
-                request.setGoal("Improve system modularity and extraction of logic");
+                request.setGoal(goal);
                 request.setContext(snapshot);
                 request.setIteration(i);
 
@@ -52,7 +59,10 @@ public class SelfDevSupervisor {
                 }
 
                 // 4. Select Plan (Pick best score)
-                DarwinProposalResponse.Proposal best = response.getProposals().get(0);
+                DarwinProposalResponse.Proposal best = response.getProposals().stream()
+                        .max((p1, p2) -> Double.compare(p1.getScore(), p2.getScore()))
+                        .orElse(response.getProposals().get(0));
+
                 System.out.println("[SUPERVISOR] Selected Proposal: " + best.getId() + " (Score: " + best.getScore() + ")");
 
                 // 5. Create Execution Plan & Branch
@@ -91,8 +101,16 @@ public class SelfDevSupervisor {
         ContextSnapshot snapshot = new ContextSnapshot();
         snapshot.setTimestamp(System.currentTimeMillis());
         snapshot.setMetadata(new HashMap<>());
-        // In a real scenario, we would populate project structure
-        snapshot.setProjectStructure("ROOT\n  src/\n  pom.xml");
+
+        try {
+            StringBuilder sb = new StringBuilder();
+            Files.walk(baseDir.toPath(), 2)
+                 .forEach(path -> sb.append(baseDir.toPath().relativize(path)).append("\n"));
+            snapshot.setProjectStructure(sb.toString());
+        } catch (IOException e) {
+            snapshot.setProjectStructure("Error scanning project structure: " + e.getMessage());
+        }
+
         return snapshot;
     }
 

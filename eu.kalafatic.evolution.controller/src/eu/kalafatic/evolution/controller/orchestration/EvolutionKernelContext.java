@@ -2,7 +2,6 @@ package eu.kalafatic.evolution.controller.orchestration;
 
 import java.io.File;
 
-import eu.kalafatic.evolution.controller.orchestration.selfdev.GitManager;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService;
 import eu.kalafatic.evolution.controller.supervision.AuthorityController;
 import eu.kalafatic.evolution.controller.trajectory.SignalBus;
@@ -19,7 +18,6 @@ public class EvolutionKernelContext {
     private final File projectRoot;
     private final RuntimeEventBus eventBus;
     private final SignalBus signalBus;
-    private GitManager gitManager;
 
     public EvolutionKernelContext(File projectRoot, RuntimeEventBus eventBus, SignalBus signalBus, IterationMemoryService memoryService) {
         this.projectRoot = projectRoot;
@@ -51,13 +49,5 @@ public class EvolutionKernelContext {
 
     public File getProjectRoot() {
         return projectRoot;
-    }
-
-    public GitManager getGitManager() {
-        return gitManager;
-    }
-
-    public void setGitManager(GitManager gitManager) {
-        this.gitManager = gitManager;
     }
 }

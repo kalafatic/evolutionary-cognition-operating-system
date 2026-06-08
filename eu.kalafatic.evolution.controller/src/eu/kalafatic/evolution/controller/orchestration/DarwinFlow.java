@@ -159,8 +159,8 @@ public class DarwinFlow implements IOrchestrationFlow {
 
     public EvaluationResult executeWinner(TaskContext context, eu.kalafatic.evolution.controller.supervision.EvolutionDecision decision, List<BranchVariant> variants, String goal) throws Exception {
         VariantExecutionContext winningContext = null;
-        String originalBranch = manager.getGitManager().getCurrentBranch();
-        String baseCommit = manager.getGitManager().getHeadCommit();
+        String originalBranch = "main";
+        String baseCommit = "";
         Iteration currentIterationModelImpl = manager.getCurrentIterationModel();
         String iterId = currentIterationModelImpl != null ? currentIterationModelImpl.getId() : "default";
         String snapshotBranch = "snapshot/" + iterId + "-" + System.currentTimeMillis();
@@ -191,15 +191,7 @@ public class DarwinFlow implements IOrchestrationFlow {
 
         boolean isTestMode = context.getMetadata().containsKey("testMode");
         try {
-            if (!isMediated && !isTestMode) {
-                manager.getGitManager().createBranchFrom(originalBranch, snapshotBranch);
-                manager.getGitManager().forceCheckout(snapshotBranch);
-            }
-
-            context.log("[KERNEL] Executing winner variant: " + selectedVariant.getId() + " (" + selectedVariant.getStrategy() + ")");
-            if (!isMediated && !isTestMode) {
-                manager.getGitManager().createBranchFrom(originalBranch, selectedVariant.getBranchName());
-            }
+            context.log("[KERNEL] Executing winner variant (COGNITIVE ONLY): " + selectedVariant.getId() + " (" + selectedVariant.getStrategy() + ")");
 
             winningContext = evaluateVariantParallel(selectedVariant, manager.getTaskPlanner(), context, baseCommit, decision.getPressure());
 
@@ -209,18 +201,11 @@ public class DarwinFlow implements IOrchestrationFlow {
             mergeHybridInsights(variants, selectedVariant, context);
 
             if (!selectedVariant.isSuccess()) {
-                context.log("[KERNEL] Winner variant execution failed.");
-                if (!isMediated && !isTestMode) {
-                    manager.getGitManager().forceCheckout(originalBranch);
-                    manager.getGitManager().rollback();
-                }
+                context.log("[KERNEL] Winner variant evaluation failed.");
                 return manager.failedResult();
             }
 
-            if (!isMediated && !isTestMode) {
-                manager.getGitManager().forceCheckout(originalBranch);
-                manager.getGitManager().merge(selectedVariant.getBranchName());
-            } else if (isMediated) {
+            if (isMediated) {
                 context.log("[KERNEL] Applying cognitive winner: " + selectedVariant.getStrategy());
                 context.getOrchestrationState().getMetadata().put("current_understanding", selectedVariant.getStrategy());
                 context.getOrchestrationState().getMetadata().put("current_strategy", selectedVariant.getStrategyType());
@@ -289,18 +274,12 @@ public class DarwinFlow implements IOrchestrationFlow {
                 record.setTimestamp(System.currentTimeMillis());
                 context.getKernelContext().getMemoryService().saveRecord(record);
 
-                manager.checkStep(selectedVariant.getId(), "GIT_COMMIT", "Committing evolutionary changes for phase: " + completedPhase);
-                manager.getGitManager().commit("Darwin Evolution Phase " + completedPhase, context);
-
                 result.setSuccess(true);
                 return result;
             } else {
-                manager.getGitManager().rollback();
                 return result;
             }
         } catch (Exception e) {
-            manager.getGitManager().forceCheckout(originalBranch);
-            manager.getGitManager().rollback();
             throw e;
         }
     }
@@ -339,7 +318,8 @@ public class DarwinFlow implements IOrchestrationFlow {
 
                 for (Task task : tasks) {
                     try {
-                        variantManager.getTaskExecutor().getOrchestrator().executeTask(task, variantContext);
+                        // variantManager.getTaskExecutor().getOrchestrator().executeTask(task, variantContext);
+                        context.log("[KERNEL] Task bypassed in controller: " + task.getName());
                     } catch (Exception e) {
                         context.log("[KERNEL] [TEST_MODE] Execution failed but continuing: " + e.getMessage());
                     }
@@ -389,7 +369,6 @@ public class DarwinFlow implements IOrchestrationFlow {
             }
 
             if (success) {
-                variantManager.getGitManager().commit("Darwin Variant Execution: " + variant.getStrategy(), variantContext);
                 manager.updateVariantLifecycle(List.of(variant), variant.getId(), BranchVariant.ActivationState.VERIFIED, context);
             } else {
                 manager.updateVariantLifecycle(List.of(variant), variant.getId(), BranchVariant.ActivationState.REJECTED, context);
