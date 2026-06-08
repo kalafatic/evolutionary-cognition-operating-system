@@ -34,27 +34,7 @@ public class TaskContext {
     private final List<ApprovalListener> approvalListeners = new CopyOnWriteArrayList<>();
     private final List<InputListener> inputListeners = new CopyOnWriteArrayList<>();
     private final List<TokenRequestListener> tokenRequestListeners = new CopyOnWriteArrayList<>();
-    private final List<String> instructionFiles = new CopyOnWriteArrayList<>();
-    private final FileChangeTracker fileChangeTracker = new FileChangeTracker();
-    private String currentTaskName = "Orchestration";
-    private String sessionId = "Default";
-    private String currentTaskId = "Unknown";
-    private int currentIteration = 0;
-    private String currentPhase = "INIT";
-    private final String deterministicExecutionId;
-    private Instant startTime;
     private CompletableFuture<Boolean> approvalFuture;
-    private CompletableFuture<String> inputFuture;
-    private volatile boolean paused = false;
-    private volatile Boolean localAutoApprove = null;
-    private PlatformMode platformMode = null;
-    private eu.kalafatic.evolution.controller.orchestration.behavior.BehaviorProfile behaviorProfile = null;
-    private final SystemStateHolder stateHolder = new SystemStateHolder();
-    private OrchestrationState orchestrationState;
-    private EvolutionKernelContext kernelContext;
-    private final Map<String, Object> metadata = new ConcurrentHashMap<>();
-    private final Object pauseLock = new Object();
-    private AiService aiService = new AiService();
 
     public interface LogListener {
         void onLog(String message);
@@ -195,7 +175,7 @@ public class TaskContext {
     }
 
     public void provideApproval(boolean approved) {
-        if (approvalFuture != null && !approvalFuture.isDone()) {
+        if (approvalFuture != null) {
             approvalFuture.complete(approved);
         }
         if (inputFuture != null && !inputFuture.isDone()) {
