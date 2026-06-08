@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
+import eu.kalafatic.evolution.controller.mediation.model.SemanticNode;
+import eu.kalafatic.evolution.controller.mediation.model.TargetSnapshot;
+import eu.kalafatic.evolution.controller.mediation.scanner.TargetScanner;
 import eu.kalafatic.utils.semantic.AIContextTool;
 import eu.kalafatic.utils.semantic.EvoMetadata;
 import eu.kalafatic.utils.semantic.Stability;
@@ -41,10 +44,33 @@ public class MetadataAgent {
         MetadataResult result = new MetadataResult(root);
         processedMetadata.clear();
 
-        int totalFiles = countFiles(root);
-        monitor.beginTask("Generating AI Metadata", totalFiles + 10);
+        monitor.beginTask("Generating AI Metadata", 100);
 
-        scanAndEnrich(root, root, result, monitor);
+        TargetScanner scanner = new TargetScanner();
+        TargetSnapshot.TargetType type = root.getAbsolutePath().contains("evolution") ? TargetSnapshot.TargetType.SELF : TargetSnapshot.TargetType.PROJECT;
+        TargetSnapshot snapshot = scanner.scanToSnapshot(root, type);
+
+        int totalNodes = snapshot.getNodes().size();
+        int nodeCount = 0;
+        int lastWorked = 0;
+
+        for (SemanticNode node : snapshot.getNodes().values()) {
+            if (monitor.isCanceled()) break;
+
+            File file = new File(root, node.getPath());
+            if (shouldProcess(file)) {
+                monitor.subTask("Enriching " + file.getName());
+                processFile(file, root, result);
+            }
+
+            nodeCount++;
+            int currentWorked = (int) ((nodeCount / (double) totalNodes) * 80);
+            int delta = currentWorked - lastWorked;
+            if (delta > 0) {
+                monitor.worked(delta);
+                lastWorked = currentWorked;
+            }
+        }
 
         if (monitor.isCanceled()) {
             monitor.done();
@@ -53,7 +79,7 @@ public class MetadataAgent {
 
         monitor.subTask("Generating Navigation Maps");
         generateNavigationMaps(root, result);
-        monitor.worked(10);
+        monitor.worked(20);
 
         StringBuilder summary = new StringBuilder();
         summary.append("Metadata Generation Summary:\n");
@@ -67,47 +93,6 @@ public class MetadataAgent {
         monitor.done();
         processedMetadata.clear(); // Free memory
         return result;
-    }
-
-    private int countFiles(File current) {
-        int count = 0;
-        File[] files = current.listFiles();
-        if (files == null) return 0;
-
-        for (File file : files) {
-            if (file.isDirectory()) {
-                if (!file.getName().startsWith(".") && !file.getName().equals("target") && !file.getName().equals("bin")) {
-                    count += countFiles(file);
-                }
-            } else {
-                if (shouldProcess(file)) {
-                    count++;
-                }
-            }
-        }
-        return count;
-    }
-
-    private void scanAndEnrich(File current, File root, MetadataResult result, IProgressMonitor monitor) {
-        if (monitor.isCanceled()) return;
-
-        File[] files = current.listFiles();
-        if (files == null) return;
-
-        for (File file : files) {
-            if (monitor.isCanceled()) return;
-            if (file.isDirectory()) {
-                if (!file.getName().startsWith(".") && !file.getName().equals("target") && !file.getName().equals("bin")) {
-                    scanAndEnrich(file, root, result, monitor);
-                }
-            } else {
-                if (shouldProcess(file)) {
-                    monitor.subTask("Enriching " + file.getName());
-                    processFile(file, root, result);
-                    monitor.worked(1);
-                }
-            }
-        }
     }
 
     private boolean shouldProcess(File file) {

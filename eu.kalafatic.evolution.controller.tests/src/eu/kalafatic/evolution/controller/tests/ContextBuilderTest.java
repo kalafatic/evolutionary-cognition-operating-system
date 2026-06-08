@@ -32,6 +32,8 @@ public class ContextBuilderTest {
         orchestrator = OrchestrationFactory.eINSTANCE.createOrchestrator();
         projectRoot = tempFolder.newFolder("testProject");
         context = new TaskContext(orchestrator, projectRoot);
+        context.setSessionId("test-session");
+        SessionManager.getInstance().getOrCreateSession("test-session");
 
         // Create a dummy Java file
         File javaFile = new File(projectRoot, "MyClass.java");

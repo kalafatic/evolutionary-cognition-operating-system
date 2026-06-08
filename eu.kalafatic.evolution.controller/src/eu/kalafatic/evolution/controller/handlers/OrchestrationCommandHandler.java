@@ -14,7 +14,6 @@ import org.eclipse.swt.widgets.Display;
 import eu.kalafatic.evolution.model.orchestration.*;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
 import eu.kalafatic.evolution.controller.manager.TrainingManager;
-import eu.kalafatic.evolution.controller.engine.NeuronEngine;
 import eu.kalafatic.evolution.controller.orchestration.EvolutionOrchestrator;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.orchestration.TaskRequest;

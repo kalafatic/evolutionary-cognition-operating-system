@@ -41,7 +41,13 @@ public class ContextResolver {
 
         SessionContainer session = SessionManager.getInstance().getSession(sessionId);
         if (session == null) {
-            throw new IllegalStateException("ContextResolver: session is null for sessionId: " + sessionId);
+            String current = eu.kalafatic.evolution.controller.kernel.SessionBoundaryGuard.getCurrentSessionId();
+            if (current != null) {
+                 session = SessionManager.getInstance().getSession(current);
+            }
+        }
+        if (session == null) {
+            return relevant;
         }
         RuntimeEventBus bus = session.getEventBus();
 
