@@ -25,6 +25,30 @@ import org.eclipse.emf.ecore.EObject;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getFeedback <em>Feedback</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isApprovalRequired <em>Approval Required</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getLoopToTaskId <em>Loop To Task Id</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getPriority <em>Priority</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getResultSummary <em>Result Summary</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getDescription <em>Description</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getRating <em>Rating</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isLikes <em>Likes</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getRationale <em>Rationale</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getScheduledTime <em>Scheduled Time</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isSelected <em>Selected</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getGoal <em>Goal</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getPlan <em>Plan</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getArtifacts <em>Artifacts</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getPrompt <em>Prompt</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getAttachments <em>Attachments</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getLogLevel <em>Log Level</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getFeedbackLevel <em>Feedback Level</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isAutoEscalate <em>Auto Escalate</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isIterativeMode <em>Iterative Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isSelfIterativeMode <em>Self Iterative Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isDarwinMode <em>Darwin Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isGitAutomation <em>Git Automation</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getMaxIterations <em>Max Iterations</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#isStepMode <em>Step Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getBitState <em>Bit State</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Task#getJustification <em>Justification</em>}</li>
  * </ul>
  *
  * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask()
@@ -301,5 +325,471 @@ public interface Task extends EObject {
 	 * @generated
 	 */
 	void setDescription(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Rating</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Rating</em>' attribute.
+	 * @see #setRating(int)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Rating()
+	 * @model
+	 * @generated
+	 */
+	int getRating();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getRating <em>Rating</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Rating</em>' attribute.
+	 * @see #getRating()
+	 * @generated
+	 */
+	void setRating(int value);
+
+	/**
+	 * Returns the value of the '<em><b>Likes</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Likes</em>' attribute.
+	 * @see #setLikes(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Likes()
+	 * @model
+	 * @generated
+	 */
+	boolean isLikes();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isLikes <em>Likes</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Likes</em>' attribute.
+	 * @see #isLikes()
+	 * @generated
+	 */
+	void setLikes(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Rationale</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Rationale</em>' attribute.
+	 * @see #setRationale(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Rationale()
+	 * @model
+	 * @generated
+	 */
+	String getRationale();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getRationale <em>Rationale</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Rationale</em>' attribute.
+	 * @see #getRationale()
+	 * @generated
+	 */
+	void setRationale(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Scheduled Time</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Scheduled Time</em>' attribute.
+	 * @see #setScheduledTime(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_ScheduledTime()
+	 * @model
+	 * @generated
+	 */
+	String getScheduledTime();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getScheduledTime <em>Scheduled Time</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Scheduled Time</em>' attribute.
+	 * @see #getScheduledTime()
+	 * @generated
+	 */
+	void setScheduledTime(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Selected</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Selected</em>' attribute.
+	 * @see #setSelected(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Selected()
+	 * @model
+	 * @generated
+	 */
+	boolean isSelected();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isSelected <em>Selected</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Selected</em>' attribute.
+	 * @see #isSelected()
+	 * @generated
+	 */
+	void setSelected(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Goal</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Goal</em>' attribute.
+	 * @see #setGoal(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Goal()
+	 * @model
+	 * @generated
+	 */
+	String getGoal();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getGoal <em>Goal</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Goal</em>' attribute.
+	 * @see #getGoal()
+	 * @generated
+	 */
+	void setGoal(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Plan</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Plan</em>' attribute.
+	 * @see #setPlan(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Plan()
+	 * @model
+	 * @generated
+	 */
+	String getPlan();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getPlan <em>Plan</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Plan</em>' attribute.
+	 * @see #getPlan()
+	 * @generated
+	 */
+	void setPlan(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Artifacts</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Artifacts</em>' attribute.
+	 * @see #setArtifacts(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Artifacts()
+	 * @model
+	 * @generated
+	 */
+	String getArtifacts();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getArtifacts <em>Artifacts</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Artifacts</em>' attribute.
+	 * @see #getArtifacts()
+	 * @generated
+	 */
+	void setArtifacts(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Prompt</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Prompt</em>' attribute.
+	 * @see #setPrompt(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Prompt()
+	 * @model
+	 * @generated
+	 */
+	String getPrompt();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getPrompt <em>Prompt</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Prompt</em>' attribute.
+	 * @see #getPrompt()
+	 * @generated
+	 */
+	void setPrompt(String value);
+
+	/**
+	 * Returns the value of the '<em><b>Attachments</b></em>' attribute list.
+	 * The list contents are of type {@link java.lang.String}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Attachments</em>' attribute list.
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Attachments()
+	 * @model
+	 * @generated
+	 */
+	EList<String> getAttachments();
+
+	/**
+	 * Returns the value of the '<em><b>Log Level</b></em>' attribute.
+	 * The literals are from the enumeration {@link eu.kalafatic.evolution.model.orchestration.LogLevel}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Log Level</em>' attribute.
+	 * @see eu.kalafatic.evolution.model.orchestration.LogLevel
+	 * @see #setLogLevel(LogLevel)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_LogLevel()
+	 * @model
+	 * @generated
+	 */
+	LogLevel getLogLevel();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getLogLevel <em>Log Level</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Log Level</em>' attribute.
+	 * @see eu.kalafatic.evolution.model.orchestration.LogLevel
+	 * @see #getLogLevel()
+	 * @generated
+	 */
+	void setLogLevel(LogLevel value);
+
+	/**
+	 * Returns the value of the '<em><b>Feedback Level</b></em>' attribute.
+	 * The literals are from the enumeration {@link eu.kalafatic.evolution.model.orchestration.FeedbackLevel}.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Feedback Level</em>' attribute.
+	 * @see eu.kalafatic.evolution.model.orchestration.FeedbackLevel
+	 * @see #setFeedbackLevel(FeedbackLevel)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_FeedbackLevel()
+	 * @model
+	 * @generated
+	 */
+	FeedbackLevel getFeedbackLevel();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getFeedbackLevel <em>Feedback Level</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Feedback Level</em>' attribute.
+	 * @see eu.kalafatic.evolution.model.orchestration.FeedbackLevel
+	 * @see #getFeedbackLevel()
+	 * @generated
+	 */
+	void setFeedbackLevel(FeedbackLevel value);
+
+	/**
+	 * Returns the value of the '<em><b>Auto Escalate</b></em>' attribute.
+	 * The default value is <code>"true"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Auto Escalate</em>' attribute.
+	 * @see #setAutoEscalate(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_AutoEscalate()
+	 * @model default="true"
+	 * @generated
+	 */
+	boolean isAutoEscalate();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isAutoEscalate <em>Auto Escalate</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Auto Escalate</em>' attribute.
+	 * @see #isAutoEscalate()
+	 * @generated
+	 */
+	void setAutoEscalate(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Iterative Mode</b></em>' attribute.
+	 * The default value is <code>"false"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Iterative Mode</em>' attribute.
+	 * @see #setIterativeMode(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_IterativeMode()
+	 * @model default="false"
+	 * @generated
+	 */
+	boolean isIterativeMode();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isIterativeMode <em>Iterative Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Iterative Mode</em>' attribute.
+	 * @see #isIterativeMode()
+	 * @generated
+	 */
+	void setIterativeMode(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Self Iterative Mode</b></em>' attribute.
+	 * The default value is <code>"false"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Self Iterative Mode</em>' attribute.
+	 * @see #setSelfIterativeMode(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_SelfIterativeMode()
+	 * @model default="false"
+	 * @generated
+	 */
+	boolean isSelfIterativeMode();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isSelfIterativeMode <em>Self Iterative Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Self Iterative Mode</em>' attribute.
+	 * @see #isSelfIterativeMode()
+	 * @generated
+	 */
+	void setSelfIterativeMode(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Darwin Mode</b></em>' attribute.
+	 * The default value is <code>"false"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Darwin Mode</em>' attribute.
+	 * @see #setDarwinMode(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_DarwinMode()
+	 * @model default="false"
+	 * @generated
+	 */
+	boolean isDarwinMode();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isDarwinMode <em>Darwin Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Darwin Mode</em>' attribute.
+	 * @see #isDarwinMode()
+	 * @generated
+	 */
+	void setDarwinMode(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Git Automation</b></em>' attribute.
+	 * The default value is <code>"false"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Git Automation</em>' attribute.
+	 * @see #setGitAutomation(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_GitAutomation()
+	 * @model default="false"
+	 * @generated
+	 */
+	boolean isGitAutomation();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isGitAutomation <em>Git Automation</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Git Automation</em>' attribute.
+	 * @see #isGitAutomation()
+	 * @generated
+	 */
+	void setGitAutomation(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Max Iterations</b></em>' attribute.
+	 * The default value is <code>"-1"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Max Iterations</em>' attribute.
+	 * @see #setMaxIterations(int)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_MaxIterations()
+	 * @model default="-1"
+	 * @generated
+	 */
+	int getMaxIterations();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getMaxIterations <em>Max Iterations</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Max Iterations</em>' attribute.
+	 * @see #getMaxIterations()
+	 * @generated
+	 */
+	void setMaxIterations(int value);
+
+	/**
+	 * Returns the value of the '<em><b>Step Mode</b></em>' attribute.
+	 * The default value is <code>"false"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Step Mode</em>' attribute.
+	 * @see #setStepMode(boolean)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_StepMode()
+	 * @model default="false"
+	 * @generated
+	 */
+	boolean isStepMode();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#isStepMode <em>Step Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Step Mode</em>' attribute.
+	 * @see #isStepMode()
+	 * @generated
+	 */
+	void setStepMode(boolean value);
+
+	/**
+	 * Returns the value of the '<em><b>Bit State</b></em>' attribute.
+	 * The default value is <code>"0"</code>.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Bit State</em>' attribute.
+	 * @see #setBitState(long)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_BitState()
+	 * @model default="0"
+	 * @generated
+	 */
+	long getBitState();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getBitState <em>Bit State</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Bit State</em>' attribute.
+	 * @see #getBitState()
+	 * @generated
+	 */
+	void setBitState(long value);
+
+	/**
+	 * Returns the value of the '<em><b>Justification</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Justification</em>' attribute.
+	 * @see #setJustification(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getTask_Justification()
+	 * @model
+	 * @generated
+	 */
+	String getJustification();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Task#getJustification <em>Justification</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Justification</em>' attribute.
+	 * @see #getJustification()
+	 * @generated
+	 */
+	void setJustification(String value);
 
 } // Task

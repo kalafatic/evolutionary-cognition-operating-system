@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.kalafatic.evolution</groupId>
 	<artifactId>eu.kalafatic.evolution.aggregator</artifactId>
-	<version>2.6.1-SNAPSHOT</version>
+	<version>2.6.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
@@ -18,12 +18,16 @@
 		<module>eu.kalafatic.evolution.model</module>
 		<module>eu.kalafatic.evolution.model.edit</module>
 		<module>eu.kalafatic.evolution.model.editor</module>
+		<module>eu.kalafatic.evolution.model.tests</module>
 		<module>eu.kalafatic.evolution.controller</module>
 		<module>eu.kalafatic.evolution.controller.tests</module>
 		<module>eu.kalafatic.evolution.view</module>
+		<module>eu.kalafatic.evolution.tests</module>
 		<module>eu.kalafatic.evolution.feature</module>
+		<module>eu.kalafatic.evolution.repository</module>
 		<module>eu.kalafatic.evolution.module</module>
 		<module>eu.kalafatic.evolution.quality.tests</module>
+		<module>ecos-selfdev-supervisor</module>
 	</modules>
 
 	<build>

@@ -46,7 +46,27 @@ public enum AiMode implements Enumerator {
 	 * @generated
 	 * @ordered
 	 */
-	REMOTE(2, "REMOTE", "Remote");
+	REMOTE(2, "REMOTE", "Remote"),
+
+	/**
+	 * The '<em><b>PROXY</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #PROXY_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	PROXY(3, "PROXY", "Proxy"),
+
+	/**
+	 * The '<em><b>MEDIATED</b></em>' literal object.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #MEDIATED_VALUE
+	 * @generated
+	 * @ordered
+	 */
+	MEDIATED(4, "MEDIATED", "Mediated");
 
 	/**
 	 * The '<em><b>LOCAL</b></em>' literal value.
@@ -82,6 +102,28 @@ public enum AiMode implements Enumerator {
 	public static final int REMOTE_VALUE = 2;
 
 	/**
+	 * The '<em><b>PROXY</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #PROXY
+	 * @model literal="Proxy"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int PROXY_VALUE = 3;
+
+	/**
+	 * The '<em><b>MEDIATED</b></em>' literal value.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #MEDIATED
+	 * @model literal="Mediated"
+	 * @generated
+	 * @ordered
+	 */
+	public static final int MEDIATED_VALUE = 4;
+
+	/**
 	 * An array of all the '<em><b>Ai Mode</b></em>' enumerators.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -92,6 +134,8 @@ public enum AiMode implements Enumerator {
 			LOCAL,
 			HYBRID,
 			REMOTE,
+			PROXY,
+			MEDIATED,
 		};
 
 	/**
@@ -151,6 +195,8 @@ public enum AiMode implements Enumerator {
 			case LOCAL_VALUE: return LOCAL;
 			case HYBRID_VALUE: return HYBRID;
 			case REMOTE_VALUE: return REMOTE;
+			case PROXY_VALUE: return PROXY;
+			case MEDIATED_VALUE: return MEDIATED;
 		}
 		return null;
 	}

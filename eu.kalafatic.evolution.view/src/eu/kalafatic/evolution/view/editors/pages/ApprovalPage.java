@@ -3,63 +3,42 @@ package eu.kalafatic.evolution.view.editors.pages;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.util.EContentAdapter;
-import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.LocationAdapter;
-import org.eclipse.swt.browser.LocationEvent;
-import org.eclipse.swt.browser.ProgressAdapter;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Table;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.io.File;
+import java.util.List;
 
-import eu.kalafatic.evolution.model.orchestration.Agent;
-import eu.kalafatic.evolution.model.orchestration.Iteration;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
-import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
 import eu.kalafatic.evolution.model.orchestration.Task;
 import eu.kalafatic.evolution.view.editors.MultiPageEditor;
-import eu.kalafatic.evolution.view.factories.SWTFactory;
+import eu.kalafatic.evolution.view.editors.pages.approval.*;
 
-public class ApprovalPage extends Composite {
-	private MultiPageEditor editor;
-	private Orchestrator orchestrator;
-	private Browser browser;
-	private boolean isLoaded = false;
-	private Label sessionIdLabel;
-	private Label statusLabel;
-	private Label iterationsLabel;
-	private Label branchLabel;
-	private TableViewer tableViewer;
+public class ApprovalPage extends AEvoPage {
+
+	private SummaryGroup summaryGroup;
+	private SelfDevSessionGroup sessionGroup;
+	private ReviewGroup reviewGroup;
+	private FeedbackGroup feedbackGroup;
+	private ProposedTasksGroup proposedTasksGroup;
+	private ActionsGroup actionsGroup;
 
 	private Adapter modelAdapter = new EContentAdapter() {
-		@Override
-		public void notifyChanged(Notification notification) {
+		@Override public void notifyChanged(Notification notification) {
 			super.notifyChanged(notification);
-			refreshUI();
+			if (notification.isTouch()) return;
+			scheduleRefresh();
 		}
 	};
 
 	public ApprovalPage(Composite parent, MultiPageEditor editor, Orchestrator orchestrator) {
-		super(parent, SWT.NONE);
-		this.editor = editor;
-		this.orchestrator = orchestrator;
+		super(parent, editor, orchestrator);
 		createControl();
-		setOrchestrator(orchestrator);
 	}
 
 	private void createControl() {
@@ -191,130 +170,140 @@ public class ApprovalPage extends Composite {
 		});
 	}
 
+	@Override
 	public void setOrchestrator(Orchestrator orchestrator) {
-		if (this.orchestrator != null) {
-			this.orchestrator.eAdapters().remove(modelAdapter);
-		}
-		this.orchestrator = orchestrator;
-		if (this.orchestrator != null) {
-			this.orchestrator.eAdapters().add(modelAdapter);
-		}
-		refreshUI();
+		if (this.orchestrator != null) this.orchestrator.eAdapters().remove(modelAdapter);
+		super.setOrchestrator(orchestrator);
+		if (this.orchestrator != null) this.orchestrator.eAdapters().add(modelAdapter);
 	}
 
-	private void createColumns() {
+	public void createColumns(TableViewer tableViewer) {
 		TableViewerColumn colName = new TableViewerColumn(tableViewer, SWT.NONE);
-		colName.getColumn().setText("Task Name (Click to edit)");
-		colName.getColumn().setWidth(300);
-		colName.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				return ((Task)element).getName();
-			}
-		});
+		colName.getColumn().setText("Task Name (Click to edit)"); colName.getColumn().setWidth(300);
+		colName.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).getName(); } });
 		colName.setEditingSupport(new org.eclipse.jface.viewers.EditingSupport(tableViewer) {
-			@Override
-			protected void setValue(Object element, Object value) {
-				((Task)element).setName(String.valueOf(value));
-				editor.setDirty(true);
-				tableViewer.update(element, null);
-			}
-			@Override
-			protected Object getValue(Object element) {
-				return ((Task)element).getName();
-			}
-			@Override
-			protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) {
-				return new org.eclipse.jface.viewers.TextCellEditor(tableViewer.getTable());
-			}
-			@Override
-			protected boolean canEdit(Object element) {
-				return true;
-			}
+			@Override protected void setValue(Object element, Object value) { ((Task)element).setName(String.valueOf(value)); editor.setDirty(true); tableViewer.update(element, null); }
+			@Override protected Object getValue(Object element) { return ((Task)element).getName(); }
+			@Override protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) { return new org.eclipse.jface.viewers.TextCellEditor(tableViewer.getTable()); }
+			@Override protected boolean canEdit(Object element) { return true; }
 		});
-
 		TableViewerColumn colType = new TableViewerColumn(tableViewer, SWT.NONE);
-		colType.getColumn().setText("Type");
-		colType.getColumn().setWidth(100);
-		colType.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				return ((Task)element).getType();
-			}
+		colType.getColumn().setText("Type"); colType.getColumn().setWidth(100);
+		colType.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).getType(); } });
+		TableViewerColumn colStatus = new TableViewerColumn(tableViewer, SWT.NONE);
+		colStatus.getColumn().setText("Status"); colStatus.getColumn().setWidth(100);
+		colStatus.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).getStatus().toString(); } });
+
+		TableViewerColumn colIterative = new TableViewerColumn(tableViewer, SWT.NONE);
+		colIterative.getColumn().setText("Iterative"); colIterative.getColumn().setWidth(70);
+		colIterative.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).isIterativeMode() ? "YES" : "NO"; } });
+		colIterative.setEditingSupport(new org.eclipse.jface.viewers.EditingSupport(tableViewer) {
+			@Override protected void setValue(Object element, Object value) { ((Task)element).setIterativeMode((Boolean)value); editor.setDirty(true); tableViewer.update(element, null); }
+			@Override protected Object getValue(Object element) { return ((Task)element).isIterativeMode(); }
+			@Override protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) { return new org.eclipse.jface.viewers.CheckboxCellEditor(tableViewer.getTable()); }
+			@Override protected boolean canEdit(Object element) { return true; }
 		});
 
-		TableViewerColumn colStatus = new TableViewerColumn(tableViewer, SWT.NONE);
-		colStatus.getColumn().setText("Status");
-		colStatus.getColumn().setWidth(100);
-		colStatus.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				return ((Task)element).getStatus().toString();
-			}
+		TableViewerColumn colSelfDev = new TableViewerColumn(tableViewer, SWT.NONE);
+		colSelfDev.getColumn().setText("Self-Dev"); colSelfDev.getColumn().setWidth(70);
+		colSelfDev.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).isSelfIterativeMode() ? "YES" : "NO"; } });
+		colSelfDev.setEditingSupport(new org.eclipse.jface.viewers.EditingSupport(tableViewer) {
+			@Override protected void setValue(Object element, Object value) { ((Task)element).setSelfIterativeMode((Boolean)value); editor.setDirty(true); tableViewer.update(element, null); }
+			@Override protected Object getValue(Object element) { return ((Task)element).isSelfIterativeMode(); }
+			@Override protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) { return new org.eclipse.jface.viewers.CheckboxCellEditor(tableViewer.getTable()); }
+			@Override protected boolean canEdit(Object element) { return true; }
+		});
+
+		TableViewerColumn colDarwin = new TableViewerColumn(tableViewer, SWT.NONE);
+		colDarwin.getColumn().setText("Darwin"); colDarwin.getColumn().setWidth(70);
+		colDarwin.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).isDarwinMode() ? "YES" : "NO"; } });
+		colDarwin.setEditingSupport(new org.eclipse.jface.viewers.EditingSupport(tableViewer) {
+			@Override protected void setValue(Object element, Object value) { ((Task)element).setDarwinMode((Boolean)value); editor.setDirty(true); tableViewer.update(element, null); }
+			@Override protected Object getValue(Object element) { return ((Task)element).isDarwinMode(); }
+			@Override protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) { return new org.eclipse.jface.viewers.CheckboxCellEditor(tableViewer.getTable()); }
+			@Override protected boolean canEdit(Object element) { return true; }
+		});
+
+		TableViewerColumn colAutoGit = new TableViewerColumn(tableViewer, SWT.NONE);
+		colAutoGit.getColumn().setText("Auto-Git"); colAutoGit.getColumn().setWidth(70);
+		colAutoGit.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return ((Task)element).isGitAutomation() ? "YES" : "NO"; } });
+		colAutoGit.setEditingSupport(new org.eclipse.jface.viewers.EditingSupport(tableViewer) {
+			@Override protected void setValue(Object element, Object value) { ((Task)element).setGitAutomation((Boolean)value); editor.setDirty(true); tableViewer.update(element, null); }
+			@Override protected Object getValue(Object element) { return ((Task)element).isGitAutomation(); }
+			@Override protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) { return new org.eclipse.jface.viewers.CheckboxCellEditor(tableViewer.getTable()); }
+			@Override protected boolean canEdit(Object element) { return true; }
+		});
+
+		TableViewerColumn colMaxIter = new TableViewerColumn(tableViewer, SWT.NONE);
+		colMaxIter.getColumn().setText("Max Iter"); colMaxIter.getColumn().setWidth(70);
+		colMaxIter.setLabelProvider(new ColumnLabelProvider() { @Override public String getText(Object element) { return String.valueOf(((Task)element).getMaxIterations()); } });
+		colMaxIter.setEditingSupport(new org.eclipse.jface.viewers.EditingSupport(tableViewer) {
+			@Override protected void setValue(Object element, Object value) { try { ((Task)element).setMaxIterations(Integer.parseInt(String.valueOf(value))); editor.setDirty(true); tableViewer.update(element, null); } catch (Exception e) {} }
+			@Override protected Object getValue(Object element) { return String.valueOf(((Task)element).getMaxIterations()); }
+			@Override protected org.eclipse.jface.viewers.CellEditor getCellEditor(Object element) { return new org.eclipse.jface.viewers.TextCellEditor(tableViewer.getTable()); }
+			@Override protected boolean canEdit(Object element) { return true; }
 		});
 	}
 
-	private void handleMoveTask(int direction) {
-		IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+	public void handleMoveTask(int direction) {
+		IStructuredSelection selection = (IStructuredSelection) proposedTasksGroup.getTableViewer().getSelection();
 		if (selection.isEmpty()) return;
 		Task task = (Task) selection.getFirstElement();
 		int index = orchestrator.getTasks().indexOf(task);
 		int newIndex = index + direction;
 		if (newIndex >= 0 && newIndex < orchestrator.getTasks().size()) {
-			orchestrator.getTasks().move(newIndex, index);
-			editor.setDirty(true);
-			tableViewer.refresh();
+			orchestrator.getTasks().move(newIndex, index); editor.setDirty(true); proposedTasksGroup.getTableViewer().refresh();
 		}
 	}
 
-	private void handleDeleteTask() {
-		IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
+	public void handleDeleteTask() {
+		IStructuredSelection selection = (IStructuredSelection) proposedTasksGroup.getTableViewer().getSelection();
 		if (selection.isEmpty()) return;
 		Task task = (Task) selection.getFirstElement();
-		orchestrator.getTasks().remove(task);
-		editor.setDirty(true);
-		tableViewer.refresh();
+		orchestrator.getTasks().remove(task); editor.setDirty(true); proposedTasksGroup.getTableViewer().refresh();
 	}
 
-	private void refreshUI() {
+	@Override
+	protected void refreshUI() {
 		if (isDisposed()) return;
-		Display.getDefault().asyncExec(() -> {
-			if (isDisposed()) return;
-
-			if (orchestrator != null) {
-				tableViewer.setInput(orchestrator.getTasks());
-			}
-
-			if (orchestrator != null && orchestrator.getSelfDevSession() != null) {
-				SelfDevSession session = orchestrator.getSelfDevSession();
-				sessionIdLabel.setText(session.getId() != null ? session.getId() : "N/A");
-				statusLabel.setText(session.getStatus() != null ? session.getStatus().toString() : "N/A");
-				iterationsLabel.setText(String.valueOf(session.getIterations().size()) + " / " + session.getMaxIterations());
-
-				if (!session.getIterations().isEmpty()) {
-					Iteration last = session.getIterations().get(session.getIterations().size() - 1);
-					branchLabel.setText(last.getBranchName() != null ? last.getBranchName() : "N/A");
-				} else {
-					branchLabel.setText("N/A");
-				}
-			} else {
-				sessionIdLabel.setText("No active session");
-				statusLabel.setText("N/A");
-				iterationsLabel.setText("0 / 0");
-				branchLabel.setText("N/A");
-			}
-			refreshBrowser();
-		});
+		summaryGroup.updateUI();
+		sessionGroup.updateUI();
+		reviewGroup.updateUI();
+		feedbackGroup.updateUI();
+		proposedTasksGroup.updateUI();
+		this.reflow(true);
 	}
 
-	private void refreshBrowser() {
-		if (browser == null || browser.isDisposed() || !isLoaded) return;
-		String json = getModelAsJson();
-		Object result = browser.evaluate("return typeof updateGraph !== 'undefined';");
-		if (result instanceof Boolean && (Boolean) result) {
-			browser.execute("updateGraph(" + json + ");");
+	public void updateUI() {
+		scheduleRefresh();
+	}
+
+	public void submitFeedback(int satisfaction, String comments) {
+		if (orchestrator != null) {
+			if (orchestrator.getSelfDevSession() != null && !orchestrator.getSelfDevSession().getIterations().isEmpty()) {
+				eu.kalafatic.evolution.model.orchestration.Iteration last = orchestrator.getSelfDevSession().getIterations().get(orchestrator.getSelfDevSession().getIterations().size() - 1);
+				last.setRating(satisfaction);
+				last.setComments(comments);
+			}
+
+			// Centralized Feedback Persistence
+			eu.kalafatic.evolution.controller.services.FeedbackService.getInstance().recordFeedback(orchestrator, "coding", satisfaction);
+
+			eu.kalafatic.evolution.controller.manager.NeuronService.getInstance().train(orchestrator, comments, "coding", satisfaction);
+			editor.setDirty(true);
+			scheduleRefresh();
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK); mb.setText("Thank You"); mb.setMessage("Your feedback has been recorded and will be used to improve the AI."); mb.open();
+		}
+	}
+
+	public void handleApprove() {
+		if (editor.getCurrentContext() != null) {
+			editor.getCurrentContext().provideApproval(true);
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK); mb.setText("Approval Confirmed"); mb.setMessage("Approval confirmed and orchestration will continue."); mb.open();
+			editor.showAiChatPage();
 		} else {
-			browser.setText(getHtmlTemplate());
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK); mb.setText("Approval Confirmed"); mb.setMessage("Approval confirmed and changes applied to the system."); mb.open();
+			editor.showAiChatPage();
 		}
 	}
 
@@ -330,143 +319,22 @@ public class ApprovalPage extends Composite {
 
 	private void handleApprove() {
 		if (editor.getCurrentContext() != null) {
+			editor.getCurrentContext().setAutoApprove(true);
 			editor.getCurrentContext().provideApproval(true);
-			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
-			mb.setText("Approval Confirmed");
-			mb.setMessage("Approval confirmed and orchestration will continue.");
-			mb.open();
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK); mb.setText("Auto-Approval Enabled"); mb.setMessage("All remaining tasks in the current orchestration loop will be automatically approved."); mb.open();
+			editor.showAiChatPage();
 		} else {
-			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
-			mb.setText("Approval Confirmed");
-			mb.setMessage("Approval confirmed and changes applied to the system.");
-			mb.open();
+			handleApprove();
 		}
 	}
 
-	private void handleReject() {
+	public void handleReject() {
 		if (editor.getCurrentContext() != null) {
 			editor.getCurrentContext().provideApproval(false);
-			MessageBox mb = new MessageBox(getShell(), SWT.ICON_WARNING | SWT.OK);
-			mb.setText("Changes Requested");
-			mb.setMessage("Changes rejected. Orchestration aborted.");
-			mb.open();
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_WARNING | SWT.OK); mb.setText("Changes Requested"); mb.setMessage("Changes rejected. Orchestration aborted."); mb.open();
 		} else {
-			MessageBox mb = new MessageBox(getShell(), SWT.ICON_WARNING | SWT.OK);
-			mb.setText("Changes Requested");
-			mb.setMessage("Changes rejected. Feedback sent to the autonomous agent for refinement.");
-			mb.open();
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_WARNING | SWT.OK); mb.setText("Changes Requested"); mb.setMessage("Changes rejected. Feedback sent to the autonomous agent for refinement."); mb.open();
 		}
-	}
-
-	private String getModelAsJson() {
-		if (orchestrator == null) return "{}";
-		JSONObject root = new JSONObject();
-		JSONArray agentsArr = new JSONArray();
-		for (Agent agent : orchestrator.getAgents()) {
-			JSONObject agentObj = new JSONObject();
-			agentObj.put("id", agent.getId());
-			agentObj.put("type", agent.getType());
-			agentsArr.put(agentObj);
-		}
-		root.put("agents", agentsArr);
-
-		JSONArray tasksArr = new JSONArray();
-		for (Task task : orchestrator.getTasks()) {
-			tasksArr.put(serializeTask(task));
-		}
-		root.put("tasks", tasksArr);
-
-		if (orchestrator.getSelfDevSession() != null) {
-			JSONObject sessionObj = new JSONObject();
-			sessionObj.put("id", orchestrator.getSelfDevSession().getId());
-			sessionObj.put("status", orchestrator.getSelfDevSession().getStatus().toString());
-			root.put("session", sessionObj);
-		}
-
-		return root.toString();
-	}
-
-	private JSONObject serializeTask(Task task) {
-		JSONObject obj = new JSONObject();
-		obj.put("id", task.getId());
-		obj.put("name", task.getName());
-		obj.put("status", task.getStatus().toString());
-		JSONArray nextIds = new JSONArray();
-		for (Task n : task.getNext()) nextIds.put(n.getId());
-		obj.put("next", nextIds);
-		return obj;
-	}
-
-	private String getHtmlTemplate() {
-		return "<!DOCTYPE html><html><head><style>"
-				+ "body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; margin: 0; overflow: hidden; }"
-				+ "#canvas { width: 100vw; height: 100vh; }"
-				+ ".node { fill: #fff; stroke: #cbd5e1; stroke-width: 1px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }"
-				+ ".node:hover { stroke: #94a3b8; stroke-width: 2px; transform: translateY(-2px); }"
-				+ ".task.DONE { fill: #f0fdf4; stroke: #22c55e; }"
-				+ ".task.RUNNING { fill: #fffbeb; stroke: #f59e0b; }"
-				+ ".task.FAILED { fill: #fef2f2; stroke: #ef4444; }"
-				+ ".agent { fill: #eff6ff; stroke: #3b82f6; stroke-width: 2px; }"
-				+ ".agent-link { stroke: #3b82f6; stroke-width: 1px; stroke-dasharray: 4; }"
-				+ "text { font-size: 11px; fill: #334155; font-weight: 500; text-anchor: middle; pointer-events: none; }"
-				+ "line { stroke: #94a3b8; stroke-width: 1.5px; marker-end: url(#arrowhead); }"
-				+ ".session-info { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px; }"
-				+ "</style></head><body>"
-				+ "<div class='session-info' id='info'>AI Network Structure</div>"
-				+ "<svg id='canvas' viewBox='0 0 1000 800'><defs><marker id='arrowhead' markerWidth='10' markerHeight='7' refX='10' refY='3.5' orient='auto'><polygon points='0 0, 10 3.5, 0 7' fill='#94a3b8'/></marker></defs><g id='viewport'></g></svg>"
-				+ "<script>"
-				+ "const viewport = document.getElementById('viewport');"
-				+ "function updateGraph(data) {"
-				+ "  viewport.innerHTML = '';"
-				+ "  if (!data) return;"
-				+ "  const nodes = {};"
-				+ "  const links = [];"
-				+ "  let x = 350, y = 80;"
-				+ "  if (data.tasks) {"
-				+ "    data.tasks.forEach(t => {"
-				+ "      nodes[t.id] = { ...t, x, y };"
-				+ "      x += 220; if (x > 850) { x = 350; y += 120; }"
-				+ "      if (t.next) t.next.forEach(nid => links.push({ from: t.id, to: nid }));"
-				+ "    });"
-				+ "  }"
-				+ "  let ay = 80;"
-				+ "  if (data.agents) {"
-				+ "    data.agents.forEach(a => {"
-				+ "      nodes[a.id] = { id: a.id, name: a.id, type: 'agent', x: 80, y: ay };"
-				+ "      ay += 120;"
-				+ "    });"
-				+ "  }"
-				+ "  links.forEach(l => {"
-				+ "    const n1 = nodes[l.from], n2 = nodes[l.to];"
-				+ "    if (n1 && n2) {"
-				+ "      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');"
-				+ "      line.setAttribute('x1', n1.x + 160); line.setAttribute('y1', n1.y + 30);"
-				+ "      line.setAttribute('x2', n2.x); line.setAttribute('y2', n2.y + 30);"
-				+ "      viewport.appendChild(line);"
-				+ "    }"
-				+ "  });"
-				+ "  Object.values(nodes).forEach(n => {"
-				+ "    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');"
-				+ "    if (n.type === 'agent') {"
-				+ "      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');"
-				+ "      circle.setAttribute('cx', n.x + 40); circle.setAttribute('cy', n.y + 40); circle.setAttribute('r', 40);"
-				+ "      circle.className.baseVal = 'node agent';"
-				+ "      g.appendChild(circle);"
-				+ "    } else {"
-				+ "      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');"
-				+ "      rect.setAttribute('x', n.x); rect.setAttribute('y', n.y); rect.setAttribute('width', 160); rect.setAttribute('height', 60); rect.setAttribute('rx', 8);"
-				+ "      rect.className.baseVal = 'node task ' + n.status;"
-				+ "      g.appendChild(rect);"
-				+ "    }"
-				+ "    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');"
-				+ "    txt.setAttribute('x', n.type === 'agent' ? n.x + 40 : n.x + 80); txt.setAttribute('y', n.type === 'agent' ? n.y + 45 : n.y + 35);"
-				+ "    txt.textContent = n.name.length > 18 ? n.name.substring(0, 15) + '...' : n.name;"
-				+ "    g.appendChild(txt);"
-				+ "    viewport.appendChild(g);"
-				+ "  });"
-				+ "  if (data.session) document.getElementById('info').textContent = 'Session: ' + data.session.id + ' (' + data.session.status + ')';"
-				+ "}"
-				+ "</script></body></html>";
 	}
 
 	@Override

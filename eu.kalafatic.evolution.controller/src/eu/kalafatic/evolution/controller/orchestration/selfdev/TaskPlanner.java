@@ -2,41 +2,157 @@ package eu.kalafatic.evolution.controller.orchestration.selfdev;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-import eu.kalafatic.evolution.controller.orchestration.BaseAiAgent;
+
+import eu.kalafatic.evolution.controller.agents.BaseAiAgent;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.parsers.JsonUtils;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.model.orchestration.Task;
 
 public class TaskPlanner extends BaseAiAgent {
 
-    public TaskPlanner() {
-        super("TaskPlanner", "SelfDevPlanner");
+    public TaskPlanner(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
+        super("TaskPlanner", "SelfDevPlanner", container);
     }
 
-    public List<Task> generateTasks(TaskContext context) throws Exception {
-        context.log("[PLANNER] Analyzing project to generate improvement tasks...");
+    @Override
+    protected String getAgentInstructions() {
+        return "You are acting as a Task Planner Agent for self-development workflows.";
+    }
 
-        String prompt = "You are a Self-Development Task Planner. Your goal is to improve the codebase.\n" +
-                "Analyze the project structure and provided context. Generate 1 to 5 atomic, independent improvement tasks.\n" +
-                "Tasks should focus on code quality, documentation, test coverage, or minor feature enhancements.\n" +
-                "Forbidden: Changing build config (pom.xml), core orchestrator engine, or deployment scripts.\n\n" +
-                "Output MUST be a valid JSON array of objects. Schema:\n" +
-                "[ { \"id\": \"unique_id\", \"name\": \"Clear task description\", \"taskType\": \"llm\"|\"file\"|\"git\"|\"maven\", \"priority\": integer } ]\n";
+    public List<Task> generateTasksFromVariant(TaskContext context, BranchVariant variant) throws Exception {
+        if (variant.getActions() == null || variant.getActions().isEmpty()) {
+            return generateTasks(context, variant.getStrategy());
+        }
 
-        String response = aiService.sendRequest(context.getOrchestrator(), prompt, context);
+        context.log("[PLANNER] Generating tasks from structured variant actions...");
+        List<Task> tasks = new ArrayList<>();
+        OrchestrationFactory factory = OrchestrationFactory.eINSTANCE;
+
+        for (BranchVariant.Action action : variant.getActions()) {
+            Task task = factory.createTask();
+            task.setId("sd-task-" + System.currentTimeMillis() + "-" + tasks.size());
+
+            String op = action.getOperation().toUpperCase();
+            String target = action.getTarget();
+
+            if (target == null || target.isEmpty() || "null".equals(target)) {
+                target = "GeneratedArtifact";
+            }
+
+            String domain = action.getDomain() != null ? action.getDomain().toLowerCase() : "";
+
+            // Smart extension appending for known artifact types
+            if (target != null && !target.isEmpty()) {
+                if ("java".equals(domain) || "class".equals(domain) || "interface".equals(domain) || "enum".equals(domain) || "record".equals(domain)) {
+                    if (!target.endsWith(".java")) {
+                        if (target.contains(".")) {
+                            target = target.substring(0, target.lastIndexOf('.')) + ".java";
+                        } else {
+                            target = target + ".java";
+                        }
+                    }
+                    // Ensure PascalCase for Java classes if it's a simple name
+                    if (!target.contains("/") && !target.contains("\\") && Character.isLowerCase(target.charAt(0))) {
+                        target = Character.toUpperCase(target.charAt(0)) + target.substring(1);
+                    }
+                } else if ("script".equals(domain) && !target.contains(".")) {
+                    target = target + ".sh";
+                }
+            }
+
+            task.setName(op + " " + target);
+
+            String type = "llm";
+            if ("file".equalsIgnoreCase(domain) || "class".equalsIgnoreCase(domain) || "java".equalsIgnoreCase(domain)) {
+                type = "file";
+                if (op.equals("DELETE") || op.equals("REMOVE")) {
+                    task.setName("DELETE " + target);
+                    task.setType("shell");
+                } else if (op.equals("MKDIR")) {
+                    task.setName("MKDIR " + target);
+                    task.setType("shell");
+                }
+            }
+            else if ("build".equalsIgnoreCase(action.getDomain())) type = "maven";
+            else if ("structure".equalsIgnoreCase(action.getDomain())) type = "structure";
+            else if ("test".equalsIgnoreCase(action.getDomain())) type = "maven"; // usually 'mvn test'
+            else if ("git".equalsIgnoreCase(action.getDomain())) type = "git";
+
+            task.setType(type);
+            task.setDescription(action.getDescription());
+            task.setRationale("Darwin Strategy: " + variant.getStrategy());
+            task.setPriority(1);
+            tasks.add(task);
+        }
+
+        // PROPAGATE EXPECTED OUTPUTS
+        if (variant.getExpectedOutputs() != null && !variant.getExpectedOutputs().isEmpty()) {
+            context.log("[PLANNER] Propagating expected outputs to tasks: " + variant.getExpectedOutputs());
+            // No-op for now as Task model doesn't have metadata yet,
+            // but DarwinFlow can still check selectedVariant directly.
+        }
+
+        return tasks;
+    }
+
+    public List<Task> generateTasks(TaskContext context, String strategy) throws Exception {
+        String initialRequest = null;
+        if (context.getOrchestrator().getSelfDevSession() != null) {
+            initialRequest = context.getOrchestrator().getSelfDevSession().getInitialRequest();
+        }
+       
+        boolean isIterative = false;
+        boolean isSelfIterative = false;
+        if (context.getOrchestrator().getAiChat() != null && context.getOrchestrator().getAiChat().getPromptInstructions() != null) {
+            isIterative = context.getOrchestrator().getAiChat().getPromptInstructions().isIterativeMode();
+            isSelfIterative = context.getOrchestrator().getAiChat().getPromptInstructions().isSelfIterativeMode();
+        }
+
+        String prompt;
+        if (isIterative && initialRequest != null && !initialRequest.isEmpty() && !"Analyze the project and suggest improvements.".equals(initialRequest)) {
+            context.log("[PLANNER] Analyzing project to fulfill iterative request: " + initialRequest);
+            prompt = "You are an Iterative Development Task Planner. Your goal is to fulfill the following user request: \"" + initialRequest + "\"\n" +
+                    (strategy != null ? "Strategy to follow: " + strategy + "\n" : "") +
+                    "Analyze the project structure and provided context. Generate 1 to 5 atomic, independent tasks to achieve this goal.\n" +
+                    "Tasks can include code changes, test creation, or documentation.\n" +
+                    "Forbidden: Changing build config (pom.xml) unless explicitly requested, core orchestrator engine, or deployment scripts.\n\n" +
+                    "Output MUST be a valid JSON array of objects. Schema:\n" +
+                    "[ { \"id\": \"unique_id\", \"name\": \"Clear task description\", \"taskType\": \"llm\"|\"file\"|\"git\"|\"maven\", \"priority\": integer, \"rationale\": \"string\" } ]\n";
+        } else {
+            context.log("[PLANNER] Analyzing project to generate autonomous improvement tasks...");
+            prompt = "You are a Self-Development Task Planner. Your goal is to improve the codebase autonomously.\n" +
+                    "Analyze the project structure and provided context. Generate 1 to 5 atomic, independent improvement tasks.\n" +
+                    "Tasks should focus on code quality, documentation, test coverage, or minor feature enhancements.\n" +
+                    "Forbidden: Changing build config (pom.xml), core orchestrator engine, or deployment scripts.\n\n" +
+                    "Output MUST be a valid JSON array of objects. Schema:\n" +
+                    "[ { \"id\": \"unique_id\", \"name\": \"Clear task description\", \"taskType\": \"llm\"|\"file\"|\"git\"|\"maven\", \"priority\": integer, \"rationale\": \"string\" } ]\n";
+
+            if (isSelfIterative && initialRequest != null && !initialRequest.isEmpty() && !"Analyze the project and suggest improvements.".equals(initialRequest)) {
+                prompt += "\nUser provided additional context/focus for this autonomous session: \"" + initialRequest + "\"";
+            }
+            if (strategy != null) {
+                prompt += "\nStrategy to follow: " + strategy;
+            }
+        }
+
+        // Use structured prompt building to include memory
+        String fullPrompt = buildPrompt("Generate improvement tasks", context, null);
+        fullPrompt = fullPrompt.replace("INSTRUCTIONS:\n" + getAgentInstructions(), "INSTRUCTIONS:\n" + prompt);
+        fullPrompt = fullPrompt.replace("CURRENT TASK:\nGenerate improvement tasks", "CURRENT TASK:\nAnalyze current state and plan next steps.");
+
+        String response = aiService.sendRequest(context.getOrchestrator(), fullPrompt, context);
         context.log("[PLANNER] AI response received.");
 
-        int start = response.indexOf("[");
-        int end = response.lastIndexOf("]");
-
-        if (start == -1 || end == -1) {
+        JSONArray jsonArray = JsonUtils.extractJsonArrayFlexible(response);
+        if (jsonArray == null) {
             context.log("[PLANNER] Error: AI response is not a valid JSON array. Response: " + response);
             return new ArrayList<>();
         }
 
-        JSONArray jsonArray = new JSONArray(response.substring(start, end + 1));
         List<Task> tasks = new ArrayList<>();
         OrchestrationFactory factory = OrchestrationFactory.eINSTANCE;
 
@@ -47,6 +163,7 @@ public class TaskPlanner extends BaseAiAgent {
             task.setName(obj.optString("name", "Unnamed Improvement Task"));
             task.setType(obj.optString("taskType", "llm"));
             task.setPriority(obj.optInt("priority", 1));
+            task.setRationale(obj.optString("rationale", "No rationale provided by planner."));
             tasks.add(task);
         }
 

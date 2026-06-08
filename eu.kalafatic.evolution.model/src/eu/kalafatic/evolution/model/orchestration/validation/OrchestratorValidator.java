@@ -4,15 +4,25 @@
  */
 package eu.kalafatic.evolution.model.orchestration.validation;
 
+import eu.kalafatic.evolution.model.orchestration.AIProvider;
 import eu.kalafatic.evolution.model.orchestration.Agent;
 import eu.kalafatic.evolution.model.orchestration.AiChat;
 import eu.kalafatic.evolution.model.orchestration.AiMode;
+import eu.kalafatic.evolution.model.orchestration.Database;
+import eu.kalafatic.evolution.model.orchestration.Eclipse;
+import eu.kalafatic.evolution.model.orchestration.FileConfig;
 import eu.kalafatic.evolution.model.orchestration.Git;
 import eu.kalafatic.evolution.model.orchestration.LLM;
 import eu.kalafatic.evolution.model.orchestration.Maven;
+import eu.kalafatic.evolution.model.orchestration.MonitoringData;
 import eu.kalafatic.evolution.model.orchestration.NeuronAI;
 import eu.kalafatic.evolution.model.orchestration.Ollama;
+import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
+import eu.kalafatic.evolution.model.orchestration.ServerSession;
+import eu.kalafatic.evolution.model.orchestration.ServerSettings;
+import eu.kalafatic.evolution.model.orchestration.SupervisorSettings;
 import eu.kalafatic.evolution.model.orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.Test;
 
 import org.eclipse.emf.common.util.EList;
 
@@ -29,6 +39,7 @@ public interface OrchestratorValidator {
 	boolean validateName(String value);
 	boolean validateAgents(EList<Agent> value);
 	boolean validateTasks(EList<Task> value);
+	boolean validateTests(EList<Test> value);
 	boolean validateGit(Git value);
 	boolean validateMaven(Maven value);
 	boolean validateLlm(LLM value);
@@ -36,12 +47,24 @@ public interface OrchestratorValidator {
 	boolean validateOllama(Ollama value);
 	boolean validateAiChat(AiChat value);
 	boolean validateNeuronAI(NeuronAI value);
-
-	boolean validateAiMode(AiMode value);
-
-	boolean validateMcpServerUrl(String value);
-
-	boolean validateMcpServerUr(String value);
-
 	boolean validateRemoteModel(String value);
+	boolean validateAiMode(AiMode value);
+	boolean validateMcpServerUrl(String value);
+	boolean validateOpenAiToken(String value);
+	boolean validateOpenAiModel(String value);
+	boolean validateLocalModel(String value);
+	boolean validateHybridModel(String value);
+	boolean validateOfflineMode(boolean value);
+	boolean validateSelfDevSession(SelfDevSession value);
+	boolean validateDatabase(Database value);
+	boolean validateFileConfig(FileConfig value);
+	boolean validateSharedMemory(String value);
+	boolean validateEclipse(Eclipse value);
+	boolean validateDarwinMode(boolean value);
+	boolean validateAiProviders(EList<AIProvider> value);
+	boolean validateServerSettings(ServerSettings value);
+	boolean validateServerSessions(EList<ServerSession> value);
+	boolean validateMonitoringHistory(EList<MonitoringData> value);
+
+	boolean validateSupervisorSettings(SupervisorSettings value);
 }

@@ -1,0 +1,82 @@
+package eu.kalafatic.evolution.view.editors.pages.properties;
+
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import eu.kalafatic.evolution.controller.manager.ProjectModelManager;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.view.editors.MultiPageEditor;
+import eu.kalafatic.evolution.view.editors.pages.AEvoGroup;
+import eu.kalafatic.utils.factories.GUIFactory;
+
+public class LlmSettingsGroup extends AEvoGroup {
+    private Text llmModelText, llmTempText;
+    private ControlDecoration llmTempDecorator, llmModelDecorator;
+
+    public LlmSettingsGroup(FormToolkit toolkit, Composite parent, MultiPageEditor editor, Orchestrator orchestrator) {
+        super(editor, orchestrator);
+        createControl(toolkit, parent);
+    }
+
+    private void createControl(FormToolkit toolkit, Composite parent) {
+        group = GUIFactory.INSTANCE.createExpandableGroup(toolkit, parent, "LLM Settings", 3, false);
+        GUIFactory.INSTANCE.createLabel(group, "Model:");
+        llmModelText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, llmModelText);
+        GUIFactory.INSTANCE.createLabel(group, "Temperature:");
+        llmTempText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, llmTempText);
+
+        llmTempDecorator = new ControlDecoration(llmTempText, SWT.TOP | SWT.LEFT);
+        llmTempDecorator.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
+        llmTempDecorator.hide();
+
+        llmModelDecorator = new ControlDecoration(llmModelText, SWT.TOP | SWT.LEFT);
+        llmModelDecorator.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_INFORMATION).getImage());
+        llmModelDecorator.hide();
+    }
+
+    @Override
+    protected void refreshUI() {
+        if (orchestrator != null && orchestrator.getLlm() != null) {
+            String model = orchestrator.getLlm().getModel() != null ? orchestrator.getLlm().getModel() : "";
+            setTextSafe(llmModelText, model);
+            setTextSafe(llmTempText, String.valueOf(orchestrator.getLlm().getTemperature()));
+
+            // Verify token
+            eu.kalafatic.evolution.controller.security.TokenSecurityService.ResolvedProvider resolved =
+                eu.kalafatic.evolution.controller.security.TokenSecurityService.getInstance().resolve(orchestrator, model);
+
+            if (resolved != null && (resolved.token == null || resolved.token.isEmpty() || "YOUR_API_KEY".equals(resolved.token))) {
+                llmModelDecorator.setDescriptionText("API Token missing for this model");
+                llmModelDecorator.show();
+            } else {
+                llmModelDecorator.hide();
+            }
+        }
+    }
+
+    @Override
+    public void updateModel() {
+        if (orchestrator != null) {
+            try {
+                float temp = Float.parseFloat(llmTempText.getText());
+                ProjectModelManager.getInstance().updateLlmSettings(orchestrator, llmModelText.getText(), temp);
+                llmTempDecorator.hide();
+            } catch (NumberFormatException e) {
+                llmTempDecorator.setDescriptionText("Temperature must be a number");
+                llmTempDecorator.show();
+                // Fallback update without temperature if invalid
+                ProjectModelManager.getInstance().updateLlmSettings(orchestrator, llmModelText.getText(), (orchestrator.getLlm() != null) ? orchestrator.getLlm().getTemperature() : 1.0f);
+            }
+        }
+    }
+
+    @Override
+    public Text[] getTextFields() {
+        return new Text[] { llmModelText, llmTempText };
+    }
+}

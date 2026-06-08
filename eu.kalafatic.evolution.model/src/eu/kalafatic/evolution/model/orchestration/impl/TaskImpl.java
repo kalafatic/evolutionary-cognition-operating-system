@@ -2,6 +2,8 @@
  */
 package eu.kalafatic.evolution.model.orchestration.impl;
 
+import eu.kalafatic.evolution.model.orchestration.FeedbackLevel;
+import eu.kalafatic.evolution.model.orchestration.LogLevel;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
 import eu.kalafatic.evolution.model.orchestration.Task;
 import eu.kalafatic.evolution.model.orchestration.TaskStatus;
@@ -19,6 +21,7 @@ import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
+import org.eclipse.emf.ecore.util.EDataTypeUniqueEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.EObjectResolvingEList;
 import org.eclipse.emf.ecore.util.InternalEList;
@@ -41,6 +44,29 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getFeedback <em>Feedback</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isApprovalRequired <em>Approval Required</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getLoopToTaskId <em>Loop To Task Id</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getPriority <em>Priority</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getResultSummary <em>Result Summary</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getDescription <em>Description</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getRating <em>Rating</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isLikes <em>Likes</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getRationale <em>Rationale</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getScheduledTime <em>Scheduled Time</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isSelected <em>Selected</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getGoal <em>Goal</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getPlan <em>Plan</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getArtifacts <em>Artifacts</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getPrompt <em>Prompt</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getAttachments <em>Attachments</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getLogLevel <em>Log Level</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getFeedbackLevel <em>Feedback Level</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isAutoEscalate <em>Auto Escalate</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isIterativeMode <em>Iterative Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isSelfIterativeMode <em>Self Iterative Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isDarwinMode <em>Darwin Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isGitAutomation <em>Git Automation</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getMaxIterations <em>Max Iterations</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#isStepMode <em>Step Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.TaskImpl#getBitState <em>Bit State</em>}</li>
  * </ul>
  *
  * @generated
@@ -114,7 +140,7 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 	 * @generated
 	 * @ordered
 	 */
-	protected static final TaskStatus STATUS_EDEFAULT = TaskStatus.PENDING;
+	protected static final TaskStatus STATUS_EDEFAULT = TaskStatus.READY;
 
 	/**
 	 * The cached value of the '{@link #getStatus() <em>Status</em>}' attribute.
@@ -285,6 +311,462 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 	 * @ordered
 	 */
 	protected String description = DESCRIPTION_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getRating() <em>Rating</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRating()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final int RATING_EDEFAULT = 0;
+
+	/**
+	 * The cached value of the '{@link #getRating() <em>Rating</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRating()
+	 * @generated
+	 * @ordered
+	 */
+	protected int rating = RATING_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isLikes() <em>Likes</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isLikes()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean LIKES_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isLikes() <em>Likes</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isLikes()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean likes = LIKES_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getRationale() <em>Rationale</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRationale()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String RATIONALE_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getRationale() <em>Rationale</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getRationale()
+	 * @generated
+	 * @ordered
+	 */
+	protected String rationale = RATIONALE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getScheduledTime() <em>Scheduled Time</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getScheduledTime()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String SCHEDULED_TIME_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getScheduledTime() <em>Scheduled Time</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getScheduledTime()
+	 * @generated
+	 * @ordered
+	 */
+	protected String scheduledTime = SCHEDULED_TIME_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isSelected() <em>Selected</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSelected()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean SELECTED_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isSelected() <em>Selected</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSelected()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean selected = SELECTED_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getGoal() <em>Goal</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getGoal()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String GOAL_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getGoal() <em>Goal</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getGoal()
+	 * @generated
+	 * @ordered
+	 */
+	protected String goal = GOAL_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getPlan() <em>Plan</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getPlan()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String PLAN_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getPlan() <em>Plan</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getPlan()
+	 * @generated
+	 * @ordered
+	 */
+	protected String plan = PLAN_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getArtifacts() <em>Artifacts</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getArtifacts()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String ARTIFACTS_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getArtifacts() <em>Artifacts</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getArtifacts()
+	 * @generated
+	 * @ordered
+	 */
+	protected String artifacts = ARTIFACTS_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getPrompt() <em>Prompt</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getPrompt()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String PROMPT_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getPrompt() <em>Prompt</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getPrompt()
+	 * @generated
+	 * @ordered
+	 */
+	protected String prompt = PROMPT_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getAttachments() <em>Attachments</em>}' attribute list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAttachments()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<String> attachments;
+
+	/**
+	 * The default value of the '{@link #getLogLevel() <em>Log Level</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getLogLevel()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final LogLevel LOG_LEVEL_EDEFAULT = LogLevel.TRACE;
+
+	/**
+	 * The cached value of the '{@link #getLogLevel() <em>Log Level</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getLogLevel()
+	 * @generated
+	 * @ordered
+	 */
+	protected LogLevel logLevel = LOG_LEVEL_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getFeedbackLevel() <em>Feedback Level</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFeedbackLevel()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final FeedbackLevel FEEDBACK_LEVEL_EDEFAULT = FeedbackLevel.SIMPLE;
+
+	/**
+	 * The cached value of the '{@link #getFeedbackLevel() <em>Feedback Level</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFeedbackLevel()
+	 * @generated
+	 * @ordered
+	 */
+	protected FeedbackLevel feedbackLevel = FEEDBACK_LEVEL_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isAutoEscalate() <em>Auto Escalate</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isAutoEscalate()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean AUTO_ESCALATE_EDEFAULT = true;
+
+	/**
+	 * The cached value of the '{@link #isAutoEscalate() <em>Auto Escalate</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isAutoEscalate()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean autoEscalate = AUTO_ESCALATE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isIterativeMode() <em>Iterative Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isIterativeMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean ITERATIVE_MODE_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isIterativeMode() <em>Iterative Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isIterativeMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean iterativeMode = ITERATIVE_MODE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isSelfIterativeMode() <em>Self Iterative Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSelfIterativeMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean SELF_ITERATIVE_MODE_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isSelfIterativeMode() <em>Self Iterative Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isSelfIterativeMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean selfIterativeMode = SELF_ITERATIVE_MODE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isDarwinMode() <em>Darwin Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isDarwinMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean DARWIN_MODE_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isDarwinMode() <em>Darwin Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isDarwinMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean darwinMode = DARWIN_MODE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isGitAutomation() <em>Git Automation</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isGitAutomation()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean GIT_AUTOMATION_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isGitAutomation() <em>Git Automation</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isGitAutomation()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean gitAutomation = GIT_AUTOMATION_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getMaxIterations() <em>Max Iterations</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getMaxIterations()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final int MAX_ITERATIONS_EDEFAULT = -1;
+
+	/**
+	 * The cached value of the '{@link #getMaxIterations() <em>Max Iterations</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getMaxIterations()
+	 * @generated
+	 * @ordered
+	 */
+	protected int maxIterations = MAX_ITERATIONS_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #isStepMode() <em>Step Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isStepMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean STEP_MODE_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isStepMode() <em>Step Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isStepMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean stepMode = STEP_MODE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getBitState() <em>Bit State</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getBitState()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final long BIT_STATE_EDEFAULT = 0L;
+
+	/**
+	 * The cached value of the '{@link #getBitState() <em>Bit State</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getBitState()
+	 * @generated
+	 * @ordered
+	 */
+	protected long bitState = BIT_STATE_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getJustification() <em>Justification</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getJustification()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String JUSTIFICATION_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getJustification() <em>Justification</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getJustification()
+	 * @generated
+	 * @ordered
+	 */
+	protected String justification = JUSTIFICATION_EDEFAULT;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public long getBitState() {
+		return bitState;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setBitState(long newBitState) {
+		long oldBitState = bitState;
+		bitState = newBitState;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__BIT_STATE, oldBitState, bitState));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getJustification() {
+		return justification;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setJustification(String newJustification) {
+		String oldJustification = justification;
+		justification = newJustification;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__JUSTIFICATION, oldJustification, justification));
+	}
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -590,6 +1072,433 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 	 * @generated
 	 */
 	@Override
+	public int getRating() {
+		return rating;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setRating(int newRating) {
+		int oldRating = rating;
+		rating = newRating;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__RATING, oldRating, rating));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isLikes() {
+		return likes;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setLikes(boolean newLikes) {
+		boolean oldLikes = likes;
+		likes = newLikes;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__LIKES, oldLikes, likes));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getRationale() {
+		return rationale;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setRationale(String newRationale) {
+		String oldRationale = rationale;
+		rationale = newRationale;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__RATIONALE, oldRationale, rationale));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getScheduledTime() {
+		return scheduledTime;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setScheduledTime(String newScheduledTime) {
+		String oldScheduledTime = scheduledTime;
+		scheduledTime = newScheduledTime;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__SCHEDULED_TIME, oldScheduledTime, scheduledTime));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSelected() {
+		return selected;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSelected(boolean newSelected) {
+		boolean oldSelected = selected;
+		selected = newSelected;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__SELECTED, oldSelected, selected));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getGoal() {
+		return goal;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setGoal(String newGoal) {
+		String oldGoal = goal;
+		goal = newGoal;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__GOAL, oldGoal, goal));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getPlan() {
+		return plan;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setPlan(String newPlan) {
+		String oldPlan = plan;
+		plan = newPlan;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__PLAN, oldPlan, plan));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getArtifacts() {
+		return artifacts;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setArtifacts(String newArtifacts) {
+		String oldArtifacts = artifacts;
+		artifacts = newArtifacts;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__ARTIFACTS, oldArtifacts, artifacts));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getPrompt() {
+		return prompt;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setPrompt(String newPrompt) {
+		String oldPrompt = prompt;
+		prompt = newPrompt;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__PROMPT, oldPrompt, prompt));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<String> getAttachments() {
+		if (attachments == null) {
+			attachments = new EDataTypeUniqueEList<String>(String.class, this, OrchestrationPackage.TASK__ATTACHMENTS);
+		}
+		return attachments;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public LogLevel getLogLevel() {
+		return logLevel;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setLogLevel(LogLevel newLogLevel) {
+		LogLevel oldLogLevel = logLevel;
+		logLevel = newLogLevel == null ? LOG_LEVEL_EDEFAULT : newLogLevel;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__LOG_LEVEL, oldLogLevel, logLevel));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public FeedbackLevel getFeedbackLevel() {
+		return feedbackLevel;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setFeedbackLevel(FeedbackLevel newFeedbackLevel) {
+		FeedbackLevel oldFeedbackLevel = feedbackLevel;
+		feedbackLevel = newFeedbackLevel == null ? FEEDBACK_LEVEL_EDEFAULT : newFeedbackLevel;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__FEEDBACK_LEVEL, oldFeedbackLevel, feedbackLevel));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isAutoEscalate() {
+		return autoEscalate;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setAutoEscalate(boolean newAutoEscalate) {
+		boolean oldAutoEscalate = autoEscalate;
+		autoEscalate = newAutoEscalate;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__AUTO_ESCALATE, oldAutoEscalate, autoEscalate));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isIterativeMode() {
+		return iterativeMode;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setIterativeMode(boolean newIterativeMode) {
+		boolean oldIterativeMode = iterativeMode;
+		iterativeMode = newIterativeMode;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__ITERATIVE_MODE, oldIterativeMode, iterativeMode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isSelfIterativeMode() {
+		return selfIterativeMode;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSelfIterativeMode(boolean newSelfIterativeMode) {
+		boolean oldSelfIterativeMode = selfIterativeMode;
+		selfIterativeMode = newSelfIterativeMode;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__SELF_ITERATIVE_MODE, oldSelfIterativeMode, selfIterativeMode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isDarwinMode() {
+		return darwinMode;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setDarwinMode(boolean newDarwinMode) {
+		boolean oldDarwinMode = darwinMode;
+		darwinMode = newDarwinMode;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__DARWIN_MODE, oldDarwinMode, darwinMode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isGitAutomation() {
+		return gitAutomation;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setGitAutomation(boolean newGitAutomation) {
+		boolean oldGitAutomation = gitAutomation;
+		gitAutomation = newGitAutomation;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__GIT_AUTOMATION, oldGitAutomation, gitAutomation));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public int getMaxIterations() {
+		return maxIterations;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setMaxIterations(int newMaxIterations) {
+		int oldMaxIterations = maxIterations;
+		maxIterations = newMaxIterations;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__MAX_ITERATIONS, oldMaxIterations, maxIterations));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isStepMode() {
+		return stepMode;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setStepMode(boolean newStepMode) {
+		boolean oldStepMode = stepMode;
+		stepMode = newStepMode;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.TASK__STEP_MODE, oldStepMode, stepMode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case OrchestrationPackage.TASK__SUB_TASKS:
@@ -632,6 +1541,48 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 				return getResultSummary();
 			case OrchestrationPackage.TASK__DESCRIPTION:
 				return getDescription();
+			case OrchestrationPackage.TASK__RATING:
+				return getRating();
+			case OrchestrationPackage.TASK__LIKES:
+				return isLikes();
+			case OrchestrationPackage.TASK__RATIONALE:
+				return getRationale();
+			case OrchestrationPackage.TASK__SCHEDULED_TIME:
+				return getScheduledTime();
+			case OrchestrationPackage.TASK__SELECTED:
+				return isSelected();
+			case OrchestrationPackage.TASK__GOAL:
+				return getGoal();
+			case OrchestrationPackage.TASK__PLAN:
+				return getPlan();
+			case OrchestrationPackage.TASK__ARTIFACTS:
+				return getArtifacts();
+			case OrchestrationPackage.TASK__PROMPT:
+				return getPrompt();
+			case OrchestrationPackage.TASK__ATTACHMENTS:
+				return getAttachments();
+			case OrchestrationPackage.TASK__LOG_LEVEL:
+				return getLogLevel();
+			case OrchestrationPackage.TASK__FEEDBACK_LEVEL:
+				return getFeedbackLevel();
+			case OrchestrationPackage.TASK__AUTO_ESCALATE:
+				return isAutoEscalate();
+			case OrchestrationPackage.TASK__ITERATIVE_MODE:
+				return isIterativeMode();
+			case OrchestrationPackage.TASK__SELF_ITERATIVE_MODE:
+				return isSelfIterativeMode();
+			case OrchestrationPackage.TASK__DARWIN_MODE:
+				return isDarwinMode();
+			case OrchestrationPackage.TASK__GIT_AUTOMATION:
+				return isGitAutomation();
+			case OrchestrationPackage.TASK__MAX_ITERATIONS:
+				return getMaxIterations();
+			case OrchestrationPackage.TASK__STEP_MODE:
+				return isStepMode();
+			case OrchestrationPackage.TASK__BIT_STATE:
+				return getBitState();
+			case OrchestrationPackage.TASK__JUSTIFICATION:
+				return getJustification();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -686,6 +1637,70 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 			case OrchestrationPackage.TASK__DESCRIPTION:
 				setDescription((String)newValue);
 				return;
+			case OrchestrationPackage.TASK__RATING:
+				setRating((Integer)newValue);
+				return;
+			case OrchestrationPackage.TASK__LIKES:
+				setLikes((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__RATIONALE:
+				setRationale((String)newValue);
+				return;
+			case OrchestrationPackage.TASK__SCHEDULED_TIME:
+				setScheduledTime((String)newValue);
+				return;
+			case OrchestrationPackage.TASK__SELECTED:
+				setSelected((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__GOAL:
+				setGoal((String)newValue);
+				return;
+			case OrchestrationPackage.TASK__PLAN:
+				setPlan((String)newValue);
+				return;
+			case OrchestrationPackage.TASK__ARTIFACTS:
+				setArtifacts((String)newValue);
+				return;
+			case OrchestrationPackage.TASK__PROMPT:
+				setPrompt((String)newValue);
+				return;
+			case OrchestrationPackage.TASK__ATTACHMENTS:
+				getAttachments().clear();
+				getAttachments().addAll((Collection<? extends String>)newValue);
+				return;
+			case OrchestrationPackage.TASK__LOG_LEVEL:
+				setLogLevel((LogLevel)newValue);
+				return;
+			case OrchestrationPackage.TASK__FEEDBACK_LEVEL:
+				setFeedbackLevel((FeedbackLevel)newValue);
+				return;
+			case OrchestrationPackage.TASK__AUTO_ESCALATE:
+				setAutoEscalate((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__ITERATIVE_MODE:
+				setIterativeMode((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__SELF_ITERATIVE_MODE:
+				setSelfIterativeMode((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__DARWIN_MODE:
+				setDarwinMode((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__GIT_AUTOMATION:
+				setGitAutomation((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__MAX_ITERATIONS:
+				setMaxIterations((Integer)newValue);
+				return;
+			case OrchestrationPackage.TASK__STEP_MODE:
+				setStepMode((Boolean)newValue);
+				return;
+			case OrchestrationPackage.TASK__BIT_STATE:
+				setBitState((Long)newValue);
+				return;
+			case OrchestrationPackage.TASK__JUSTIFICATION:
+				setJustification((String)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -737,6 +1752,69 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 			case OrchestrationPackage.TASK__DESCRIPTION:
 				setDescription(DESCRIPTION_EDEFAULT);
 				return;
+			case OrchestrationPackage.TASK__RATING:
+				setRating(RATING_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__LIKES:
+				setLikes(LIKES_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__RATIONALE:
+				setRationale(RATIONALE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__SCHEDULED_TIME:
+				setScheduledTime(SCHEDULED_TIME_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__SELECTED:
+				setSelected(SELECTED_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__GOAL:
+				setGoal(GOAL_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__PLAN:
+				setPlan(PLAN_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__ARTIFACTS:
+				setArtifacts(ARTIFACTS_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__PROMPT:
+				setPrompt(PROMPT_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__ATTACHMENTS:
+				getAttachments().clear();
+				return;
+			case OrchestrationPackage.TASK__LOG_LEVEL:
+				setLogLevel(LOG_LEVEL_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__FEEDBACK_LEVEL:
+				setFeedbackLevel(FEEDBACK_LEVEL_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__AUTO_ESCALATE:
+				setAutoEscalate(AUTO_ESCALATE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__ITERATIVE_MODE:
+				setIterativeMode(ITERATIVE_MODE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__SELF_ITERATIVE_MODE:
+				setSelfIterativeMode(SELF_ITERATIVE_MODE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__DARWIN_MODE:
+				setDarwinMode(DARWIN_MODE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__GIT_AUTOMATION:
+				setGitAutomation(GIT_AUTOMATION_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__MAX_ITERATIONS:
+				setMaxIterations(MAX_ITERATIONS_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__STEP_MODE:
+				setStepMode(STEP_MODE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__BIT_STATE:
+				setBitState(BIT_STATE_EDEFAULT);
+				return;
+			case OrchestrationPackage.TASK__JUSTIFICATION:
+				setJustification(JUSTIFICATION_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -775,6 +1853,48 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 				return RESULT_SUMMARY_EDEFAULT == null ? resultSummary != null : !RESULT_SUMMARY_EDEFAULT.equals(resultSummary);
 			case OrchestrationPackage.TASK__DESCRIPTION:
 				return DESCRIPTION_EDEFAULT == null ? description != null : !DESCRIPTION_EDEFAULT.equals(description);
+			case OrchestrationPackage.TASK__RATING:
+				return rating != RATING_EDEFAULT;
+			case OrchestrationPackage.TASK__LIKES:
+				return likes != LIKES_EDEFAULT;
+			case OrchestrationPackage.TASK__RATIONALE:
+				return RATIONALE_EDEFAULT == null ? rationale != null : !RATIONALE_EDEFAULT.equals(rationale);
+			case OrchestrationPackage.TASK__SCHEDULED_TIME:
+				return SCHEDULED_TIME_EDEFAULT == null ? scheduledTime != null : !SCHEDULED_TIME_EDEFAULT.equals(scheduledTime);
+			case OrchestrationPackage.TASK__SELECTED:
+				return selected != SELECTED_EDEFAULT;
+			case OrchestrationPackage.TASK__GOAL:
+				return GOAL_EDEFAULT == null ? goal != null : !GOAL_EDEFAULT.equals(goal);
+			case OrchestrationPackage.TASK__PLAN:
+				return PLAN_EDEFAULT == null ? plan != null : !PLAN_EDEFAULT.equals(plan);
+			case OrchestrationPackage.TASK__ARTIFACTS:
+				return ARTIFACTS_EDEFAULT == null ? artifacts != null : !ARTIFACTS_EDEFAULT.equals(artifacts);
+			case OrchestrationPackage.TASK__PROMPT:
+				return PROMPT_EDEFAULT == null ? prompt != null : !PROMPT_EDEFAULT.equals(prompt);
+			case OrchestrationPackage.TASK__ATTACHMENTS:
+				return attachments != null && !attachments.isEmpty();
+			case OrchestrationPackage.TASK__LOG_LEVEL:
+				return logLevel != LOG_LEVEL_EDEFAULT;
+			case OrchestrationPackage.TASK__FEEDBACK_LEVEL:
+				return feedbackLevel != FEEDBACK_LEVEL_EDEFAULT;
+			case OrchestrationPackage.TASK__AUTO_ESCALATE:
+				return autoEscalate != AUTO_ESCALATE_EDEFAULT;
+			case OrchestrationPackage.TASK__ITERATIVE_MODE:
+				return iterativeMode != ITERATIVE_MODE_EDEFAULT;
+			case OrchestrationPackage.TASK__SELF_ITERATIVE_MODE:
+				return selfIterativeMode != SELF_ITERATIVE_MODE_EDEFAULT;
+			case OrchestrationPackage.TASK__DARWIN_MODE:
+				return darwinMode != DARWIN_MODE_EDEFAULT;
+			case OrchestrationPackage.TASK__GIT_AUTOMATION:
+				return gitAutomation != GIT_AUTOMATION_EDEFAULT;
+			case OrchestrationPackage.TASK__MAX_ITERATIONS:
+				return maxIterations != MAX_ITERATIONS_EDEFAULT;
+			case OrchestrationPackage.TASK__STEP_MODE:
+				return stepMode != STEP_MODE_EDEFAULT;
+			case OrchestrationPackage.TASK__BIT_STATE:
+				return bitState != BIT_STATE_EDEFAULT;
+			case OrchestrationPackage.TASK__JUSTIFICATION:
+				return JUSTIFICATION_EDEFAULT == null ? justification != null : !JUSTIFICATION_EDEFAULT.equals(justification);
 		}
 		return super.eIsSet(featureID);
 	}
@@ -811,6 +1931,48 @@ public class TaskImpl extends MinimalEObjectImpl.Container implements Task {
 		result.append(resultSummary);
 		result.append(", description: ");
 		result.append(description);
+		result.append(", rating: ");
+		result.append(rating);
+		result.append(", likes: ");
+		result.append(likes);
+		result.append(", rationale: ");
+		result.append(rationale);
+		result.append(", scheduledTime: ");
+		result.append(scheduledTime);
+		result.append(", selected: ");
+		result.append(selected);
+		result.append(", goal: ");
+		result.append(goal);
+		result.append(", plan: ");
+		result.append(plan);
+		result.append(", artifacts: ");
+		result.append(artifacts);
+		result.append(", prompt: ");
+		result.append(prompt);
+		result.append(", attachments: ");
+		result.append(attachments);
+		result.append(", logLevel: ");
+		result.append(logLevel);
+		result.append(", feedbackLevel: ");
+		result.append(feedbackLevel);
+		result.append(", autoEscalate: ");
+		result.append(autoEscalate);
+		result.append(", iterativeMode: ");
+		result.append(iterativeMode);
+		result.append(", selfIterativeMode: ");
+		result.append(selfIterativeMode);
+		result.append(", darwinMode: ");
+		result.append(darwinMode);
+		result.append(", gitAutomation: ");
+		result.append(gitAutomation);
+		result.append(", maxIterations: ");
+		result.append(maxIterations);
+		result.append(", stepMode: ");
+		result.append(stepMode);
+		result.append(", bitState: ");
+		result.append(bitState);
+		result.append(", justification: ");
+		result.append(justification);
 		result.append(')');
 		return result.toString();
 	}

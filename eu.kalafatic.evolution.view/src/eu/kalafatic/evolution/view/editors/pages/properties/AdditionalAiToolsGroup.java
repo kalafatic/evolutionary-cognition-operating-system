@@ -1,0 +1,60 @@
+package eu.kalafatic.evolution.view.editors.pages.properties;
+
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import eu.kalafatic.evolution.controller.manager.ProjectModelManager;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.view.editors.MultiPageEditor;
+import eu.kalafatic.evolution.view.editors.pages.AEvoGroup;
+import eu.kalafatic.utils.factories.GUIFactory;
+
+public class AdditionalAiToolsGroup extends AEvoGroup {
+    private Text aiChatUrlText, neuronAiUrlText, compilerSourceText;
+
+    public AdditionalAiToolsGroup(FormToolkit toolkit, Composite parent, MultiPageEditor editor, Orchestrator orchestrator) {
+        super(editor, orchestrator);
+        createControl(toolkit, parent);
+    }
+
+    private void createControl(FormToolkit toolkit, Composite parent) {
+        group = GUIFactory.INSTANCE.createExpandableGroup(toolkit, parent, "Additional AI & Tools", 3, false);
+        GUIFactory.INSTANCE.createLabel(group, "AI Chat URL:");
+        aiChatUrlText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, aiChatUrlText);
+        GUIFactory.INSTANCE.createLabel(group, "Neuron AI URL:");
+        neuronAiUrlText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, neuronAiUrlText);
+        GUIFactory.INSTANCE.createLabel(group, "Compiler Source:");
+        compilerSourceText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, compilerSourceText);
+    }
+
+    @Override
+    protected void refreshUI() {
+        if (orchestrator != null) {
+            if (orchestrator.getAiChat() != null) setTextSafe(aiChatUrlText, orchestrator.getAiChat().getUrl());
+            if (orchestrator.getNeuronAI() != null) setTextSafe(neuronAiUrlText, orchestrator.getNeuronAI().getUrl());
+            if (orchestrator.getCompiler() != null) setTextSafe(compilerSourceText, orchestrator.getCompiler().getSourceVersion());
+        }
+    }
+
+    @Override
+    public void updateModel() {
+        if (orchestrator != null) {
+            ProjectModelManager.getInstance().updateAiChatSettings(orchestrator, aiChatUrlText.getText(),
+                (orchestrator.getAiChat() != null) ? orchestrator.getAiChat().getToken() : null,
+                (orchestrator.getAiChat() != null) ? orchestrator.getAiChat().getPrompt() : null,
+                (orchestrator.getAiChat() != null) ? orchestrator.getAiChat().getProxyUrl() : null);
+            ProjectModelManager.getInstance().updateNeuronAISettings(orchestrator, neuronAiUrlText.getText(),
+                (orchestrator.getNeuronAI() != null) ? orchestrator.getNeuronAI().getModel() : null,
+                (orchestrator.getNeuronAI() != null) ? orchestrator.getNeuronAI().getType() : null);
+            ProjectModelManager.getInstance().updateCompilerSettings(orchestrator, compilerSourceText.getText());
+        }
+    }
+
+    @Override
+    public Text[] getTextFields() {
+        return new Text[] { aiChatUrlText, neuronAiUrlText, compilerSourceText };
+    }
+}

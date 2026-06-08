@@ -1,0 +1,41 @@
+package eu.kalafatic.evolution.controller.agents;
+
+import java.util.List;
+
+import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.tools.ITool;
+
+/**
+ * Interface for agents in the orchestration system.
+ */
+public interface IAgent {
+    /**
+     * @return the unique ID of the agent.
+     */
+    String getId();
+
+    /**
+     * @return the type/role of the agent (e.g., Architect, JavaDev).
+     */
+    String getType();
+
+    /**
+     * @return the session container this agent is associated with.
+     */
+    eu.kalafatic.evolution.controller.orchestration.SessionContainer getSessionContainer();
+
+    /**
+     * Processes a task and returns the result.
+     * @param taskDescription The description of the task.
+     * @param context The shared context containing history and project info.
+     * @param lastFeedback Optional feedback from a previous failed attempt.
+     * @return The agent's response/output.
+     * @throws Exception if processing fails.
+     */
+    String process(String taskDescription, TaskContext context, String lastFeedback) throws Exception;
+
+    /**
+     * @return the list of tools this agent can access.
+     */
+    List<ITool> getTools();
+}

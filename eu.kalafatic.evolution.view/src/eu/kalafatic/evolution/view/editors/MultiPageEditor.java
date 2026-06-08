@@ -1,83 +1,227 @@
 package eu.kalafatic.evolution.view.editors;
 
 import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.commands.operations.ObjectUndoContext;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.emf.common.util.URI;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.emf.common.notify.Adapter;
+import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.emf.ecore.util.EContentAdapter;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.core.commands.operations.IOperationHistory;
+import org.eclipse.core.commands.operations.IUndoContext;
+import org.eclipse.core.commands.operations.OperationHistoryFactory;
+import org.eclipse.ui.IEditorActionBarContributor;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.part.MultiPageEditorActionBarContributor;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.ide.IGotoMarker;
+import org.eclipse.ui.operations.LinearUndoViolationUserApprover;
 import org.eclipse.ui.part.MultiPageEditorPart;
-import eu.kalafatic.evolution.model.orchestration.EvoProject;
+import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.eclipse.ui.views.properties.IPropertySheetPage;
+
+import eu.kalafatic.evolution.controller.manager.ProjectModelManager;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
-import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
-import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
+import eu.kalafatic.evolution.model.orchestration.EvoProject;
+import eu.kalafatic.evolution.model.orchestration.Task;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
 import eu.kalafatic.evolution.view.editors.listeners.EditorResourceChangeListener;
 import eu.kalafatic.evolution.view.editors.listeners.EditorSelectionListener;
-import eu.kalafatic.evolution.view.editors.pages.*;
-import eu.kalafatic.evolution.view.editors.pages.factories.*;
+import eu.kalafatic.evolution.view.editors.pages.AiChatPage;
+import eu.kalafatic.evolution.view.editors.pages.ArchitecturePage;
+import eu.kalafatic.evolution.view.editors.pages.ApprovalPage;
+import eu.kalafatic.evolution.view.editors.pages.DevelopmentPage;
+import eu.kalafatic.evolution.view.editors.pages.BrowserPage;
+import eu.kalafatic.evolution.view.editors.pages.ContextPage;
+import eu.kalafatic.evolution.view.editors.pages.GraphPage;
+import eu.kalafatic.evolution.view.editors.pages.IterationPage;
+import eu.kalafatic.evolution.view.editors.pages.McpSettingsPage;
+import eu.kalafatic.evolution.view.editors.compare.ResourceCompareInput.StringElement;
+import eu.kalafatic.evolution.view.editors.pages.ComparePage;
+import eu.kalafatic.evolution.view.editors.pages.PeerReviewPage;
+import eu.kalafatic.evolution.view.editors.pages.PreviewPage;
+import eu.kalafatic.evolution.view.editors.pages.PropertiesPage;
+import eu.kalafatic.evolution.view.editors.pages.ServerPage;
+import eu.kalafatic.evolution.view.editors.pages.TaskStackPage;
+import eu.kalafatic.evolution.view.editors.pages.TestsPage;
+import eu.kalafatic.evolution.view.editors.pages.ToolsPage;
+import eu.kalafatic.evolution.view.views.EvoNavigator;
 
 public class MultiPageEditor extends MultiPageEditorPart {
 
     public static final String ID = "eu.kalafatic.evolution.view.editors.MultiPageEditor";
+    
     private TextEditor textEditor;
     private AiChatPage aiChatPage;
+    private ArchitecturePage architecturePage;
     private PropertiesPage propertiesPage;
-    private McpSettingsPage mcpSettingsPage;
-    private PreviewPage previewPage;
+    private McpSettingsPage mcpSettingsPage;   
     private GraphPage graphPage;
     private BrowserPage browserPage;
-    private AiFlowPage aiFlowPage;
     private ApprovalPage approvalPage;
+    private DevelopmentPage developmentPage;
     private ToolsPage toolsPage;
+    private TestsPage testsPage;
+    private IterationPage iterationPage;
+    private TaskStackPage taskStackPage;
+    private ContextPage contextPage;
+    private PeerReviewPage peerReviewPage;
+    private ComparePage comparePage;
+    private ServerPage serverPage;
+
     private Orchestrator orchestrator;
     private TaskContext currentContext;
-    private boolean isDirty = false;
-    private ResourceSet resourceSet;
+    private volatile boolean isDirty = false;
     private Resource resource;
+    private volatile IUndoContext undoContext;
     private EditorResourceChangeListener resourceListener;
     private EditorSelectionListener selectionListener;
+    private org.eclipse.jface.text.ITextSelection lastTextSelection;
+    
+    private Color lightGreen, lightRed, lightOrange, lightBlue, lightPurple, lightCyan;
+    
+    private AtomicBoolean refreshScheduled = new AtomicBoolean(false);
+
+    private IResourceChangeListener workspaceListener = new IResourceChangeListener() {
+        @Override
+        public void resourceChanged(IResourceChangeEvent event) {
+            if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+                try {
+                    event.getDelta().accept(new IResourceDeltaVisitor() {
+                        @Override
+                        public boolean visit(IResourceDelta delta) throws org.eclipse.core.runtime.CoreException {
+                            IResource resource = delta.getResource();
+                            if (resource instanceof IFile) {
+                                // Refresh navigator if a file changed
+                                Display.getDefault().asyncExec(() -> {
+                                    refreshNavigator(resource);
+                                });
+                            }
+                            return true;
+                        }
+                    });
+                } catch (org.eclipse.core.runtime.CoreException e) {
+                    // Ignore
+                }
+            }
+        }
+    };
+
+    private Adapter modelAdapter = new EContentAdapter() {
+        @Override
+        public void notifyChanged(Notification notification) {
+            super.notifyChanged(notification);
+            if (notification.isTouch()) return;
+
+            int eventType = notification.getEventType();
+            if (eventType == Notification.SET ||
+                eventType == Notification.ADD ||
+                eventType == Notification.REMOVE ||
+                eventType == Notification.UNSET ||
+                eventType == Notification.MOVE) {
+
+                Display.getDefault().asyncExec(() -> {
+                    if (!getContainer().isDisposed()) {
+                        setDirty(true);
+                    }
+                });
+
+                // Only schedule refresh for meaningful changes
+                if (refreshScheduled.compareAndSet(false, true)) {
+                    Display.getDefault().asyncExec(() -> {
+                        refreshScheduled.set(false);
+
+                        if (!getContainer().isDisposed()) {
+                            refreshPages();
+                        }
+                    });
+                }
+            }
+        }
+    };
 
     public MultiPageEditor() {
         super();
-        resourceSet = new ResourceSetImpl();
-        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("xml", new XMIResourceFactoryImpl());
-        resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("evo", new XMIResourceFactoryImpl());
+        // Initialize undo context early to prevent AssertionFailedException (null argument)
+        // in OperationHistoryActionHandler when document changes occur during save.
+        undoContext = new ObjectUndoContext(this);
+    }
+
+    @Override
+    public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+        // Ensure undo context is initialized before the platform tries to access it
+        if (undoContext == null) {
+            undoContext = new ObjectUndoContext(this);
+        }
+     // Important: Register with the operation history
+        IOperationHistory history = OperationHistoryFactory.getOperationHistory();
+        history.addOperationApprover(new LinearUndoViolationUserApprover(undoContext, this)); // optional
+        super.init(site, input);
     }
 
     @Override
     protected void createPages() {
         loadModel();
         try {
+        	
+        	this.lightGreen = new Color(Display.getDefault(), 220, 255, 220);
+            this.lightRed = new Color(Display.getDefault(), 255, 220, 220);
+            this.lightOrange = new Color(Display.getDefault(), 255, 240, 200);
+            this.lightBlue = new Color(Display.getDefault(), 220, 240, 255);
+            this.lightPurple = new Color(Display.getDefault(), 240, 220, 255);
+            this.lightCyan = new Color(Display.getDefault(), 220, 255, 255);
+            
             if (orchestrator != null) {
                 aiChatPage = AiChatPageFactory.createAiChatPage(this, orchestrator);
+                architecturePage = ArchitecturePageFactory.createArchitecturePage(this, orchestrator);
 
-                textEditor = new TextEditor();
+                textEditor = new NestedTextEditor();
                 int index = addPage(textEditor, getEditorInput());
                 setPageText(index, "Editor");
 
                 propertiesPage = PropertiesPageFactory.createPropertiesPage(this, orchestrator);
-                mcpSettingsPage = McpSettingsPageFactory.createMcpSettingsPage(this, orchestrator);
-                previewPage = PreviewPageFactory.createPreviewPage(this, orchestrator);
+                mcpSettingsPage = McpSettingsPageFactory.createMcpSettingsPage(this, orchestrator);              
                 browserPage = BrowserPageFactory.createBrowserPage(this, orchestrator);
-                aiFlowPage = AiFlowPageFactory.createAiFlowPage(this, orchestrator);
                 approvalPage = ApprovalPageFactory.createApprovalPage(this, orchestrator);
+                developmentPage = DevelopmentPageFactory.createDevelopmentPage(this, orchestrator);
                 toolsPage = ToolsPageFactory.createToolsPage(this, orchestrator);
+                testsPage = TestsPageFactory.createTestsPage(this, orchestrator);
+                iterationPage = IterationPageFactory.createIterationPage(this, orchestrator);
+                contextPage = ContextPageFactory.createContextPage(this, orchestrator);
+                peerReviewPage = PeerReviewPageFactory.createPeerReviewPage(this, orchestrator);
+                taskStackPage = TaskStackPageFactory.createTaskStackPage(this, orchestrator);
                 graphPage = GraphPageFactory.createGraphPage(this, orchestrator);
+                comparePage = ComparePageFactory.createComparePage(this, orchestrator);
+                serverPage = ServerPageFactory.createServerPage(this, orchestrator);
             } else {
                 Composite placeholder = new Composite(getContainer(), SWT.NONE);
                 placeholder.setLayout(new FillLayout());
@@ -92,52 +236,88 @@ public class MultiPageEditor extends MultiPageEditorPart {
 
         resourceListener = new EditorResourceChangeListener(this);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceListener);
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(workspaceListener, IResourceChangeEvent.POST_CHANGE);
 
         selectionListener = new EditorSelectionListener(this);
         getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(selectionListener);
     }
 
     private void loadModel() {
-    	// This forces the EMF registry to load your specific implementation
-    	OrchestrationPackage.eINSTANCE.eClass(); 
-    	// Then try the cast/access again
-    	OrchestrationFactory factory = OrchestrationFactory.eINSTANCE;
-    	
+        ProjectModelManager modelManager = ProjectModelManager.getInstance();
         IEditorInput input = getEditorInput();
         if (input instanceof IFileEditorInput) {
-            URI uri = URI.createPlatformResourceURI(((IFileEditorInput) input).getFile().getFullPath().toString(), true);
-            resource = resourceSet.getResource(uri, true);
-            if (resource != null && !resource.getContents().isEmpty()) {
-                Object root = resource.getContents().get(0);
-                if (root instanceof Orchestrator) {
-                    orchestrator = (Orchestrator) root;
-                } else if (root instanceof EvoProject) {
-                    EvoProject project = (EvoProject) root;
-                    if (!project.getOrchestrations().isEmpty()) {
-                        orchestrator = project.getOrchestrations().get(0);
-                    }
+            IFile file = ((IFileEditorInput) input).getFile();
+            setPartName(file.getProject().getName());
+            try {
+                orchestrator = modelManager.loadOrchestrator(file);
+                if (orchestrator != null) {
+                    resource = orchestrator.eResource();
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         } else if (input instanceof OrchestratorEditorInput) {
             orchestrator = ((OrchestratorEditorInput) input).getOrchestrator();
             resource = orchestrator.eResource();
         }
+
+        if (orchestrator != null) {
+            orchestrator.eAdapters().add(modelAdapter);
+            eu.kalafatic.evolution.controller.orchestration.OrchestratorServiceImpl.getInstance().setOrchestrator(orchestrator);
+        }
     }
 
     @Override
     public void doSave(IProgressMonitor monitor) {
-        if (resource != null) {
-            try {
-                resource.save(Collections.EMPTY_MAP);
-                setDirty(false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (textEditor != null) {
-            textEditor.doSave(monitor);
+        SubMonitor subMonitor = SubMonitor.convert(monitor, "Saving", 100);
+        try {
+            org.eclipse.ui.actions.WorkspaceModifyOperation operation = new org.eclipse.ui.actions.WorkspaceModifyOperation() {
+                @Override
+                protected void execute(IProgressMonitor monitor) throws org.eclipse.core.runtime.CoreException {
+                    SubMonitor sub = SubMonitor.convert(monitor, 100);
+                    if (resource != null) {
+                        try {
+                            ProjectModelManager.getInstance().saveResource(resource);
+                            sub.worked(50);
+                        } catch (IOException e) {
+                            throw new org.eclipse.core.runtime.CoreException(new org.eclipse.core.runtime.Status(org.eclipse.core.runtime.IStatus.ERROR, "eu.kalafatic.evolution.view", e.getMessage(), e));
+                        }
+                    }
+                    if (textEditor != null) {
+                        textEditor.doSave(sub.split(50));
+                    }
+                }
+            };
+            operation.run(subMonitor);
+            setDirty(false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+    
+    /*@Override
+    public void doSave(IProgressMonitor monitor) {
+        SubMonitor sub = SubMonitor.convert(monitor, "Saving", 100);
+        try {
+            /**
+             * Synchronize model -> editor document ONLY.
+             * DO NOT physically write the file here.
+             */
+            /*if (resource != null) {
+                ProjectModelManager.getInstance().saveResource(resource);
+            }
+            /*
+             * Let Eclipse editor own the actual save.
+             */
+            /*if (textEditor != null) {
+                textEditor.doSave(sub.split(100));
+            }
+            setDirty(false);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }*/
 
     @Override
     public void doSaveAs() {
@@ -158,34 +338,74 @@ public class MultiPageEditor extends MultiPageEditorPart {
         if (index != -1) getControl(index).setFocus();
     }
 
+    public Object getActivePageInstance() {
+        int index = getActivePage();
+        if (index != -1) return getControl(index);
+        return null;
+    }
+
     @Override
     public void dispose() {
         if (resourceListener != null) ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceListener);
+        if (workspaceListener != null) ResourcesPlugin.getWorkspace().removeResourceChangeListener(workspaceListener);
         if (selectionListener != null) getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(selectionListener);
+        if (orchestrator != null) orchestrator.eAdapters().remove(modelAdapter);
+
+        if (lightGreen != null && !lightGreen.isDisposed()) lightGreen.dispose();
+        if (lightRed != null && !lightRed.isDisposed()) lightRed.dispose();
+        if (lightOrange != null && !lightOrange.isDisposed()) lightOrange.dispose();
+        if (lightBlue != null && !lightBlue.isDisposed()) lightBlue.dispose();
+        if (lightPurple != null && !lightPurple.isDisposed()) lightPurple.dispose();
+        if (lightCyan != null && !lightCyan.isDisposed()) lightCyan.dispose();
+
+        // Dispose of the undo context and clean up the operation history
+        if (undoContext != null) {
+            IOperationHistory history = OperationHistoryFactory.getOperationHistory();
+            history.dispose(undoContext, true, true, true);
+        }
+
         super.dispose();
     }
 
     @Override
-    public boolean isDirty() { return isDirty || super.isDirty(); }
+    public boolean isDirty() { return isDirty || (textEditor != null && textEditor.isDirty()); }
 
     public void setDirty(boolean dirty) {
         if (this.isDirty != dirty) {
             this.isDirty = dirty;
-            firePropertyChange(IEditorPart.PROP_DIRTY);
+            Display.getDefault().asyncExec(() -> {
+                if (getContainer() != null && !getContainer().isDisposed()) {
+                    firePropertyChange(IEditorPart.PROP_DIRTY);
+                }
+            });
         }
     }
 
     public void setOrchestrator(Orchestrator orchestrator) {
+        if (this.orchestrator != null) {
+            this.orchestrator.eAdapters().remove(modelAdapter);
+        }
         this.orchestrator = orchestrator;
+        if (this.orchestrator != null) {
+            this.orchestrator.eAdapters().add(modelAdapter);
+            eu.kalafatic.evolution.controller.orchestration.OrchestratorServiceImpl.getInstance().setOrchestrator(orchestrator);
+        }
+
         if (aiChatPage != null) aiChatPage.setOrchestrator(orchestrator);
+        if (architecturePage != null) architecturePage.setOrchestrator(orchestrator);
         if (propertiesPage != null) propertiesPage.setOrchestrator(orchestrator);
         if (mcpSettingsPage != null) mcpSettingsPage.setOrchestrator(orchestrator);
-        if (previewPage != null) previewPage.setOrchestrator(orchestrator);
         if (graphPage != null) graphPage.setOrchestrator(orchestrator);
         if (browserPage != null) browserPage.setOrchestrator(orchestrator);
-        if (aiFlowPage != null) aiFlowPage.setOrchestrator(orchestrator);
         if (approvalPage != null) approvalPage.setOrchestrator(orchestrator);
+        if (developmentPage != null) developmentPage.setOrchestrator(orchestrator);
         if (toolsPage != null) toolsPage.setOrchestrator(orchestrator);
+        if (testsPage != null) testsPage.setOrchestrator(orchestrator);
+        if (iterationPage != null) iterationPage.setOrchestrator(orchestrator);
+        if (peerReviewPage != null) peerReviewPage.setOrchestrator(orchestrator);
+        if (taskStackPage != null) taskStackPage.setOrchestrator(orchestrator);
+        if (contextPage != null) contextPage.setOrchestrator(orchestrator);
+        if (serverPage != null) serverPage.setOrchestrator(orchestrator);
     }
 
     public void reloadModel() {
@@ -203,11 +423,128 @@ public class MultiPageEditor extends MultiPageEditorPart {
         return currentContext;
     }
 
+    public org.eclipse.jface.text.ITextSelection getLastTextSelection() {
+        return lastTextSelection;
+    }
+
+    public void setLastTextSelection(org.eclipse.jface.text.ITextSelection lastTextSelection) {
+        this.lastTextSelection = lastTextSelection;
+    }
+
+    public void refreshNavigator(IResource resource) {
+        org.eclipse.ui.IViewPart view = getSite().getPage().findView("eu.kalafatic.views.EvoNavigator");
+        if (view instanceof EvoNavigator) {
+            ((EvoNavigator) view).refreshAndExpand(resource);
+        }
+    }
+
+    public void refreshPages() {
+        if (orchestrator == null) return;
+        if (aiChatPage != null) aiChatPage.scheduleRefresh();
+        if (architecturePage != null) architecturePage.scheduleRefresh();
+        if (propertiesPage != null) propertiesPage.scheduleRefresh();
+        if (toolsPage != null) toolsPage.scheduleRefresh();
+        if (taskStackPage != null) taskStackPage.scheduleRefresh();
+        if (testsPage != null) testsPage.scheduleRefresh();
+        if (iterationPage != null) iterationPage.scheduleRefresh();
+        if (peerReviewPage != null) peerReviewPage.scheduleRefresh();
+        if (mcpSettingsPage != null) mcpSettingsPage.scheduleRefresh();
+        if (contextPage != null) contextPage.refreshUI(); // TODO: refactor ContextPage if needed
+        if (serverPage != null) serverPage.scheduleRefresh();
+        if (approvalPage != null) approvalPage.scheduleRefresh();
+        if (developmentPage != null) developmentPage.scheduleRefresh();
+
+        int active = getActivePage();
+        if (active != -1 && getControl(active) == comparePage) {
+            refreshComparePage();
+        }
+    }
+
+    private void refreshComparePage() {
+        if (comparePage == null || orchestrator == null || getEditorInput() == null) return;
+        if (!(getEditorInput() instanceof IFileEditorInput)) return;
+
+        IFile file = ((IFileEditorInput) getEditorInput()).getFile();
+        updateComparePage(file);
+    }
+
+    public void showComparePage(IFile file) {
+        if (comparePage == null) return;
+        updateComparePage(file);
+        setActivePageByControl(comparePage);
+    }
+
+    private void updateComparePage(IFile file) {
+        if (orchestrator == null || orchestrator.getAiChat() == null ||
+            orchestrator.getAiChat().getPromptInstructions() == null ||
+            !orchestrator.getAiChat().getPromptInstructions().isGitAutomation()) {
+            return;
+        }
+
+        Job job = new Job("Fetching Git content") {
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                java.io.File workingDir = file.getProject().getLocation().toFile();
+                String relativePath = file.getProjectRelativePath().toString();
+                try {
+                    eu.kalafatic.evolution.controller.vcs.GitVersionControlProvider vcs = new eu.kalafatic.evolution.controller.vcs.GitVersionControlProvider();
+                    String headContent = vcs.getFileContent(workingDir, "HEAD", relativePath);
+                    if (headContent != null) {
+                        Display.getDefault().asyncExec(() -> {
+                            if (!comparePage.isDisposed()) {
+                                comparePage.setInput(file, new StringElement(headContent, file.getName(), file.getFileExtension()), "Local File", "Git HEAD");
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    // Probably not a git repo or file not in git
+                }
+                return Status.OK_STATUS;
+            }
+        };
+        job.schedule();
+    }
+
     public void showApprovalPage() {
-        int pageCount = getPageCount();
-        for (int i = 0; i < pageCount; i++) {
-            Control control = getControl(i);
-            if (control == approvalPage) {
+        setActivePageByControl(approvalPage);
+    }
+
+    public void showAiChatPage() {
+        setActivePageByControl(aiChatPage);
+    }
+
+    public void showArchitecturePage() {
+        setActivePageByControl(architecturePage);
+    }
+
+    public void showIterationPage() {
+        setActivePageByControl(iterationPage);
+    }
+
+    public void showPeerReviewPage() {
+        setActivePageByControl(peerReviewPage);
+    }
+
+    public void runTaskInChat(Task task) {
+        if (aiChatPage != null) {
+            showAiChatPage();
+            aiChatPage.runTask(task);
+        }
+    }
+
+    public void openTaskResult(Task task) {
+        if (aiChatPage != null) {
+            showAiChatPage();
+            // If the task has an ID, we could try to switch to that thread
+            if (task.getId() != null) {
+                aiChatPage.switchSession(task.getId());
+            }
+        }
+    }
+
+    private void setActivePageByControl(Control control) {
+        for (int i = 0; i < getPageCount(); i++) {
+            if (getControl(i) == control) {
                 setActivePage(i);
                 break;
             }
@@ -223,21 +560,57 @@ public class MultiPageEditor extends MultiPageEditorPart {
     @Override
     protected void pageChange(int newPageIndex) {
         super.pageChange(newPageIndex);
+
+        // Update the action bar contributor to ensure the platform's global actions
+        // (like Undo/Redo) track the active editor in the multi-page context.
+        IEditorActionBarContributor contributor = getEditorSite().getActionBarContributor();
+        if (contributor instanceof MultiPageEditorActionBarContributor) {
+            ((MultiPageEditorActionBarContributor) contributor).setActivePage(getEditor(newPageIndex));
+        }
+        // Force update of action bars / undo context when switching pages
+        IEditorPart activeEditor = getEditor(newPageIndex);
+        if (activeEditor != null) {
+        	getEditorSite().getActionBars().updateActionBars();
+        }
+
         Control control = getControl(newPageIndex);
-        if (control == aiChatPage && aiChatPage != null) {
-            aiChatPage.setOrchestrator(orchestrator);
-        } else if (control == propertiesPage && propertiesPage != null) {
-            propertiesPage.updatePropertiesInfo();
-        } else if (control == toolsPage && toolsPage != null) {
-            toolsPage.updateUIFromModel();
-        } else if (control == previewPage && previewPage != null) {
-            previewPage.sortWords();
+        if (control == comparePage && comparePage != null) {
+            refreshComparePage();
+        } else if (control == architecturePage && architecturePage != null) {
+            architecturePage.scheduleRefresh();
         }
     }
 
     public void gotoMarker(IMarker marker) {
         setActivePage(1);
         IDE.gotoMarker(textEditor, marker);
+    }
+
+    @Override
+    public <T> T getAdapter(Class<T> key) {
+        if (IUndoContext.class.equals(key)) {
+            if (undoContext == null) {
+                undoContext = new ObjectUndoContext(this);
+            }
+            return key.cast(undoContext);
+        }
+        if (key.equals(IContentOutlinePage.class)) {
+            if (textEditor != null) {
+                return textEditor.getAdapter(key);
+            }
+        }
+        if (key.equals(IPropertySheetPage.class)) {
+            if (textEditor != null) {
+                return textEditor.getAdapter(key);
+            }
+        }
+        if (key.equals(IGotoMarker.class)) {
+            return key.cast(this);
+        }
+        if (key.equals(ITextEditor.class)) {
+            return key.cast(textEditor);
+        }
+        return super.getAdapter(key);
     }
 
     @Override
@@ -258,5 +631,75 @@ public class MultiPageEditor extends MultiPageEditorPart {
     @Override
     public void setPageText(int index, String text) {
         super.setPageText(index, text);
+    }
+
+	public Color getLightGreen() {
+		return lightGreen;
+	}
+
+	public void setLightGreen(Color lightGreen) {
+		this.lightGreen = lightGreen;
+	}
+
+	public Color getLightRed() {
+		return lightRed;
+	}
+
+	public void setLightRed(Color lightRed) {
+		this.lightRed = lightRed;
+	}
+
+	public Color getLightOrange() {
+		return lightOrange;
+	}
+
+	public void setLightOrange(Color lightOrange) {
+		this.lightOrange = lightOrange;
+	}
+
+    public Color getLightBlue() {
+        return lightBlue;
+    }
+
+    public void setLightBlue(Color lightBlue) {
+        this.lightBlue = lightBlue;
+    }
+
+    public Color getLightPurple() {
+        return lightPurple;
+    }
+
+    public void setLightPurple(Color lightPurple) {
+        this.lightPurple = lightPurple;
+    }
+
+    public Color getLightCyan() {
+        return lightCyan;
+    }
+
+    public void setLightCyan(Color lightCyan) {
+        this.lightCyan = lightCyan;
+    }
+
+    /**
+     * @evo:17:A reason=programmatic-access
+     */
+    public AiChatPage getAiChatPage() {
+        return aiChatPage;
+    }
+
+    /**
+     * Nested text editor that explicitly delegates its undo context to the parent MultiPageEditor.
+     * This ensures that document changes in the text editor are correctly attributed to the
+     * shared undo history, avoiding the null context crash in OperationHistoryActionHandler.
+     */
+    private class NestedTextEditor extends TextEditor {
+        @Override
+        public <T> T getAdapter(Class<T> adapter) {
+            if (IUndoContext.class.equals(adapter)) {
+                return adapter.cast(MultiPageEditor.this.undoContext);
+            }
+            return super.getAdapter(adapter);
+        }
     }
 }

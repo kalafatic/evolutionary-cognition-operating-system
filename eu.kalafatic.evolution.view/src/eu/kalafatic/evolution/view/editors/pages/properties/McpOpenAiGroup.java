@@ -1,0 +1,142 @@
+package eu.kalafatic.evolution.view.editors.pages.properties;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.forms.widgets.FormToolkit;
+import eu.kalafatic.evolution.controller.manager.ProjectModelManager;
+import eu.kalafatic.evolution.model.orchestration.AiMode;
+import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.view.editors.MultiPageEditor;
+import eu.kalafatic.evolution.view.editors.pages.AEvoGroup;
+import eu.kalafatic.evolution.view.editors.pages.PropertiesPage;
+import eu.kalafatic.utils.factories.GUIFactory;
+
+public class McpOpenAiGroup extends AEvoGroup {
+    private Combo aiModeCombo;
+    private Button offlineBtn;
+    private Text mcpUrlText, openAiTokenText, openAiModelText;
+    private PropertiesPage page;
+
+    public McpOpenAiGroup(FormToolkit toolkit, Composite parent, MultiPageEditor editor, Orchestrator orchestrator, PropertiesPage page) {
+        super(editor, orchestrator);
+        this.page = page;
+        createControl(toolkit, parent);
+    }
+
+    private void createControl(FormToolkit toolkit, Composite parent) {
+        group = GUIFactory.INSTANCE.createExpandableGroup(toolkit, parent, "MCP & OpenAI (Hybrid Architecture)", 3, false);
+        GUIFactory.INSTANCE.createLabel(group, "AI Mode:");
+        aiModeCombo = GUIFactory.INSTANCE.createCombo(group);
+        aiModeCombo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL, GridData.CENTER, true, false, 2, 1));
+        for (AiMode mode : AiMode.values()) {
+            aiModeCombo.add(mode.getName());
+        }
+        aiModeCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                page.syncModelWithUI();
+            }
+        });
+
+        GUIFactory.INSTANCE.createLabel(group, "Offline Mode (Legacy):");
+        offlineBtn = new Button(group, SWT.CHECK);
+        offlineBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL, GridData.CENTER, true, false, 2, 1));
+        offlineBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                page.syncModelWithUI();
+            }
+        });
+
+        GUIFactory.INSTANCE.createLabel(group, "MCP Server URL:");
+        mcpUrlText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, mcpUrlText);
+        GUIFactory.INSTANCE.createLabel(group, "OpenAI Token:");
+        openAiTokenText = GUIFactory.INSTANCE.createPasswordText(group);
+        Button editTokenBtn = GUIFactory.INSTANCE.createEditButton(group, openAiTokenText);
+        editTokenBtn.setText("\u2699");
+        editTokenBtn.setToolTipText("Detailed Configuration");
+        editTokenBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                handleDetailedConfig();
+            }
+        });
+        GUIFactory.INSTANCE.createLabel(group, "OpenAI Model:");
+        openAiModelText = GUIFactory.INSTANCE.createText(group);
+        GUIFactory.INSTANCE.createEditButton(group, openAiModelText);
+    }
+
+    @Override
+    protected void refreshUI() {
+        if (orchestrator != null) {
+            if (aiModeCombo.getSelectionIndex() != orchestrator.getAiMode().getValue()) {
+                aiModeCombo.select(orchestrator.getAiMode().getValue());
+            }
+            setTextSafe(mcpUrlText, orchestrator.getMcpServerUrl());
+
+            eu.kalafatic.evolution.controller.security.TokenSecurityService.ResolvedProvider resolved =
+                    eu.kalafatic.evolution.controller.security.TokenSecurityService.getInstance().resolve(orchestrator, "openai");
+
+            setTextSafe(openAiTokenText, (resolved != null && resolved.token != null) ? resolved.token : "");
+            setTextSafe(openAiModelText, (resolved != null && resolved.model != null) ? resolved.model : "");
+            setSelectionSafe(offlineBtn, orchestrator.isOfflineMode());
+        }
+    }
+
+    @Override
+    public void updateModel() {
+        if (orchestrator != null) {
+            ProjectModelManager.getInstance().updateAiMode(orchestrator, AiMode.get(aiModeCombo.getSelectionIndex()));
+            ProjectModelManager.getInstance().updateMcpServerUrl(orchestrator, mcpUrlText.getText());
+
+            eu.kalafatic.evolution.controller.security.TokenSecurityService.getInstance()
+                .updateToken(orchestrator, "openai", openAiTokenText.getText());
+
+            ProjectModelManager.getInstance().updateOpenAiModel(orchestrator, openAiModelText.getText());
+            ProjectModelManager.getInstance().updateOfflineMode(orchestrator, offlineBtn.getSelection());
+        }
+    }
+
+    @Override
+    public Text[] getTextFields() {
+        return new Text[] { mcpUrlText, openAiTokenText, openAiModelText };
+    }
+
+    private void handleDetailedConfig() {
+        if (orchestrator == null) return;
+        String providerName = "openai";
+
+        // Find existing or create temporary provider
+        eu.kalafatic.evolution.model.orchestration.AIProvider provider = orchestrator.getAiProviders().stream()
+                .filter(p -> p.getName().equalsIgnoreCase(providerName))
+                .findFirst().orElse(null);
+
+        boolean isNew = false;
+        if (provider == null) {
+            provider = eu.kalafatic.evolution.model.orchestration.OrchestrationFactory.eINSTANCE.createAIProvider();
+            provider.setName(providerName);
+            eu.kalafatic.evolution.controller.providers.ProviderConfig config = eu.kalafatic.evolution.controller.providers.AiProviders.PROVIDERS.get(providerName);
+            if (config != null) {
+                provider.setUrl(config.getUrl());
+                provider.setDefaultModel(config.getDefaultModel());
+            }
+            isNew = true;
+        }
+
+        ModelDetailsDialog dialog = new ModelDetailsDialog(group.getShell(), provider);
+        if (dialog.open() == org.eclipse.jface.window.Window.OK) {
+            if (isNew) {
+                orchestrator.getAiProviders().add(provider);
+            }
+            editor.setDirty(true);
+            refreshUI();
+        }
+    }
+}

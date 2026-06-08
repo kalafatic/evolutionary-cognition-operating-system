@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
+import eu.kalafatic.evolution.model.orchestration.Maven;
 
 public class MavenSettingsPage extends AWizardPage {
     private Text goalsText, profilesText;
@@ -47,6 +48,7 @@ public class MavenSettingsPage extends AWizardPage {
         new Label(container, SWT.NONE).setText("Profiles (comma separated):");
         profilesText = new Text(container, SWT.BORDER);
         profilesText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        profilesText.setText("evo");
 
         mavenDecorator = new ControlDecoration(goalsText, SWT.TOP | SWT.LEFT);
         mavenDecorator.setImage(FieldDecorationRegistry.getDefault()
@@ -127,6 +129,33 @@ public class MavenSettingsPage extends AWizardPage {
             PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(url));
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        super.setVisible(visible);
+        if (!visible && orchestrator != null) {
+            updateModel();
+        }
+    }
+
+    public void updateModel() {
+        if (orchestrator == null || isSkipped()) return;
+        Maven maven = orchestrator.getMaven();
+        if (maven == null) {
+            maven = eu.kalafatic.evolution.model.orchestration.OrchestrationFactory.eINSTANCE.createMaven();
+            orchestrator.setMaven(maven);
+        }
+        String goals = getGoals();
+        if (goals != null && !goals.isEmpty()) {
+            maven.getGoals().clear();
+            maven.getGoals().addAll(java.util.Arrays.asList(goals.split("[,\\s]+")));
+        }
+        String profiles = getProfiles();
+        if (profiles != null && !profiles.isEmpty()) {
+            maven.getProfiles().clear();
+            maven.getProfiles().addAll(java.util.Arrays.asList(profiles.split("[,\\s]+")));
         }
     }
 

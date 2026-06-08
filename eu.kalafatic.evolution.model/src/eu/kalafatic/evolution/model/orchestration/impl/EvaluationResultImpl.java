@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.util.EDataTypeUniqueEList;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.EvaluationResultImpl#getCoverageChange <em>Coverage Change</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.EvaluationResultImpl#getErrors <em>Errors</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.EvaluationResultImpl#getDecision <em>Decision</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.EvaluationResultImpl#getUserSatisfaction <em>User Satisfaction</em>}</li>
  * </ul>
  *
  * @generated
@@ -126,6 +127,46 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 	 * @ordered
 	 */
 	protected SelfDevDecision decision = DECISION_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getUserSatisfaction() <em>User Satisfaction</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getUserSatisfaction()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final int USER_SATISFACTION_EDEFAULT = 0;
+
+	/**
+	 * The cached value of the '{@link #getUserSatisfaction() <em>User Satisfaction</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getUserSatisfaction()
+	 * @generated
+	 * @ordered
+	 */
+	protected int userSatisfaction = USER_SATISFACTION_EDEFAULT;
+
+	/**
+	 * The default value of the '{@link #getFitnessHistory() <em>Fitness History</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFitnessHistory()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final String FITNESS_HISTORY_EDEFAULT = null;
+
+	/**
+	 * The cached value of the '{@link #getFitnessHistory() <em>Fitness History</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getFitnessHistory()
+	 * @generated
+	 * @ordered
+	 */
+	protected String fitnessHistory = FITNESS_HISTORY_EDEFAULT;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -257,6 +298,52 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 	 * @generated
 	 */
 	@Override
+	public int getUserSatisfaction() {
+		return userSatisfaction;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setUserSatisfaction(int newUserSatisfaction) {
+		int oldUserSatisfaction = userSatisfaction;
+		userSatisfaction = newUserSatisfaction;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.EVALUATION_RESULT__USER_SATISFACTION, oldUserSatisfaction, userSatisfaction));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public String getFitnessHistory() {
+		return fitnessHistory;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setFitnessHistory(String newFitnessHistory) {
+		String oldFitnessHistory = fitnessHistory;
+		fitnessHistory = newFitnessHistory;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.EVALUATION_RESULT__FITNESS_HISTORY, oldFitnessHistory, fitnessHistory));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
 			case OrchestrationPackage.EVALUATION_RESULT__SUCCESS:
@@ -269,6 +356,10 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 				return getErrors();
 			case OrchestrationPackage.EVALUATION_RESULT__DECISION:
 				return getDecision();
+			case OrchestrationPackage.EVALUATION_RESULT__USER_SATISFACTION:
+				return getUserSatisfaction();
+			case OrchestrationPackage.EVALUATION_RESULT__FITNESS_HISTORY:
+				return getFitnessHistory();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -298,6 +389,12 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 			case OrchestrationPackage.EVALUATION_RESULT__DECISION:
 				setDecision((SelfDevDecision)newValue);
 				return;
+			case OrchestrationPackage.EVALUATION_RESULT__USER_SATISFACTION:
+				setUserSatisfaction((Integer)newValue);
+				return;
+			case OrchestrationPackage.EVALUATION_RESULT__FITNESS_HISTORY:
+				setFitnessHistory((String)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -325,6 +422,12 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 			case OrchestrationPackage.EVALUATION_RESULT__DECISION:
 				setDecision(DECISION_EDEFAULT);
 				return;
+			case OrchestrationPackage.EVALUATION_RESULT__USER_SATISFACTION:
+				setUserSatisfaction(USER_SATISFACTION_EDEFAULT);
+				return;
+			case OrchestrationPackage.EVALUATION_RESULT__FITNESS_HISTORY:
+				setFitnessHistory(FITNESS_HISTORY_EDEFAULT);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -347,6 +450,10 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 				return errors != null && !errors.isEmpty();
 			case OrchestrationPackage.EVALUATION_RESULT__DECISION:
 				return decision != DECISION_EDEFAULT;
+			case OrchestrationPackage.EVALUATION_RESULT__USER_SATISFACTION:
+				return userSatisfaction != USER_SATISFACTION_EDEFAULT;
+			case OrchestrationPackage.EVALUATION_RESULT__FITNESS_HISTORY:
+				return FITNESS_HISTORY_EDEFAULT == null ? fitnessHistory != null : !FITNESS_HISTORY_EDEFAULT.equals(fitnessHistory);
 		}
 		return super.eIsSet(featureID);
 	}
@@ -371,6 +478,10 @@ public class EvaluationResultImpl extends MinimalEObjectImpl.Container implement
 		result.append(errors);
 		result.append(", decision: ");
 		result.append(decision);
+		result.append(", userSatisfaction: ");
+		result.append(userSatisfaction);
+		result.append(", fitnessHistory: ");
+		result.append(fitnessHistory);
 		result.append(')');
 		return result.toString();
 	}

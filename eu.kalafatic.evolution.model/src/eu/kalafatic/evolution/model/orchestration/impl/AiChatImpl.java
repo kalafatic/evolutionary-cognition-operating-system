@@ -3,14 +3,25 @@
 package eu.kalafatic.evolution.model.orchestration.impl;
 
 import eu.kalafatic.evolution.model.orchestration.AiChat;
+import eu.kalafatic.evolution.model.orchestration.ChatSession;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
+import eu.kalafatic.evolution.model.orchestration.PromptInstructions;
+
+import java.util.Collection;
 
 import org.eclipse.emf.common.notify.Notification;
+import org.eclipse.emf.common.notify.NotificationChain;
+
+import org.eclipse.emf.common.util.EList;
 
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+
+import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
@@ -24,6 +35,8 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.AiChatImpl#getToken <em>Token</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.AiChatImpl#getPrompt <em>Prompt</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.AiChatImpl#getProxyUrl <em>Proxy Url</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.AiChatImpl#getSessions <em>Sessions</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.AiChatImpl#getPromptInstructions <em>Prompt Instructions</em>}</li>
  * </ul>
  *
  * @generated
@@ -108,6 +121,26 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 	 * @ordered
 	 */
 	protected String proxyUrl = PROXY_URL_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getSessions() <em>Sessions</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSessions()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<ChatSession> sessions;
+
+	/**
+	 * The cached value of the '{@link #getPromptInstructions() <em>Prompt Instructions</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getPromptInstructions()
+	 * @generated
+	 * @ordered
+	 */
+	protected PromptInstructions promptInstructions;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -226,6 +259,80 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 	 * @generated
 	 */
 	@Override
+	public EList<ChatSession> getSessions() {
+		if (sessions == null) {
+			sessions = new EObjectContainmentEList<ChatSession>(ChatSession.class, this, OrchestrationPackage.AI_CHAT__SESSIONS);
+		}
+		return sessions;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public PromptInstructions getPromptInstructions() {
+		return promptInstructions;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetPromptInstructions(PromptInstructions newPromptInstructions, NotificationChain msgs) {
+		PromptInstructions oldPromptInstructions = promptInstructions;
+		promptInstructions = newPromptInstructions;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS, oldPromptInstructions, newPromptInstructions);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setPromptInstructions(PromptInstructions newPromptInstructions) {
+		if (newPromptInstructions != promptInstructions) {
+			NotificationChain msgs = null;
+			if (promptInstructions != null)
+				msgs = ((InternalEObject)promptInstructions).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS, null, msgs);
+			if (newPromptInstructions != null)
+				msgs = ((InternalEObject)newPromptInstructions).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS, null, msgs);
+			msgs = basicSetPromptInstructions(newPromptInstructions, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS, newPromptInstructions, newPromptInstructions));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
+		switch (featureID) {
+			case OrchestrationPackage.AI_CHAT__SESSIONS:
+				return ((InternalEList<?>)getSessions()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS:
+				return basicSetPromptInstructions(null, msgs);
+		}
+		return super.eInverseRemove(otherEnd, featureID, msgs);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
 			case OrchestrationPackage.AI_CHAT__URL:
@@ -236,6 +343,10 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 				return getPrompt();
 			case OrchestrationPackage.AI_CHAT__PROXY_URL:
 				return getProxyUrl();
+			case OrchestrationPackage.AI_CHAT__SESSIONS:
+				return getSessions();
+			case OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS:
+				return getPromptInstructions();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -245,6 +356,7 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
@@ -259,6 +371,13 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 				return;
 			case OrchestrationPackage.AI_CHAT__PROXY_URL:
 				setProxyUrl((String)newValue);
+				return;
+			case OrchestrationPackage.AI_CHAT__SESSIONS:
+				getSessions().clear();
+				getSessions().addAll((Collection<? extends ChatSession>)newValue);
+				return;
+			case OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS:
+				setPromptInstructions((PromptInstructions)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -284,6 +403,12 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 			case OrchestrationPackage.AI_CHAT__PROXY_URL:
 				setProxyUrl(PROXY_URL_EDEFAULT);
 				return;
+			case OrchestrationPackage.AI_CHAT__SESSIONS:
+				getSessions().clear();
+				return;
+			case OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS:
+				setPromptInstructions((PromptInstructions)null);
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -304,6 +429,10 @@ public class AiChatImpl extends MinimalEObjectImpl.Container implements AiChat {
 				return PROMPT_EDEFAULT == null ? prompt != null : !PROMPT_EDEFAULT.equals(prompt);
 			case OrchestrationPackage.AI_CHAT__PROXY_URL:
 				return PROXY_URL_EDEFAULT == null ? proxyUrl != null : !PROXY_URL_EDEFAULT.equals(proxyUrl);
+			case OrchestrationPackage.AI_CHAT__SESSIONS:
+				return sessions != null && !sessions.isEmpty();
+			case OrchestrationPackage.AI_CHAT__PROMPT_INSTRUCTIONS:
+				return promptInstructions != null;
 		}
 		return super.eIsSet(featureID);
 	}

@@ -1,5 +1,8 @@
 package eu.kalafatic.evolution.view.provider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -7,31 +10,58 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+
+import eu.kalafatic.evolution.model.orchestration.AiChat;
+import eu.kalafatic.evolution.model.orchestration.ChatSession;
+import eu.kalafatic.evolution.model.orchestration.Compiler;
+import eu.kalafatic.evolution.model.orchestration.Database;
+import eu.kalafatic.evolution.model.orchestration.Eclipse;
 import eu.kalafatic.evolution.model.orchestration.EvoProject;
+import eu.kalafatic.evolution.model.orchestration.FileConfig;
+import eu.kalafatic.evolution.model.orchestration.Git;
+import eu.kalafatic.evolution.model.orchestration.LLM;
+import eu.kalafatic.evolution.model.orchestration.Maven;
+import eu.kalafatic.evolution.model.orchestration.NeuronAI;
+import eu.kalafatic.evolution.model.orchestration.Ollama;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
+import eu.kalafatic.evolution.model.orchestration.SupervisorSettings;
 import eu.kalafatic.evolution.model.orchestration.Task;
 import eu.kalafatic.evolution.view.nature.EvolutionNature;
-import eu.kalafatic.evolution.model.orchestration.Agent;
-import eu.kalafatic.evolution.model.orchestration.Git;
-import eu.kalafatic.evolution.model.orchestration.Maven;
-import eu.kalafatic.evolution.model.orchestration.LLM;
-import eu.kalafatic.evolution.model.orchestration.Compiler;
-import eu.kalafatic.evolution.model.orchestration.Ollama;
-import eu.kalafatic.evolution.model.orchestration.AiChat;
-import eu.kalafatic.evolution.model.orchestration.NeuronAI;
-
-import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class OrchestrationNavigatorContentProvider implements ITreeContentProvider {
+
+    public static class ModelProperty {
+        public final EObject owner;
+        public final EAttribute attribute;
+        public final String label;
+
+        public ModelProperty(EObject owner, EAttribute attribute, String label) {
+            this.owner = owner;
+            this.attribute = attribute;
+            this.label = label;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            ModelProperty other = (ModelProperty) obj;
+            return owner.equals(other.owner) && attribute.equals(other.attribute);
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * owner.hashCode() + attribute.hashCode();
+        }
+    }
 
     private ResourceSet resourceSet = new ResourceSetImpl();
 
@@ -74,9 +104,15 @@ public class OrchestrationNavigatorContentProvider implements ITreeContentProvid
                 List<Object> children = new ArrayList<>();
                 for (IResource member : members) {
                     if (member instanceof IFile) {
-                        EvoProject ep = loadEvoProject((IFile) member);
-                        if (ep != null) {
-                            children.add(member); // Add the IFile, which will then have the EvoProject as its child
+                        IFile file = (IFile) member;
+                        String ext = file.getFileExtension();
+                        if (isCommonExtension(ext)) {
+                            children.add(member);
+                        } else {
+                            EvoProject ep = loadEvoProject(file);
+                            if (ep != null) {
+                                children.add(member);
+                            }
                         }
                     } else if (member instanceof IContainer) {
                         children.add(member);
@@ -96,6 +132,13 @@ public class OrchestrationNavigatorContentProvider implements ITreeContentProvid
         } else if (parentElement instanceof Orchestrator) {
             Orchestrator orch = (Orchestrator) parentElement;
             List<Object> children = new ArrayList<>();
+            children.add(new ModelProperty(orch, OrchestrationPackage.Literals.ORCHESTRATOR__AI_MODE, "AI Mode"));
+            children.add(new ModelProperty(orch, OrchestrationPackage.Literals.ORCHESTRATOR__REMOTE_MODEL, "Remote Model"));
+            children.add(new ModelProperty(orch, OrchestrationPackage.Literals.ORCHESTRATOR__LOCAL_MODEL, "Local Model"));
+            children.add(new ModelProperty(orch, OrchestrationPackage.Literals.ORCHESTRATOR__HYBRID_MODEL, "Hybrid Model"));
+            children.add(new ModelProperty(orch, OrchestrationPackage.Literals.ORCHESTRATOR__DARWIN_MODE, "Darwin Mode"));
+            children.add(new ModelProperty(orch, OrchestrationPackage.Literals.ORCHESTRATOR__OFFLINE_MODE, "Offline Mode"));
+
             children.addAll(orch.getAgents());
             children.addAll(orch.getTasks());
             if (orch.getGit() != null) children.add(orch.getGit());
@@ -105,22 +148,116 @@ public class OrchestrationNavigatorContentProvider implements ITreeContentProvid
             if (orch.getOllama() != null) children.add(orch.getOllama());
             if (orch.getAiChat() != null) children.add(orch.getAiChat());
             if (orch.getNeuronAI() != null) children.add(orch.getNeuronAI());
+            if (orch.getSupervisorSettings() != null) children.add(orch.getSupervisorSettings());
             return children.toArray();
         } else if (parentElement instanceof Task) {
             return ((Task) parentElement).getSubTasks().toArray();
+        } else if (parentElement instanceof Git) {
+            Git g = (Git) parentElement;
+            return new Object[] {
+                new ModelProperty(g, OrchestrationPackage.Literals.GIT__REPOSITORY_URL, "URL"),
+                new ModelProperty(g, OrchestrationPackage.Literals.GIT__BRANCH, "Branch"),
+                new ModelProperty(g, OrchestrationPackage.Literals.GIT__USERNAME, "User"),
+                new ModelProperty(g, OrchestrationPackage.Literals.GIT__LOCAL_PATH, "Path")
+            };
+        } else if (parentElement instanceof LLM) {
+            LLM l = (LLM) parentElement;
+            return new Object[] {
+                new ModelProperty(l, OrchestrationPackage.Literals.LLM__MODEL, "Model"),
+                new ModelProperty(l, OrchestrationPackage.Literals.LLM__TEMPERATURE, "Temp")
+            };
+        } else if (parentElement instanceof SupervisorSettings) {
+            SupervisorSettings s = (SupervisorSettings) parentElement;
+            return new Object[] {
+                new ModelProperty(s, OrchestrationPackage.Literals.SUPERVISOR_SETTINGS__EXECUTABLE_PATH, "Executable"),
+                new ModelProperty(s, OrchestrationPackage.Literals.SUPERVISOR_SETTINGS__SOURCE_PATH, "Source"),
+                new ModelProperty(s, OrchestrationPackage.Literals.SUPERVISOR_SETTINGS__COMMANDS, "Commands"),
+                new ModelProperty(s, OrchestrationPackage.Literals.SUPERVISOR_SETTINGS__SETTINGS, "Settings"),
+                new ModelProperty(s, OrchestrationPackage.Literals.SUPERVISOR_SETTINGS__DEPLOYED, "Deployed")
+            };
+        } else if (parentElement instanceof Ollama) {
+            Ollama o = (Ollama) parentElement;
+            return new Object[] {
+                new ModelProperty(o, OrchestrationPackage.Literals.OLLAMA__URL, "URL"),
+                new ModelProperty(o, OrchestrationPackage.Literals.OLLAMA__MODEL, "Model"),
+                new ModelProperty(o, OrchestrationPackage.Literals.OLLAMA__PATH, "Path")
+            };
+        } else if (parentElement instanceof AiChat) {
+            AiChat a = (AiChat) parentElement;
+            List<Object> children = new ArrayList<>();
+            children.add(new ModelProperty(a, OrchestrationPackage.Literals.AI_CHAT__URL, "URL"));
+            children.add(new ModelProperty(a, OrchestrationPackage.Literals.AI_CHAT__TOKEN, "Token"));
+            children.add(new ModelProperty(a, OrchestrationPackage.Literals.AI_CHAT__PROMPT, "Prompt"));
+            children.addAll(a.getSessions());
+            return children.toArray();
+        } else if (parentElement instanceof Maven) {
+            Maven m = (Maven) parentElement;
+            return new Object[] {
+                new ModelProperty(m, OrchestrationPackage.Literals.MAVEN__GOALS, "Goals"),
+                new ModelProperty(m, OrchestrationPackage.Literals.MAVEN__PROFILES, "Profiles")
+            };
+        } else if (parentElement instanceof NeuronAI) {
+            NeuronAI n = (NeuronAI) parentElement;
+            return new Object[] {
+                new ModelProperty(n, OrchestrationPackage.Literals.NEURON_AI__URL, "URL"),
+                new ModelProperty(n, OrchestrationPackage.Literals.NEURON_AI__MODEL, "Model"),
+                new ModelProperty(n, OrchestrationPackage.Literals.NEURON_AI__TYPE, "Type")
+            };
+        } else if (parentElement instanceof Compiler) {
+            Compiler c = (Compiler) parentElement;
+            return new Object[] {
+                new ModelProperty(c, OrchestrationPackage.Literals.COMPILER__SOURCE_VERSION, "Source"),
+                new ModelProperty(c, OrchestrationPackage.Literals.COMPILER__TARGET_VERSION, "Target")
+            };
+        } else if (parentElement instanceof Eclipse) {
+            Eclipse e = (Eclipse) parentElement;
+            return new Object[] {
+                new ModelProperty(e, OrchestrationPackage.Literals.ECLIPSE__WORKSPACE, "Workspace"),
+                new ModelProperty(e, OrchestrationPackage.Literals.ECLIPSE__INSTALLATION, "Installation")
+            };
+        } else if (parentElement instanceof Database) {
+            Database d = (Database) parentElement;
+            return new Object[] {
+                new ModelProperty(d, OrchestrationPackage.Literals.DATABASE__URL, "URL"),
+                new ModelProperty(d, OrchestrationPackage.Literals.DATABASE__USERNAME, "User"),
+                new ModelProperty(d, OrchestrationPackage.Literals.DATABASE__PASSWORD, "Pass")
+            };
+        } else if (parentElement instanceof FileConfig) {
+            FileConfig f = (FileConfig) parentElement;
+            return new Object[] {
+                new ModelProperty(f, OrchestrationPackage.Literals.FILE_CONFIG__LOCAL_PATH, "Path")
+            };
+        } else if (parentElement instanceof ChatSession) {
+            ChatSession s = (ChatSession) parentElement;
+            List<Object> children = new ArrayList<>();
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__AI_MODE, "AI Mode"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__LOCAL_MODEL, "Local Model"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__REMOTE_MODEL, "Remote Model"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__BIT_STATE, "Bit State"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__EXPANSION, "Expansion"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__TARGET_PATH, "Target Path"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__ITERATIVE_MODE, "Iterative"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__DARWIN_MODE, "Darwin"));
+            children.add(new ModelProperty(s, OrchestrationPackage.Literals.CHAT_SESSION__AUTO_APPROVE, "Auto Approve"));
+            return children.toArray();
         }
         return new Object[0];
+    }
+
+    private boolean isCommonExtension(String ext) {
+        if (ext == null) return false;
+        String[] common = {"txt", "pdf", "java", "c", "properties", "gcode", "ktml", "xml", "xhtml", "kt", "py", "js", "ts", "html", "css", "md", "json", "yaml", "yml"};
+        for (String c : common) {
+            if (c.equalsIgnoreCase(ext)) return true;
+        }
+        return false;
     }
 
     private EvoProject loadEvoProject(IFile file) {
         String ext = file.getFileExtension();
         if ("xml".equals(ext) || "evo".equals(ext)) {
             try {
-                URI uri = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
-                Resource resource = resourceSet.getResource(uri, true);
-                if (!resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EvoProject) {
-                    return (EvoProject) resource.getContents().get(0);
-                }
+                return eu.kalafatic.evolution.controller.manager.ProjectModelManager.getInstance().loadProject(file);
             } catch (Exception e) {
                 // Ignore
             }

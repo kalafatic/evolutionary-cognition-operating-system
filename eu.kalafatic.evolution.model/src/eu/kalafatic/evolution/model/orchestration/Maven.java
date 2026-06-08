@@ -17,6 +17,7 @@ import org.eclipse.emf.ecore.EObject;
  * <ul>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.Maven#getGoals <em>Goals</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.Maven#getProfiles <em>Profiles</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.Maven#getTestStatus <em>Test Status</em>}</li>
  * </ul>
  *
  * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getMaven()
@@ -47,5 +48,27 @@ public interface Maven extends EObject {
 	 * @generated
 	 */
 	EList<String> getProfiles();
+
+	/**
+	 * Returns the value of the '<em><b>Test Status</b></em>' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the value of the '<em>Test Status</em>' attribute.
+	 * @see #setTestStatus(String)
+	 * @see eu.kalafatic.evolution.model.orchestration.OrchestrationPackage#getMaven_TestStatus()
+	 * @model
+	 * @generated
+	 */
+	String getTestStatus();
+
+	/**
+	 * Sets the value of the '{@link eu.kalafatic.evolution.model.orchestration.Maven#getTestStatus <em>Test Status</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @param value the new value of the '<em>Test Status</em>' attribute.
+	 * @see #getTestStatus()
+	 * @generated
+	 */
+	void setTestStatus(String value);
 
 } // Maven

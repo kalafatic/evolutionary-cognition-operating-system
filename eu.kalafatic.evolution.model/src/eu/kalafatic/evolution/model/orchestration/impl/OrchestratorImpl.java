@@ -2,22 +2,27 @@
  */
 package eu.kalafatic.evolution.model.orchestration.impl;
 
+import eu.kalafatic.evolution.model.orchestration.AIProvider;
 import eu.kalafatic.evolution.model.orchestration.Agent;
 import eu.kalafatic.evolution.model.orchestration.AiChat;
 import eu.kalafatic.evolution.model.orchestration.AiMode;
 import eu.kalafatic.evolution.model.orchestration.Database;
+import eu.kalafatic.evolution.model.orchestration.Eclipse;
 import eu.kalafatic.evolution.model.orchestration.FileConfig;
 import eu.kalafatic.evolution.model.orchestration.Git;
 import eu.kalafatic.evolution.model.orchestration.LLM;
-import eu.kalafatic.evolution.model.orchestration.Lineage;
 import eu.kalafatic.evolution.model.orchestration.Maven;
+import eu.kalafatic.evolution.model.orchestration.MonitoringData;
 import eu.kalafatic.evolution.model.orchestration.NeuronAI;
 import eu.kalafatic.evolution.model.orchestration.Ollama;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
-import eu.kalafatic.evolution.model.orchestration.Pressure;
 import eu.kalafatic.evolution.model.orchestration.SelfDevSession;
+import eu.kalafatic.evolution.model.orchestration.ServerSession;
+import eu.kalafatic.evolution.model.orchestration.ServerSettings;
+import eu.kalafatic.evolution.model.orchestration.SupervisorSettings;
 import eu.kalafatic.evolution.model.orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.Test;
 
 import java.util.Collection;
 
@@ -47,6 +52,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getName <em>Name</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getAgents <em>Agents</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getTasks <em>Tasks</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getTests <em>Tests</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getGit <em>Git</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getMaven <em>Maven</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getLlm <em>Llm</em>}</li>
@@ -57,10 +63,22 @@ import org.eclipse.emf.ecore.util.InternalEList;
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getRemoteModel <em>Remote Model</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getAiMode <em>Ai Mode</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getMcpServerUrl <em>Mcp Server Url</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getOpenAiToken <em>Open Ai Token</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getOpenAiModel <em>Open Ai Model</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getLocalModel <em>Local Model</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getHybridModel <em>Hybrid Model</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#isOfflineMode <em>Offline Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getSelfDevSession <em>Self Dev Session</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getDatabase <em>Database</em>}</li>
  *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getFileConfig <em>File Config</em>}</li>
- *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getLineages <em>Lineages</em>}</li>
- *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getPressures <em>Pressures</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getSharedMemory <em>Shared Memory</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getEclipse <em>Eclipse</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#isDarwinMode <em>Darwin Mode</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getAiProviders <em>Ai Providers</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getServerSettings <em>Server Settings</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getServerSessions <em>Server Sessions</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getMonitoringHistory <em>Monitoring History</em>}</li>
+ *   <li>{@link eu.kalafatic.evolution.model.orchestration.impl.OrchestratorImpl#getSupervisorSettings <em>Supervisor Settings</em>}</li>
  * </ul>
  *
  * @generated
@@ -125,6 +143,16 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	 * @ordered
 	 */
 	protected EList<Task> tasks;
+
+	/**
+	 * The cached value of the '{@link #getTests() <em>Tests</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getTests()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<Test> tests;
 
 	/**
 	 * The cached value of the '{@link #getGit() <em>Git</em>}' containment reference.
@@ -387,142 +415,6 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	protected FileConfig fileConfig;
 
 	/**
-	 * The cached value of the '{@link #getLineages() <em>Lineages</em>}' containment reference list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @see #getLineages()
-	 * @generated
-	 * @ordered
-	 */
-	protected EList<Lineage> lineages;
-
-	/**
-	 * The cached value of the '{@link #getPressures() <em>Pressures</em>}' containment reference list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @see #getPressures()
-	 * @generated
-	 * @ordered
-	 */
-	protected EList<Pressure> pressures;
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public Database getDatabase() {
-		return database;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EList<Lineage> getLineages() {
-		if (lineages == null) {
-			lineages = new EObjectContainmentEList<Lineage>(Lineage.class, this, OrchestrationPackage.ORCHESTRATOR__LINEAGES);
-		}
-		return lineages;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EList<Pressure> getPressures() {
-		if (pressures == null) {
-			pressures = new EObjectContainmentEList<Pressure>(Pressure.class, this, OrchestrationPackage.ORCHESTRATOR__PRESSURES);
-		}
-		return pressures;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public NotificationChain basicSetDatabase(Database newDatabase, NotificationChain msgs) {
-		Database oldDatabase = database;
-		database = newDatabase;
-		if (eNotificationRequired()) {
-			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__DATABASE, oldDatabase, newDatabase);
-			if (msgs == null) msgs = notification; else msgs.add(notification);
-		}
-		return msgs;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public void setDatabase(Database newDatabase) {
-		if (newDatabase != database) {
-			NotificationChain msgs = null;
-			if (database != null)
-				msgs = ((InternalEObject)database).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__DATABASE, null, msgs);
-			if (newDatabase != null)
-				msgs = ((InternalEObject)newDatabase).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__DATABASE, null, msgs);
-			msgs = basicSetDatabase(newDatabase, msgs);
-			if (msgs != null) msgs.dispatch();
-		}
-		else if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__DATABASE, newDatabase, newDatabase));
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public FileConfig getFileConfig() {
-		return fileConfig;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public NotificationChain basicSetFileConfig(FileConfig newFileConfig, NotificationChain msgs) {
-		FileConfig oldFileConfig = fileConfig;
-		fileConfig = newFileConfig;
-		if (eNotificationRequired()) {
-			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, oldFileConfig, newFileConfig);
-			if (msgs == null) msgs = notification; else msgs.add(notification);
-		}
-		return msgs;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public void setFileConfig(FileConfig newFileConfig) {
-		if (newFileConfig != fileConfig) {
-			NotificationChain msgs = null;
-			if (fileConfig != null)
-				msgs = ((InternalEObject)fileConfig).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, null, msgs);
-			if (newFileConfig != null)
-				msgs = ((InternalEObject)newFileConfig).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, null, msgs);
-			msgs = basicSetFileConfig(newFileConfig, msgs);
-			if (msgs != null) msgs.dispatch();
-		}
-		else if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, newFileConfig, newFileConfig));
-	}
-
-	/**
 	 * The default value of the '{@link #getSharedMemory() <em>Shared Memory</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -541,6 +433,131 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	 * @ordered
 	 */
 	protected String sharedMemory = SHARED_MEMORY_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getEclipse() <em>Eclipse</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getEclipse()
+	 * @generated
+	 * @ordered
+	 */
+	protected Eclipse eclipse;
+
+	/**
+	 * The default value of the '{@link #isDarwinMode() <em>Darwin Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isDarwinMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected static final boolean DARWIN_MODE_EDEFAULT = false;
+
+	/**
+	 * The cached value of the '{@link #isDarwinMode() <em>Darwin Mode</em>}' attribute.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #isDarwinMode()
+	 * @generated
+	 * @ordered
+	 */
+	protected boolean darwinMode = DARWIN_MODE_EDEFAULT;
+
+	/**
+	 * The cached value of the '{@link #getAiProviders() <em>Ai Providers</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getAiProviders()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<AIProvider> aiProviders;
+
+	/**
+	 * The cached value of the '{@link #getServerSettings() <em>Server Settings</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getServerSettings()
+	 * @generated
+	 * @ordered
+	 */
+	protected ServerSettings serverSettings;
+
+	/**
+	 * The cached value of the '{@link #getServerSessions() <em>Server Sessions</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getServerSessions()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<ServerSession> serverSessions;
+
+	/**
+	 * The cached value of the '{@link #getMonitoringHistory() <em>Monitoring History</em>}' containment reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getMonitoringHistory()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<MonitoringData> monitoringHistory;
+
+	/**
+	 * The cached value of the '{@link #getSupervisorSettings() <em>Supervisor Settings</em>}' containment reference.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getSupervisorSettings()
+	 * @generated
+	 * @ordered
+	 */
+	protected SupervisorSettings supervisorSettings;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public SupervisorSettings getSupervisorSettings() {
+		return supervisorSettings;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetSupervisorSettings(SupervisorSettings newSupervisorSettings, NotificationChain msgs) {
+		SupervisorSettings oldSupervisorSettings = supervisorSettings;
+		supervisorSettings = newSupervisorSettings;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS, oldSupervisorSettings, newSupervisorSettings);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setSupervisorSettings(SupervisorSettings newSupervisorSettings) {
+		if (newSupervisorSettings != supervisorSettings) {
+			NotificationChain msgs = null;
+			if (supervisorSettings != null)
+				msgs = ((InternalEObject)supervisorSettings).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS, null, msgs);
+			if (newSupervisorSettings != null)
+				msgs = ((InternalEObject)newSupervisorSettings).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS, null, msgs);
+			msgs = basicSetSupervisorSettings(newSupervisorSettings, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS, newSupervisorSettings, newSupervisorSettings));
+	}
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -631,6 +648,19 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 			tasks = new EObjectContainmentEList<Task>(Task.class, this, OrchestrationPackage.ORCHESTRATOR__TASKS);
 		}
 		return tasks;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<Test> getTests() {
+		if (tests == null) {
+			tests = new EObjectContainmentEList<Test>(Test.class, this, OrchestrationPackage.ORCHESTRATOR__TESTS);
+		}
+		return tests;
 	}
 
 	/**
@@ -1183,6 +1213,96 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	 * @generated
 	 */
 	@Override
+	public Database getDatabase() {
+		return database;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetDatabase(Database newDatabase, NotificationChain msgs) {
+		Database oldDatabase = database;
+		database = newDatabase;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__DATABASE, oldDatabase, newDatabase);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setDatabase(Database newDatabase) {
+		if (newDatabase != database) {
+			NotificationChain msgs = null;
+			if (database != null)
+				msgs = ((InternalEObject)database).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__DATABASE, null, msgs);
+			if (newDatabase != null)
+				msgs = ((InternalEObject)newDatabase).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__DATABASE, null, msgs);
+			msgs = basicSetDatabase(newDatabase, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__DATABASE, newDatabase, newDatabase));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public FileConfig getFileConfig() {
+		return fileConfig;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetFileConfig(FileConfig newFileConfig, NotificationChain msgs) {
+		FileConfig oldFileConfig = fileConfig;
+		fileConfig = newFileConfig;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, oldFileConfig, newFileConfig);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setFileConfig(FileConfig newFileConfig) {
+		if (newFileConfig != fileConfig) {
+			NotificationChain msgs = null;
+			if (fileConfig != null)
+				msgs = ((InternalEObject)fileConfig).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, null, msgs);
+			if (newFileConfig != null)
+				msgs = ((InternalEObject)newFileConfig).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, null, msgs);
+			msgs = basicSetFileConfig(newFileConfig, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG, newFileConfig, newFileConfig));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public String getSharedMemory() {
 		return sharedMemory;
 	}
@@ -1206,12 +1326,166 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 	 * @generated
 	 */
 	@Override
+	public Eclipse getEclipse() {
+		return eclipse;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetEclipse(Eclipse newEclipse, NotificationChain msgs) {
+		Eclipse oldEclipse = eclipse;
+		eclipse = newEclipse;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__ECLIPSE, oldEclipse, newEclipse);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setEclipse(Eclipse newEclipse) {
+		if (newEclipse != eclipse) {
+			NotificationChain msgs = null;
+			if (eclipse != null)
+				msgs = ((InternalEObject)eclipse).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__ECLIPSE, null, msgs);
+			if (newEclipse != null)
+				msgs = ((InternalEObject)newEclipse).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__ECLIPSE, null, msgs);
+			msgs = basicSetEclipse(newEclipse, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__ECLIPSE, newEclipse, newEclipse));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public boolean isDarwinMode() {
+		return darwinMode;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setDarwinMode(boolean newDarwinMode) {
+		boolean oldDarwinMode = darwinMode;
+		darwinMode = newDarwinMode;
+		if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__DARWIN_MODE, oldDarwinMode, darwinMode));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<AIProvider> getAiProviders() {
+		if (aiProviders == null) {
+			aiProviders = new EObjectContainmentEList<AIProvider>(AIProvider.class, this, OrchestrationPackage.ORCHESTRATOR__AI_PROVIDERS);
+		}
+		return aiProviders;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public ServerSettings getServerSettings() {
+		return serverSettings;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetServerSettings(ServerSettings newServerSettings, NotificationChain msgs) {
+		ServerSettings oldServerSettings = serverSettings;
+		serverSettings = newServerSettings;
+		if (eNotificationRequired()) {
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS, oldServerSettings, newServerSettings);
+			if (msgs == null) msgs = notification; else msgs.add(notification);
+		}
+		return msgs;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public void setServerSettings(ServerSettings newServerSettings) {
+		if (newServerSettings != serverSettings) {
+			NotificationChain msgs = null;
+			if (serverSettings != null)
+				msgs = ((InternalEObject)serverSettings).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS, null, msgs);
+			if (newServerSettings != null)
+				msgs = ((InternalEObject)newServerSettings).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS, null, msgs);
+			msgs = basicSetServerSettings(newServerSettings, msgs);
+			if (msgs != null) msgs.dispatch();
+		}
+		else if (eNotificationRequired())
+			eNotify(new ENotificationImpl(this, Notification.SET, OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS, newServerSettings, newServerSettings));
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<ServerSession> getServerSessions() {
+		if (serverSessions == null) {
+			serverSessions = new EObjectContainmentEList<ServerSession>(ServerSession.class, this, OrchestrationPackage.ORCHESTRATOR__SERVER_SESSIONS);
+		}
+		return serverSessions;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public EList<MonitoringData> getMonitoringHistory() {
+		if (monitoringHistory == null) {
+			monitoringHistory = new EObjectContainmentEList<MonitoringData>(MonitoringData.class, this, OrchestrationPackage.ORCHESTRATOR__MONITORING_HISTORY);
+		}
+		return monitoringHistory;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
 			case OrchestrationPackage.ORCHESTRATOR__AGENTS:
 				return ((InternalEList<?>)getAgents()).basicRemove(otherEnd, msgs);
 			case OrchestrationPackage.ORCHESTRATOR__TASKS:
 				return ((InternalEList<?>)getTasks()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__TESTS:
+				return ((InternalEList<?>)getTests()).basicRemove(otherEnd, msgs);
 			case OrchestrationPackage.ORCHESTRATOR__GIT:
 				return basicSetGit(null, msgs);
 			case OrchestrationPackage.ORCHESTRATOR__MAVEN:
@@ -1232,10 +1506,18 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return basicSetDatabase(null, msgs);
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				return basicSetFileConfig(null, msgs);
-			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
-				return ((InternalEList<?>)getLineages()).basicRemove(otherEnd, msgs);
-			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
-				return ((InternalEList<?>)getPressures()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__ECLIPSE:
+				return basicSetEclipse(null, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__AI_PROVIDERS:
+				return ((InternalEList<?>)getAiProviders()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS:
+				return basicSetServerSettings(null, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SESSIONS:
+				return ((InternalEList<?>)getServerSessions()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__MONITORING_HISTORY:
+				return ((InternalEList<?>)getMonitoringHistory()).basicRemove(otherEnd, msgs);
+			case OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS:
+				return basicSetSupervisorSettings(null, msgs);
 		}
 		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
@@ -1256,6 +1538,8 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return getAgents();
 			case OrchestrationPackage.ORCHESTRATOR__TASKS:
 				return getTasks();
+			case OrchestrationPackage.ORCHESTRATOR__TESTS:
+				return getTests();
 			case OrchestrationPackage.ORCHESTRATOR__GIT:
 				return getGit();
 			case OrchestrationPackage.ORCHESTRATOR__MAVEN:
@@ -1292,12 +1576,22 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return getDatabase();
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				return getFileConfig();
-			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
-				return getLineages();
-			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
-				return getPressures();
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				return getSharedMemory();
+			case OrchestrationPackage.ORCHESTRATOR__ECLIPSE:
+				return getEclipse();
+			case OrchestrationPackage.ORCHESTRATOR__DARWIN_MODE:
+				return isDarwinMode();
+			case OrchestrationPackage.ORCHESTRATOR__AI_PROVIDERS:
+				return getAiProviders();
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS:
+				return getServerSettings();
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SESSIONS:
+				return getServerSessions();
+			case OrchestrationPackage.ORCHESTRATOR__MONITORING_HISTORY:
+				return getMonitoringHistory();
+			case OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS:
+				return getSupervisorSettings();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -1324,6 +1618,10 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 			case OrchestrationPackage.ORCHESTRATOR__TASKS:
 				getTasks().clear();
 				getTasks().addAll((Collection<? extends Task>)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__TESTS:
+				getTests().clear();
+				getTests().addAll((Collection<? extends Test>)newValue);
 				return;
 			case OrchestrationPackage.ORCHESTRATOR__GIT:
 				setGit((Git)newValue);
@@ -1379,16 +1677,32 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				setFileConfig((FileConfig)newValue);
 				return;
-			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
-				getLineages().clear();
-				getLineages().addAll((Collection<? extends Lineage>)newValue);
-				return;
-			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
-				getPressures().clear();
-				getPressures().addAll((Collection<? extends Pressure>)newValue);
-				return;
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				setSharedMemory((String)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__ECLIPSE:
+				setEclipse((Eclipse)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__DARWIN_MODE:
+				setDarwinMode((Boolean)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__AI_PROVIDERS:
+				getAiProviders().clear();
+				getAiProviders().addAll((Collection<? extends AIProvider>)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS:
+				setServerSettings((ServerSettings)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SESSIONS:
+				getServerSessions().clear();
+				getServerSessions().addAll((Collection<? extends ServerSession>)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__MONITORING_HISTORY:
+				getMonitoringHistory().clear();
+				getMonitoringHistory().addAll((Collection<? extends MonitoringData>)newValue);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS:
+				setSupervisorSettings((SupervisorSettings)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -1413,6 +1727,9 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return;
 			case OrchestrationPackage.ORCHESTRATOR__TASKS:
 				getTasks().clear();
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__TESTS:
+				getTests().clear();
 				return;
 			case OrchestrationPackage.ORCHESTRATOR__GIT:
 				setGit((Git)null);
@@ -1468,14 +1785,29 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				setFileConfig((FileConfig)null);
 				return;
-			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
-				getLineages().clear();
-				return;
-			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
-				getPressures().clear();
-				return;
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				setSharedMemory(SHARED_MEMORY_EDEFAULT);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__ECLIPSE:
+				setEclipse((Eclipse)null);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__DARWIN_MODE:
+				setDarwinMode(DARWIN_MODE_EDEFAULT);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__AI_PROVIDERS:
+				getAiProviders().clear();
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS:
+				setServerSettings((ServerSettings)null);
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SESSIONS:
+				getServerSessions().clear();
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__MONITORING_HISTORY:
+				getMonitoringHistory().clear();
+				return;
+			case OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS:
+				setSupervisorSettings((SupervisorSettings)null);
 				return;
 		}
 		super.eUnset(featureID);
@@ -1497,6 +1829,8 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return agents != null && !agents.isEmpty();
 			case OrchestrationPackage.ORCHESTRATOR__TASKS:
 				return tasks != null && !tasks.isEmpty();
+			case OrchestrationPackage.ORCHESTRATOR__TESTS:
+				return tests != null && !tests.isEmpty();
 			case OrchestrationPackage.ORCHESTRATOR__GIT:
 				return git != null;
 			case OrchestrationPackage.ORCHESTRATOR__MAVEN:
@@ -1533,12 +1867,22 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 				return database != null;
 			case OrchestrationPackage.ORCHESTRATOR__FILE_CONFIG:
 				return fileConfig != null;
-			case OrchestrationPackage.ORCHESTRATOR__LINEAGES:
-				return lineages != null && !lineages.isEmpty();
-			case OrchestrationPackage.ORCHESTRATOR__PRESSURES:
-				return pressures != null && !pressures.isEmpty();
 			case OrchestrationPackage.ORCHESTRATOR__SHARED_MEMORY:
 				return SHARED_MEMORY_EDEFAULT == null ? sharedMemory != null : !SHARED_MEMORY_EDEFAULT.equals(sharedMemory);
+			case OrchestrationPackage.ORCHESTRATOR__ECLIPSE:
+				return eclipse != null;
+			case OrchestrationPackage.ORCHESTRATOR__DARWIN_MODE:
+				return darwinMode != DARWIN_MODE_EDEFAULT;
+			case OrchestrationPackage.ORCHESTRATOR__AI_PROVIDERS:
+				return aiProviders != null && !aiProviders.isEmpty();
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SETTINGS:
+				return serverSettings != null;
+			case OrchestrationPackage.ORCHESTRATOR__SERVER_SESSIONS:
+				return serverSessions != null && !serverSessions.isEmpty();
+			case OrchestrationPackage.ORCHESTRATOR__MONITORING_HISTORY:
+				return monitoringHistory != null && !monitoringHistory.isEmpty();
+			case OrchestrationPackage.ORCHESTRATOR__SUPERVISOR_SETTINGS:
+				return supervisorSettings != null;
 		}
 		return super.eIsSet(featureID);
 	}
@@ -1575,6 +1919,8 @@ public class OrchestratorImpl extends MinimalEObjectImpl.Container implements Or
 		result.append(offlineMode);
 		result.append(", sharedMemory: ");
 		result.append(sharedMemory);
+		result.append(", darwinMode: ");
+		result.append(darwinMode);
 		result.append(')');
 		return result.toString();
 	}

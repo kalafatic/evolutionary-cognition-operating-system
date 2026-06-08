@@ -19,6 +19,33 @@
             name="Orchestrate"
             id="eu.kalafatic.evolution.controller.orchestrationCommand">
       </command>
+      <command
+            name="Generate AI Metadata"
+            id="eu.kalafatic.evolution.controller.generateMetadataCommand">
+      </command>
+   </extension>
+   <extension
+         id="eu.kalafatic.evolution.controller.headless"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="eu.kalafatic.evolution.controller.application.HeadlessApplication"
+            name="Evolution Headless">
+         <property
+               name="appName"
+               value="Evolution Headless">
+         </property>
+      </product>
+   </extension>
+   <extension
+         id="eu.kalafatic.evolution.controller.application.HeadlessApplication"
+         name="Evolution Headless"
+         point="org.eclipse.core.runtime.applications">
+      <application
+            visible="false">
+         <run
+               class="eu.kalafatic.evolution.controller.application.HeadlessApplication">
+         </run>
+      </application>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -37,6 +64,10 @@
       <handler
             commandId="eu.kalafatic.evolution.controller.orchestrationCommand"
             class="eu.kalafatic.evolution.controller.handlers.OrchestrationCommandHandler">
+      </handler>
+      <handler
+            commandId="eu.kalafatic.evolution.controller.generateMetadataCommand"
+            class="eu.kalafatic.evolution.controller.handlers.GenerateMetadataHandler">
       </handler>
    </extension>
 </plugin>

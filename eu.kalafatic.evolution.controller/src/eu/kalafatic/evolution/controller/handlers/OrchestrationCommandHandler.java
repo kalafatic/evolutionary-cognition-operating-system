@@ -14,9 +14,9 @@ import org.eclipse.swt.widgets.Display;
 import eu.kalafatic.evolution.model.orchestration.*;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
 import eu.kalafatic.evolution.controller.manager.TrainingManager;
-import eu.kalafatic.evolution.controller.engine.NeuronEngine;
 import eu.kalafatic.evolution.controller.orchestration.EvolutionOrchestrator;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.orchestration.TaskRequest;
 import eu.kalafatic.evolution.controller.orchestration.AiService;
 import java.io.BufferedReader;
 import java.io.File;
@@ -78,7 +78,8 @@ public class OrchestrationCommandHandler extends AbstractOrchestratorHandler {
 
     private void executeOrchestration(Orchestrator orchestrator, IProject project, IProgressMonitor monitor) throws Exception {
         String id = orchestrator.getId();
-        OrchestrationStatusManager.getInstance().updateStatus(id, 0.0, "Starting");
+        eu.kalafatic.evolution.controller.orchestration.SessionContainer session = eu.kalafatic.evolution.controller.orchestration.SessionManager.getInstance().getOrCreateSession(id);
+        session.getStatusManager().updateStatus(id, 0.0, "Starting");
 
         monitor.beginTask("Orchestration: " + orchestrator.getName(), 100);
 
@@ -98,9 +99,11 @@ public class OrchestrationCommandHandler extends AbstractOrchestratorHandler {
         context.appendSharedMemory("Initial Request: " + orchestrator.getAiChat().getPrompt());
 
         EvolutionOrchestrator core = new EvolutionOrchestrator();
-        core.execute(orchestrator.getAiChat().getPrompt(), context);
+        TaskRequest request = new TaskRequest(orchestrator.getAiChat().getPrompt(), project.getLocation().toFile());
+        request.getContext().put("orchestrator", orchestrator);
+        core.handle(request, context);
 
-        OrchestrationStatusManager.getInstance().updateStatus(id, 1.0, "Completed");
+        session.getStatusManager().updateStatus(id, 1.0, "Completed");
         monitor.done();
     }
 
@@ -352,6 +355,10 @@ public class OrchestrationCommandHandler extends AbstractOrchestratorHandler {
         return aiService.sendRequest(orchestrator, prompt, proxyUrl, context);
     }
 
+    public String sendRequest(Orchestrator orchestrator, String prompt, String proxyUrl) throws Exception {
+        return aiService.sendRequest(orchestrator, prompt, proxyUrl, null);
+    }
+
     private String executeCommand(java.io.File workingDir, String... command) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         if (workingDir != null) {
@@ -383,8 +390,7 @@ public class OrchestrationCommandHandler extends AbstractOrchestratorHandler {
     }
 
     public String[] getOllamaModels() {
-        String baseUrl = (getOrchestrator(null) != null && getOrchestrator(null).getOllama() != null)
-                         ? getOrchestrator(null).getOllama().getUrl() : "http://localhost:11434";
-        return aiService.getOllamaModels(baseUrl);
+        Orchestrator orchestrator = getOrchestrator(null);
+        return aiService.getOllamaModels(orchestrator);
     }
 }
