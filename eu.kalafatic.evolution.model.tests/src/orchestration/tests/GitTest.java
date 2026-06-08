@@ -6,8 +6,8 @@ import junit.framework.TestCase;
 
 import junit.textui.TestRunner;
 
-import orchestration.Git;
-import orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.Git;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 
 /**
  * <!-- begin-user-doc -->

@@ -4,7 +4,7 @@ package orchestration.tests;
 
 import junit.framework.TestCase;
 
-import orchestration.Rule;
+import eu.kalafatic.evolution.model.orchestration.Rule;
 
 /**
  * <!-- begin-user-doc -->

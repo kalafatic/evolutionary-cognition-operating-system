@@ -421,34 +421,182 @@ public interface OrchestrationPackage extends EPackage {
 
     interface Literals {
         EClass TASK = eINSTANCE.getTask();
+        EAttribute TASK__ID = eINSTANCE.getTask_Id();
+        EAttribute TASK__NAME = eINSTANCE.getTask_Name();
+        EAttribute TASK__TYPE = eINSTANCE.getTask_Type();
+        EAttribute TASK__STATUS = eINSTANCE.getTask_Status();
+        EReference TASK__NEXT = eINSTANCE.getTask_Next();
+        EReference TASK__SUB_TASKS = eINSTANCE.getTask_SubTasks();
+        EAttribute TASK__RESPONSE = eINSTANCE.getTask_Response();
+        EAttribute TASK__FEEDBACK = eINSTANCE.getTask_Feedback();
+        EAttribute TASK__APPROVAL_REQUIRED = eINSTANCE.getTask_ApprovalRequired();
+        EAttribute TASK__LOOP_TO_TASK_ID = eINSTANCE.getTask_LoopToTaskId();
+        EAttribute TASK__PRIORITY = eINSTANCE.getTask_Priority();
+        EAttribute TASK__RESULT_SUMMARY = eINSTANCE.getTask_ResultSummary();
+        EAttribute TASK__DESCRIPTION = eINSTANCE.getTask_Description();
+
         EClass AGENT = eINSTANCE.getAgent();
+        EAttribute AGENT__ID = eINSTANCE.getAgent_Id();
+        EAttribute AGENT__TYPE = eINSTANCE.getAgent_Type();
+        EReference AGENT__TASKS = eINSTANCE.getAgent_Tasks();
+        EAttribute AGENT__EXECUTION_MODE = eINSTANCE.getAgent_ExecutionMode();
+        EReference AGENT__RULES = eINSTANCE.getAgent_Rules();
+
         EClass ORCHESTRATOR = eINSTANCE.getOrchestrator();
+        EAttribute ORCHESTRATOR__ID = eINSTANCE.getOrchestrator_Id();
+        EAttribute ORCHESTRATOR__NAME = eINSTANCE.getOrchestrator_Name();
+        EReference ORCHESTRATOR__AGENTS = eINSTANCE.getOrchestrator_Agents();
+        EReference ORCHESTRATOR__TASKS = eINSTANCE.getOrchestrator_Tasks();
+        EReference ORCHESTRATOR__GIT = eINSTANCE.getOrchestrator_Git();
+        EReference ORCHESTRATOR__MAVEN = eINSTANCE.getOrchestrator_Maven();
+        EReference ORCHESTRATOR__LLM = eINSTANCE.getOrchestrator_Llm();
+        EReference ORCHESTRATOR__COMPILER = eINSTANCE.getOrchestrator_Compiler();
+        EReference ORCHESTRATOR__OLLAMA = eINSTANCE.getOrchestrator_Ollama();
+        EReference ORCHESTRATOR__AI_CHAT = eINSTANCE.getOrchestrator_AiChat();
+        EReference ORCHESTRATOR__NEURON_AI = eINSTANCE.getOrchestrator_NeuronAI();
+        EAttribute ORCHESTRATOR__REMOTE_MODEL = eINSTANCE.getOrchestrator_RemoteModel();
+        EAttribute ORCHESTRATOR__AI_MODE = eINSTANCE.getOrchestrator_AiMode();
+        EAttribute ORCHESTRATOR__MCP_SERVER_URL = eINSTANCE.getOrchestrator_McpServerUrl();
+        EAttribute ORCHESTRATOR__OPEN_AI_TOKEN = eINSTANCE.getOrchestrator_OpenAiToken();
+        EAttribute ORCHESTRATOR__OPEN_AI_MODEL = eINSTANCE.getOrchestrator_OpenAiModel();
+        EAttribute ORCHESTRATOR__LOCAL_MODEL = eINSTANCE.getOrchestrator_LocalModel();
+        EAttribute ORCHESTRATOR__HYBRID_MODEL = eINSTANCE.getOrchestrator_HybridModel();
+        EAttribute ORCHESTRATOR__OFFLINE_MODE = eINSTANCE.getOrchestrator_OfflineMode();
+        EReference ORCHESTRATOR__SELF_DEV_SESSION = eINSTANCE.getOrchestrator_SelfDevSession();
+        EReference ORCHESTRATOR__DATABASE = eINSTANCE.getOrchestrator_Database();
+        EReference ORCHESTRATOR__FILE_CONFIG = eINSTANCE.getOrchestrator_FileConfig();
+        EAttribute ORCHESTRATOR__SHARED_MEMORY = eINSTANCE.getOrchestrator_SharedMemory();
+        EReference ORCHESTRATOR__LINEAGES = eINSTANCE.getOrchestrator_Lineages();
+        EReference ORCHESTRATOR__PRESSURES = eINSTANCE.getOrchestrator_Pressures();
+
         EClass GIT = eINSTANCE.getGit();
+        EAttribute GIT__REPOSITORY_URL = eINSTANCE.getGit_RepositoryUrl();
+        EAttribute GIT__BRANCH = eINSTANCE.getGit_Branch();
+        EAttribute GIT__USERNAME = eINSTANCE.getGit_Username();
+        EAttribute GIT__LOCAL_PATH = eINSTANCE.getGit_LocalPath();
+
         EClass MAVEN = eINSTANCE.getMaven();
+        EAttribute MAVEN__GOALS = eINSTANCE.getMaven_Goals();
+        EAttribute MAVEN__PROFILES = eINSTANCE.getMaven_Profiles();
+
         EClass LLM = eINSTANCE.getLLM();
+        EAttribute LLM__MODEL = eINSTANCE.getLLM_Model();
+        EAttribute LLM__TEMPERATURE = eINSTANCE.getLLM_Temperature();
+
         EClass COMPILER = eINSTANCE.getCompiler();
+        EAttribute COMPILER__SOURCE_VERSION = eINSTANCE.getCompiler_SourceVersion();
+        EAttribute COMPILER__TARGET_VERSION = eINSTANCE.getCompiler_TargetVersion();
+
         EClass COMMAND = eINSTANCE.getCommand();
+        EAttribute COMMAND__NAME = eINSTANCE.getCommand_Name();
+        EAttribute COMMAND__STATUS = eINSTANCE.getCommand_Status();
+
         EClass OLLAMA = eINSTANCE.getOllama();
+        EAttribute OLLAMA__URL = eINSTANCE.getOllama_Url();
+        EAttribute OLLAMA__MODEL = eINSTANCE.getOllama_Model();
+        EAttribute OLLAMA__PATH = eINSTANCE.getOllama_Path();
+
         EClass AI_CHAT = eINSTANCE.getAiChat();
+        EAttribute AI_CHAT__URL = eINSTANCE.getAiChat_Url();
+        EAttribute AI_CHAT__TOKEN = eINSTANCE.getAiChat_Token();
+        EAttribute AI_CHAT__PROMPT = eINSTANCE.getAiChat_Prompt();
+        EAttribute AI_CHAT__PROXY_URL = eINSTANCE.getAiChat_ProxyUrl();
+
         EClass NEURON_AI = eINSTANCE.getNeuronAI();
+        EAttribute NEURON_AI__URL = eINSTANCE.getNeuronAI_Url();
+        EAttribute NEURON_AI__MODEL = eINSTANCE.getNeuronAI_Model();
+        EAttribute NEURON_AI__TYPE = eINSTANCE.getNeuronAI_Type();
+        EAttribute NEURON_AI__TRAINING_DATA = eINSTANCE.getNeuronAI_TrainingData();
+
         EClass EVO_PROJECT = eINSTANCE.getEvoProject();
+        EAttribute EVO_PROJECT__NAME = eINSTANCE.getEvoProject_Name();
+        EReference EVO_PROJECT__ORCHESTRATIONS = eINSTANCE.getEvoProject_Orchestrations();
+        EReference EVO_PROJECT__GLOBAL_LINEAGES = eINSTANCE.getEvoProject_GlobalLineages();
+
         EClass RULE = eINSTANCE.getRule();
+        EAttribute RULE__NAME = eINSTANCE.getRule_Name();
+        EAttribute RULE__DESCRIPTION = eINSTANCE.getRule_Description();
+
         EClass ACCESS_RULE = eINSTANCE.getAccessRule();
+        EAttribute ACCESS_RULE__ALLOWED_PATHS = eINSTANCE.getAccessRule_AllowedPaths();
+        EAttribute ACCESS_RULE__DENIED_PATHS = eINSTANCE.getAccessRule_DeniedPaths();
+
         EClass NETWORK_RULE = eINSTANCE.getNetworkRule();
+        EAttribute NETWORK_RULE__ALLOWED_DOMAINS = eINSTANCE.getNetworkRule_AllowedDomains();
+        EAttribute NETWORK_RULE__ALLOW_ALL = eINSTANCE.getNetworkRule_AllowAll();
+
         EClass MEMORY_RULE = eINSTANCE.getMemoryRule();
+        EAttribute MEMORY_RULE__STORAGE_LIMIT = eINSTANCE.getMemoryRule_StorageLimit();
+        EAttribute MEMORY_RULE__RETENTION_PERIOD = eINSTANCE.getMemoryRule_RetentionPeriod();
+
         EClass SECRET_RULE = eINSTANCE.getSecretRule();
+        EAttribute SECRET_RULE__ALLOWED_SECRETS = eINSTANCE.getSecretRule_AllowedSecrets();
+
         EClass SELF_DEV_SESSION = eINSTANCE.getSelfDevSession();
+        EAttribute SELF_DEV_SESSION__ID = eINSTANCE.getSelfDevSession_Id();
+        EAttribute SELF_DEV_SESSION__START_TIME = eINSTANCE.getSelfDevSession_StartTime();
+        EAttribute SELF_DEV_SESSION__MAX_ITERATIONS = eINSTANCE.getSelfDevSession_MaxIterations();
+        EAttribute SELF_DEV_SESSION__STATUS = eINSTANCE.getSelfDevSession_Status();
+        EReference SELF_DEV_SESSION__ITERATIONS = eINSTANCE.getSelfDevSession_Iterations();
+
         EClass ITERATION = eINSTANCE.getIteration();
+        EAttribute ITERATION__ID = eINSTANCE.getIteration_Id();
+        EAttribute ITERATION__BRANCH_NAME = eINSTANCE.getIteration_BranchName();
+        EReference ITERATION__TASKS = eINSTANCE.getIteration_Tasks();
+        EReference ITERATION__EVALUATION_RESULT = eINSTANCE.getIteration_EvaluationResult();
+        EAttribute ITERATION__STATUS = eINSTANCE.getIteration_Status();
+
         EClass EVALUATION_RESULT = eINSTANCE.getEvaluationResult();
+        EAttribute EVALUATION_RESULT__SUCCESS = eINSTANCE.getEvaluationResult_Success();
+        EAttribute EVALUATION_RESULT__TEST_PASS_RATE = eINSTANCE.getEvaluationResult_TestPassRate();
+        EAttribute EVALUATION_RESULT__COVERAGE_CHANGE = eINSTANCE.getEvaluationResult_CoverageChange();
+        EAttribute EVALUATION_RESULT__ERRORS = eINSTANCE.getEvaluationResult_Errors();
+        EAttribute EVALUATION_RESULT__DECISION = eINSTANCE.getEvaluationResult_Decision();
+
         EClass DATABASE = eINSTANCE.getDatabase();
+        EAttribute DATABASE__URL = eINSTANCE.getDatabase_Url();
+        EAttribute DATABASE__USERNAME = eINSTANCE.getDatabase_Username();
+        EAttribute DATABASE__PASSWORD = eINSTANCE.getDatabase_Password();
+        EAttribute DATABASE__DRIVER = eINSTANCE.getDatabase_Driver();
+
         EClass FILE_CONFIG = eINSTANCE.getFileConfig();
+        EAttribute FILE_CONFIG__LOCAL_PATH = eINSTANCE.getFileConfig_LocalPath();
+
         EClass ARTIFACT = eINSTANCE.getArtifact();
+        EAttribute ARTIFACT__ID = eINSTANCE.getArtifact_Id();
+        EAttribute ARTIFACT__TYPE = eINSTANCE.getArtifact_Type();
+        EAttribute ARTIFACT__CONTENT = eINSTANCE.getArtifact_Content();
+        EReference ARTIFACT__PROPERTIES = eINSTANCE.getArtifact_Properties();
+
         EClass LINEAGE = eINSTANCE.getLineage();
+        EAttribute LINEAGE__ID = eINSTANCE.getLineage_Id();
+        EReference LINEAGE__SURVIVOR = eINSTANCE.getLineage_Survivor();
+        EReference LINEAGE__CANDIDATES = eINSTANCE.getLineage_Candidates();
+        EReference LINEAGE__HISTORY = eINSTANCE.getLineage_History();
+
         EClass EVOLUTION_STEP = eINSTANCE.getEvolutionStep();
+        EAttribute EVOLUTION_STEP__TIMESTAMP = eINSTANCE.getEvolutionStep_Timestamp();
+        EReference EVOLUTION_STEP__MUTATION = eINSTANCE.getEvolutionStep_Mutation();
+        EReference EVOLUTION_STEP__EVALUATIONS = eINSTANCE.getEvolutionStep_Evaluations();
+        EReference EVOLUTION_STEP__SELECTED_SURVIVOR = eINSTANCE.getEvolutionStep_SelectedSurvivor();
+
         EClass MUTATION = eINSTANCE.getMutation();
+        EAttribute MUTATION__DESCRIPTION = eINSTANCE.getMutation_Description();
+        EAttribute MUTATION__TYPE = eINSTANCE.getMutation_Type();
+
         EClass EVALUATION = eINSTANCE.getEvaluation();
+        EReference EVALUATION__PRESSURE = eINSTANCE.getEvaluation_Pressure();
+        EAttribute EVALUATION__SCORE = eINSTANCE.getEvaluation_Score();
+        EAttribute EVALUATION__COMMENT = eINSTANCE.getEvaluation_Comment();
+
         EClass PRESSURE = eINSTANCE.getPressure();
+        EAttribute PRESSURE__NAME = eINSTANCE.getPressure_Name();
+        EAttribute PRESSURE__DESCRIPTION = eINSTANCE.getPressure_Description();
+
         EClass PROPERTY = eINSTANCE.getProperty();
+        EAttribute PROPERTY__KEY = eINSTANCE.getProperty_Key();
+        EAttribute PROPERTY__VALUE = eINSTANCE.getProperty_Value();
+
         EEnum TASK_STATUS = eINSTANCE.getTaskStatus();
         EEnum COMMAND_STATUS = eINSTANCE.getCommandStatus();
         EEnum EXECUTION_MODE = eINSTANCE.getExecutionMode();

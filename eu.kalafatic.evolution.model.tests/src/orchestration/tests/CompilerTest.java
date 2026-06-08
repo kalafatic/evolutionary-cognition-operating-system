@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 
 import junit.textui.TestRunner;
 
-import orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 
 /**
  * <!-- begin-user-doc -->
@@ -22,7 +22,7 @@ public class CompilerTest extends TestCase {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected orchestration.Compiler fixture = null;
+	protected eu.kalafatic.evolution.model.orchestration.Compiler fixture = null;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -49,7 +49,7 @@ public class CompilerTest extends TestCase {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected void setFixture(orchestration.Compiler fixture) {
+	protected void setFixture(eu.kalafatic.evolution.model.orchestration.Compiler fixture) {
 		this.fixture = fixture;
 	}
 
@@ -59,7 +59,7 @@ public class CompilerTest extends TestCase {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected orchestration.Compiler getFixture() {
+	protected eu.kalafatic.evolution.model.orchestration.Compiler getFixture() {
 		return fixture;
 	}
 

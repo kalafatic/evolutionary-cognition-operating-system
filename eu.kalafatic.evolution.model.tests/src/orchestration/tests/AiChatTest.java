@@ -6,8 +6,8 @@ import junit.framework.TestCase;
 
 import junit.textui.TestRunner;
 
-import orchestration.AiChat;
-import orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.AiChat;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 
 /**
  * <!-- begin-user-doc -->

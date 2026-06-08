@@ -5,9 +5,9 @@ package orchestration.tests;
 import java.io.File;
 import java.io.IOException;
 
-import orchestration.OrchestrationFactory;
-import orchestration.OrchestrationPackage;
-import orchestration.Task;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationPackage;
+import eu.kalafatic.evolution.model.orchestration.Task;
 
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.URI;

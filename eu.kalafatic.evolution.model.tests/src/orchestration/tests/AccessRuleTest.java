@@ -4,8 +4,8 @@ package orchestration.tests;
 
 import junit.textui.TestRunner;
 
-import orchestration.AccessRule;
-import orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.AccessRule;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 
 /**
  * <!-- begin-user-doc -->

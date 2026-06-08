@@ -4,8 +4,8 @@ package orchestration.tests;
 
 import junit.textui.TestRunner;
 
-import orchestration.NetworkRule;
-import orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.NetworkRule;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 
 /**
  * <!-- begin-user-doc -->

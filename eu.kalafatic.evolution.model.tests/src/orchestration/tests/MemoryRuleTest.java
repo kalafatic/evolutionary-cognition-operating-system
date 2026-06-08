@@ -4,8 +4,8 @@ package orchestration.tests;
 
 import junit.textui.TestRunner;
 
-import orchestration.MemoryRule;
-import orchestration.OrchestrationFactory;
+import eu.kalafatic.evolution.model.orchestration.MemoryRule;
+import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 
 /**
  * <!-- begin-user-doc -->
