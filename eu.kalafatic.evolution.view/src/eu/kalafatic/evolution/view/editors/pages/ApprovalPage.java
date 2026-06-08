@@ -156,7 +156,24 @@ public class ApprovalPage extends Composite {
 		browser.setText(getHtmlTemplate());
 
 		// Actions Area
-		Group actionsGroup = SWTFactory.createGroup(this, "Review Actions", 2);
+		Group actionsGroup = SWTFactory.createGroup(this, "Review Actions", 3);
+
+		Button selectV0Btn = SWTFactory.createButton(actionsGroup, "Select v0", 100);
+		selectV0Btn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+			@Override
+			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+				handleSelectVariant("v0");
+			}
+		});
+
+		Button selectV1Btn = SWTFactory.createButton(actionsGroup, "Select v1", 100);
+		selectV1Btn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+			@Override
+			public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+				handleSelectVariant("v1");
+			}
+		});
+
 		Button approveBtn = SWTFactory.createButton(actionsGroup, "Approve & Apply", 150);
 		approveBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
 			@Override
@@ -298,6 +315,16 @@ public class ApprovalPage extends Composite {
 			browser.execute("updateGraph(" + json + ");");
 		} else {
 			browser.setText(getHtmlTemplate());
+		}
+	}
+
+	private void handleSelectVariant(String variantId) {
+		if (editor.getCurrentContext() != null) {
+			editor.getCurrentContext().provideApproval(variantId);
+			MessageBox mb = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
+			mb.setText("Variant Selected");
+			mb.setMessage("Variant " + variantId + " selected. Orchestration will proceed with this variant.");
+			mb.open();
 		}
 	}
 

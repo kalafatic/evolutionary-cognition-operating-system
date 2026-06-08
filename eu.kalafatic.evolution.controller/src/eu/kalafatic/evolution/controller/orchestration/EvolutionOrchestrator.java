@@ -40,8 +40,9 @@ public class EvolutionOrchestrator implements IOrchestrator {
 
             // Pause for Plan Approval
             context.log("Orchestrator: Plan generated. Waiting for user review and approval...");
-            Boolean planApproved = context.requestApproval(TaskContext.PLAN_APPROVAL_MESSAGE).get();
-            if (planApproved == null || !planApproved) {
+            Object approvalResult = context.requestApproval(TaskContext.PLAN_APPROVAL_MESSAGE).get();
+            boolean planApproved = Boolean.TRUE.equals(approvalResult) || (approvalResult instanceof String);
+            if (!planApproved) {
                 context.log("Orchestrator: Plan rejected by user.");
                 throw new Exception("Orchestration plan rejected by user.");
             }
@@ -60,8 +61,9 @@ public class EvolutionOrchestrator implements IOrchestrator {
                 if (task.isApprovalRequired() || "approval".equalsIgnoreCase(task.getType())) {
                     task.setStatus(TaskStatus.WAITING_FOR_APPROVAL);
                     context.log("Orchestrator: Waiting for user approval for task: " + task.getName());
-                    Boolean approved = context.requestApproval("Approve task: " + task.getName() + "?").get();
-                    if (approved == null || !approved) {
+                    Object taskApproval = context.requestApproval("Approve task: " + task.getName() + "?").get();
+                    boolean approved = Boolean.TRUE.equals(taskApproval) || (taskApproval instanceof String);
+                    if (!approved) {
                         task.setStatus(TaskStatus.FAILED);
                         task.setFeedback("Rejected by user.");
                         throw new Exception("Task rejected by user: " + task.getName());
