@@ -15,7 +15,7 @@ import eu.kalafatic.evolution.controller.workflow.RuntimeEventType;
  *
  * @evo:20:A reason=architecture-documentation-sync
  */
-public class ConstraintAgent extends BaseAiAgent {
+public class ConstraintAgent extends BaseAiAgent implements IEvaluatingAgent {
 
     public ConstraintAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Constraint", "Constraint", container);

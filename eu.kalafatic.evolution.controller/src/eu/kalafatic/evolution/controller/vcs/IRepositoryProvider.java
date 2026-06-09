@@ -13,4 +13,5 @@ public interface IRepositoryProvider {
     void commitChanges(File workingDir, String message) throws Exception;
     void push(File workingDir) throws Exception;
     void revertFile(File workingDir, String filePath) throws Exception;
+    List<String> getBranches(File workingDir) throws Exception;
 }

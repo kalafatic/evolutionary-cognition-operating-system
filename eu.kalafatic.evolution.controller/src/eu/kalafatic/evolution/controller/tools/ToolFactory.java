@@ -3,6 +3,7 @@ package eu.kalafatic.evolution.controller.tools;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+import eu.kalafatic.evolution.controller.registry.ComponentRegistry;
 
 /**
  * Factory and Registry for Tools.
@@ -19,13 +20,14 @@ public class ToolFactory {
     }
 
     private static void registerDefaultTools() {
-        registerTool(EvolutionConstants.TOOL_FILE, new FileTool());
-        registerTool(EvolutionConstants.TOOL_MAVEN, new MavenTool());
-        registerTool(EvolutionConstants.TOOL_GIT, new GitTool());
-        registerTool(EvolutionConstants.TOOL_SHELL, new ShellTool());
-        registerTool(EvolutionConstants.TOOL_ECLIPSE, new EclipseTool());
-        registerTool(EvolutionConstants.TOOL_CPP, new CppTool());
-        registerTool(EvolutionConstants.TOOL_DATABASE, new DatabaseTool());
+        // Tools now come from ComponentRegistry
+        ComponentRegistry registry = ComponentRegistry.getInstance();
+        registry.findPlugins(ITool.class).forEach(t -> registerTool(t.getName().toLowerCase(), t));
+
+        // Manual registration for tools not yet in registry
+        if (getTool(EvolutionConstants.TOOL_ECLIPSE) == null) registerTool(EvolutionConstants.TOOL_ECLIPSE, new EclipseTool());
+        if (getTool(EvolutionConstants.TOOL_CPP) == null) registerTool(EvolutionConstants.TOOL_CPP, new CppTool());
+        if (getTool(EvolutionConstants.TOOL_DATABASE) == null) registerTool(EvolutionConstants.TOOL_DATABASE, new DatabaseTool());
     }
 
     /**

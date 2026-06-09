@@ -39,8 +39,8 @@ public class ValidatorAgent extends BaseAiAgent {
 
         // 1. Review completion
         JSONObject reviewEval = null;
-        if (reviewer instanceof ReviewerAgent) {
-            reviewEval = ((ReviewerAgent)reviewer).evaluate(result, taskName, context);
+        if (reviewer instanceof IEvaluatingAgent) {
+            reviewEval = ((IEvaluatingAgent)reviewer).evaluate(result, taskName, context);
         }
 
         if (reviewEval != null && !reviewEval.optBoolean("success", false)) {
@@ -50,8 +50,8 @@ public class ValidatorAgent extends BaseAiAgent {
 
         // 2. Verify constraints
         JSONObject constraintEval = null;
-        if (constraintAgent instanceof ConstraintAgent) {
-            constraintEval = ((ConstraintAgent)constraintAgent).evaluate(result, taskName, context);
+        if (constraintAgent instanceof IEvaluatingAgent) {
+            constraintEval = ((IEvaluatingAgent)constraintAgent).evaluate(result, taskName, context);
         }
 
         if (constraintEval != null && !constraintEval.optBoolean("success", false)) {

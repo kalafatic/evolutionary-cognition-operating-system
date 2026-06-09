@@ -12,6 +12,7 @@ import org.json.JSONObject;
 import eu.kalafatic.evolution.controller.orchestration.*;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.BranchVariant;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.DarwinEngine;
+import eu.kalafatic.evolution.controller.registry.PluginLoader;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
 
@@ -27,6 +28,9 @@ public class HeadlessEvolutionServer {
         this.projectRoot = projectRoot;
         this.runDir = new File(projectRoot, "self-dev-run");
         if (!runDir.exists()) runDir.mkdirs();
+
+        // Load plugins
+        new PluginLoader().loadDefaults();
 
         // Initialize enough context for DarwinEngine
         Orchestrator orchestrator = OrchestrationFactory.eINSTANCE.createOrchestrator();

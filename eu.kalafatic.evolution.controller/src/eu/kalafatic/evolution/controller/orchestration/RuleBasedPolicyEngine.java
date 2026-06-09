@@ -9,7 +9,7 @@ import eu.kalafatic.evolution.controller.orchestration.llm.LlmRouter;
  */
 public class RuleBasedPolicyEngine implements IPolicyEngine {
     private static final double CONFIDENCE_THRESHOLD = 0.6;
-    private final LlmRouter llmRouter = new LlmRouter();
+    private final LlmRouter llmRouter = LlmRouter.getInstance();
 
     @Override
     public String evaluate(JSONObject classification, String input, TaskContext context) throws Exception {

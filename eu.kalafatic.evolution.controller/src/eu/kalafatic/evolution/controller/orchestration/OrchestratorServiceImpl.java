@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import eu.kalafatic.evolution.controller.workflow.RuntimeEvent;
 import eu.kalafatic.evolution.controller.workflow.RuntimeEventBus;
 import eu.kalafatic.evolution.controller.workflow.RuntimeEventType;
+import eu.kalafatic.evolution.controller.registry.PluginLoader;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.model.orchestration.Orchestrator;
 import eu.kalafatic.evolution.model.orchestration.PromptInstructions;
@@ -591,6 +592,7 @@ public class OrchestratorServiceImpl implements OrchestratorService {
     private static OrchestratorServiceImpl instance;
     public static synchronized OrchestratorServiceImpl getInstance() {
         if (instance == null) {
+            new PluginLoader().loadDefaults();
             instance = new OrchestratorServiceImpl();
         }
         return instance;

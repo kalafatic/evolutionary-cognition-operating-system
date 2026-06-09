@@ -8,6 +8,8 @@ import eu.kalafatic.evolution.controller.orchestration.ContextPackage;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.providers.AiProviders;
 import eu.kalafatic.evolution.controller.providers.ProviderConfig;
+import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
+import java.util.Map;
 
 /**
  * Router that chooses between LLM providers based on orchestrator settings.
@@ -25,9 +27,19 @@ public class LlmRouter {
         return INSTANCE;
     }
 
-    private ILlmProvider ollamaProvider = new OllamaProvider();
-    private ILlmProvider openAiProvider = new OpenAIProvider();
-    private ILlmProvider geminiProvider = new GeminiProvider();
+    private ILlmProvider ollamaProvider;
+    private ILlmProvider openAiProvider;
+    private ILlmProvider geminiProvider;
+
+    private LlmRouter() {
+        refreshProviders();
+    }
+
+    public void refreshProviders() {
+        this.ollamaProvider = DefaultProviderResolver.resolve(ILlmProvider.class, Map.of("provider", "ollama"));
+        this.openAiProvider = DefaultProviderResolver.resolve(ILlmProvider.class, Map.of("provider", "openai"));
+        this.geminiProvider = DefaultProviderResolver.resolve(ILlmProvider.class, Map.of("provider", "gemini"));
+    }
 
     public void setLocalProvider(ILlmProvider provider) {
         this.ollamaProvider = provider;

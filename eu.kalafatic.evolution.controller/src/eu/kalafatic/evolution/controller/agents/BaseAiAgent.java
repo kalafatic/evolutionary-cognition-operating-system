@@ -32,7 +32,7 @@ public abstract class BaseAiAgent implements IAgent, IOrchestrationFlow {
     protected final String id;
     protected final String type;
     protected final List<ITool> tools = new ArrayList<>();
-    protected final LlmRouter llmRouter = new LlmRouter();
+    protected final LlmRouter llmRouter = LlmRouter.getInstance();
     protected final SessionContainer sessionContainer;
     
     protected AiService aiService = new AiService();

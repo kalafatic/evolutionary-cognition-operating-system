@@ -2,8 +2,10 @@ package eu.kalafatic.evolution.controller.agents;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import eu.kalafatic.evolution.controller.orchestration.WebSearchAgent;
 import eu.kalafatic.evolution.controller.orchestration.SessionContainer;
+import eu.kalafatic.evolution.controller.registry.ComponentRegistry;
 
 /**
  * Factory for AI Agents.
@@ -15,6 +17,15 @@ public class AgentFactory {
      */
     public static List<IAgent> createIsolatedAgents(SessionContainer container) {
         List<IAgent> isolated = new ArrayList<>();
+
+        // Attempt to load from registry first
+        ComponentRegistry registry = ComponentRegistry.getInstance();
+        List<IAgent> registered = registry.findPlugins(IAgent.class);
+
+        if (!registered.isEmpty()) {
+            // Future: Implement Agent Factory plugins for dynamic agent instantiation with session isolation.
+        }
+
         isolated.add(new AnalyticAgent(container));
         isolated.add(new ArchitectAgent(container));
         isolated.add(new JavaDevAgent(container));
