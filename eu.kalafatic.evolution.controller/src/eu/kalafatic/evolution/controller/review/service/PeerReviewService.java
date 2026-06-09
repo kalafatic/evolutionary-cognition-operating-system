@@ -7,7 +7,7 @@ import eu.kalafatic.evolution.model.orchestration.ReviewDecision;
 import eu.kalafatic.evolution.model.orchestration.ChangeSet;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
 import eu.kalafatic.evolution.controller.vcs.IRepositoryProvider;
-import eu.kalafatic.evolution.controller.vcs.GitVersionControlProvider;
+import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
 
 public class PeerReviewService {
     private static PeerReviewService instance;
@@ -15,7 +15,7 @@ public class PeerReviewService {
     private ReviewSession activeSession;
 
     private PeerReviewService() {
-        this.vcsProvider = new GitVersionControlProvider();
+        this.vcsProvider = DefaultProviderResolver.resolve(IRepositoryProvider.class);
     }
 
     public static synchronized PeerReviewService getInstance() {

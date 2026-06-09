@@ -3,6 +3,8 @@ package eu.kalafatic.evolution.controller.agents;
 import org.json.JSONObject;
 import eu.kalafatic.evolution.controller.orchestration.ChangeUnit;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
+import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
+import java.util.Map;
 
 /**
  * Unified Validator role that merges responsibilities of ReviewerAgent and ConstraintAgent.
@@ -16,8 +18,14 @@ public class ValidatorAgent extends BaseAiAgent {
 
     public ValidatorAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Validator", "Validator", container);
-        this.reviewer = new ReviewerAgent(container);
-        this.constraintAgent = new ConstraintAgent(container);
+        this.reviewer = DefaultProviderResolver.resolve(IAgent.class, Map.of("type", "Reviewer"));
+        if (this.reviewer != null) {
+            this.reviewer.setSessionContainer(container);
+        }
+        this.constraintAgent = DefaultProviderResolver.resolve(IAgent.class, Map.of("type", "Constraint"));
+        if (this.constraintAgent != null) {
+            this.constraintAgent.setSessionContainer(container);
+        }
     }
 
 

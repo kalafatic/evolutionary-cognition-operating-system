@@ -43,4 +43,9 @@ public interface IAgent {
      * Sets the AI service for this agent.
      */
     void setAiService(eu.kalafatic.evolution.controller.orchestration.AiService aiService);
+
+    /**
+     * Sets the session container for this agent.
+     */
+    void setSessionContainer(eu.kalafatic.evolution.controller.orchestration.SessionContainer container);
 }

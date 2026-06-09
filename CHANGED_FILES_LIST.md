@@ -33,6 +33,7 @@ eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestr
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/LlmIntentClassifier.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/OrchestratorServiceImpl.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/RuleBasedPolicyEngine.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/design/DesignExporter.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/export/ContextSelectionEngine.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/llm/LlmRouter.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/selfdev/Evaluator.java
@@ -42,6 +43,10 @@ eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/registry
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/registry/PluginDescriptor.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/registry/PluginLoader.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/review/service/PeerReviewService.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/CppTool.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/EclipseTool.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/GitTool.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/MavenTool.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/ToolFactory.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/vcs/GitVersionControlProvider.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/vcs/VersionControlProvider.java

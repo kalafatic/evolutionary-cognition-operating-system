@@ -26,7 +26,9 @@ public class ComponentRegistry {
      * Registers a plugin implementation.
      */
     public void register(PluginDescriptor descriptor, Object implementation) {
-        if (!descriptor.interfaceType().isInstance(implementation)) {
+        if (implementation instanceof Class) {
+             // Store class for instantiation
+        } else if (!descriptor.interfaceType().isInstance(implementation)) {
             throw new IllegalArgumentException("Implementation does not match interface type: " + descriptor.interfaceType().getName());
         }
         plugins.put(descriptor, implementation);
@@ -58,9 +60,23 @@ public class ComponentRegistry {
      * Gets the best matching plugin or null.
      */
     public <T> T getBestMatch(Class<T> interfaceType, Map<String, String> capabilities) {
-        return findPlugins(interfaceType, capabilities).stream()
+        PluginDescriptor descriptor = plugins.keySet().stream()
+            .filter(d -> descriptorMatches(d, interfaceType, capabilities))
+            .sorted(Comparator.comparingInt(PluginDescriptor::priority).reversed())
             .findFirst()
             .orElse(null);
+
+        if (descriptor == null) return null;
+        Object impl = plugins.get(descriptor);
+
+        if (impl instanceof Class) {
+            try {
+                return interfaceType.cast(((Class<?>) impl).getDeclaredConstructor().newInstance());
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return interfaceType.cast(impl);
     }
 
     /**

@@ -49,7 +49,7 @@ public class MavenTool implements ITool {
             mavenArgs.add("install");
         }
 
-        ShellTool shell = new ShellTool();
+        ITool shell = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", "shell"));
         String cmdStr = String.join(" ", mavenArgs);
         context.log("Tool [MavenTool]: Launching " + cmdStr);
         String result = shell.execute(cmdStr, workingDir, context);

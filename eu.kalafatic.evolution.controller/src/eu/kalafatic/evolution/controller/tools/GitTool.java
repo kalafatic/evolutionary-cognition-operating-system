@@ -136,7 +136,7 @@ public class GitTool implements ITool {
             }
         }
 
-        ShellTool shell = new ShellTool();
+        ITool shell = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", "shell"));
 
         // SPECIALIZED LOGIC: Commit metadata injection
         if (command.startsWith("commit")) {
@@ -167,7 +167,7 @@ public class GitTool implements ITool {
         return executeWithRetry(shell, fullCommand, gitWorkingDir, context);
     }
 
-    private String executeWithRetry(ShellTool shell, String command, File workingDir, TaskContext context) throws Exception {
+    private String executeWithRetry(ITool shell, String command, File workingDir, TaskContext context) throws Exception {
         try {
             return shell.execute(command, workingDir, context);
         } catch (Exception e) {

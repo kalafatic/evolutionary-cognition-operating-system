@@ -18,33 +18,15 @@ public class AgentFactory {
     public static List<IAgent> createIsolatedAgents(SessionContainer container) {
         List<IAgent> isolated = new ArrayList<>();
 
-        // Attempt to load from registry first
+        // Load from registry
         ComponentRegistry registry = ComponentRegistry.getInstance();
         List<IAgent> registered = registry.findPlugins(IAgent.class);
 
-        if (!registered.isEmpty()) {
-            // Future: Implement Agent Factory plugins for dynamic agent instantiation with session isolation.
+        for (IAgent agent : registered) {
+            agent.setSessionContainer(container);
+            isolated.add(agent);
         }
 
-        isolated.add(new AnalyticAgent(container));
-        isolated.add(new ArchitectAgent(container));
-        isolated.add(new JavaDevAgent(container));
-        isolated.add(new TesterAgent(container));
-        isolated.add(new ValidatorAgent(container));
-        isolated.add(new GeneralAgent(container));
-        isolated.add(new TerminalAgent(container));
-        isolated.add(new FileAgent(container));
-        isolated.add(new MavenAgent(container));
-        isolated.add(new GitAgent(container));
-        isolated.add(new StructureAgent(container));
-        isolated.add(new WebSearchAgent(container));
-        isolated.add(new QualityAgent(container));
-        isolated.add(new ObservabilityAgent(container));
-        isolated.add(new RepairAgent(container));
-        isolated.add(new PlannerAgent(container));
-        isolated.add(new ProposalConsolidatorAgent(container));
-        isolated.add(new CriticAgent(container));
-        isolated.add(new FinalResponseAgent(container));
         return isolated;
     }
 

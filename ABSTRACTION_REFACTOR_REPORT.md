@@ -1,36 +1,34 @@
-# ABSTRACTION REFACTOR REPORT
+# ABSTRACTION REFACTOR REPORT (PHASE 2 - DYNAMIC REGISTRY)
 
-This report documents the refactoring of concrete implementation usages into interface-based abstractions within the ECOS codebase.
+This report documents the final phase of refactoring the ECOS codebase from hardcoded concrete implementations to a dynamic, interface-driven plugin registry system.
 
-## 1. Agent Subsystem Refactoring
-Direct usage of concrete agent classes in `EvolutionOrchestrator` and `ValidatorAgent` has been replaced with the `IAgent` interface.
+## 1. Plugin Registry Implementation
+A new runtime registry system has been implemented to handle component discovery and lifecycle.
 
-- **Files Impacted:** `EvolutionOrchestrator.java`, `ValidatorAgent.java`.
-- **Changes:** Fields for `analyticAgent`, `validator`, `repairAgent`, `consolidator`, `reviewer`, and `constraintAgent` are now typed as `IAgent`.
-- **Effect:** Decouples the orchestrator from specific agent implementations, facilitating future injection of custom agents.
+- **ComponentRegistry:** Central singleton for registering and discovering plugins by interface type and capabilities.
+- **DefaultProviderResolver:** Rule-based logic for selecting the best provider implementation or falling back to defaults.
+- **PluginLoader:** Handles the bootstrapping of default LLM providers, VCS providers, tools, and agents.
 
-## 2. Tool Subsystem Refactoring
-Direct instantiations of tools (`new GitTool()`, `new FileTool()`, etc.) have been replaced with the `ITool` interface and lookup via `ToolFactory`.
+## 2. Full Agent Abstraction
+The `AgentFactory` has been completely refactored to remove all hardcoded `new Agent()` calls.
 
-- **Files Impacted:** `DarwinFlow.java`, `WorkspaceDeltaAnalyzer.java`, `ContextBuilder.java`, `GitVersionControlProvider.java`, `Evaluator.java`, `EvolutionServer.java`, `ContextSelectionEngine.java`, and all Agent classes.
-- **Changes:** Replaced `new ToolName()` with `ToolFactory.getTool(EvolutionConstants.TOOL_NAME)`.
-- **Effect:** Centralizes tool management and allows for dynamic tool replacement or mocking.
+- **Registry Discovery:** `AgentFactory.createIsolatedAgents()` now queries the `ComponentRegistry` for all implementations of `IAgent`.
+- **State Management:** Added `setSessionContainer()` to the `IAgent` interface to allow the factory to inject the mandatory session context into agents retrieved from the registry.
+- **Decoupled Validation:** Introduced `IEvaluatingAgent` interface. `ValidatorAgent` now interacts with `ReviewerAgent` and `ConstraintAgent` through this interface, eliminating all concrete type checks and casting.
 
-## 3. LLM Provider Refactoring
-Interaction with LLM providers in `LlmRouter` has been abstracted to support multiple implementations of `ILlmProvider`.
+## 3. Tool Subsystem Refinement
+Internal tool dependencies within other tools have been abstracted.
 
-- **Files Impacted:** `LlmRouter.java`.
-- **Changes:** Fields for `ollamaProvider`, `openAiProvider`, and `geminiProvider` are typed as `ILlmProvider`. Added setter methods for remote providers.
-- **Effect:** Enables the kernel to remain agnostic of the specific LLM API being used.
+- **Implicit Abstraction:** `GitTool`, `MavenTool`, `CppTool`, and `EclipseTool` now resolve their internal `ShellTool` dependency through the `DefaultProviderResolver`.
+- **Interface Consistency:** All tool variables are now consistently typed as `ITool` rather than concrete classes.
 
-## 4. Repository Provider Refactoring
-The primary VCS interface has been renamed to align with the core AI OS design.
+## 4. Repository Provider Expansion
+The `IRepositoryProvider` interface was expanded to ensure full compatibility with the system's needs without resorting to casting.
 
-- **Files Impacted:** `IRepositoryProvider.java` (renamed from `VersionControlProvider.java`), `GitVersionControlProvider.java`, `PeerReviewService.java`, and various other references.
-- **Changes:** Renamed `VersionControlProvider` to `IRepositoryProvider`.
-- **Effect:** Standardizes the repository abstraction layer.
+- **New Method:** `List<String> getBranches(File workingDir)` added to the interface and implemented in `GitVersionControlProvider`.
+- **Clean Integration:** `EvolutionServer` now interacts with the VCS system strictly through the `IRepositoryProvider` interface.
 
-## 5. Summary of Benefits
-- **Zero Behavioral Change:** System logic and flow remain identical.
-- **Improved Testability:** Core components can now be tested with mock implementations of agents and tools.
-- **Extensibility:** New providers and tools can be added without modifying the kernel or orchestrator logic.
+## 5. Implementation Integrity
+- **No Behavioral Changes:** The system's logical flow, retry logic, and decision-making remain identical to the legacy implementation.
+- **Dynamic Swapping:** Implementations can now be swapped at runtime by registering a new `PluginDescriptor` with a higher priority in the `ComponentRegistry`.
+- **Zero Hardcoding:** No concrete provider or tool classes are instantiated using `new` within the core orchestration or agent logic (outside of the `PluginLoader` bootstrap).
