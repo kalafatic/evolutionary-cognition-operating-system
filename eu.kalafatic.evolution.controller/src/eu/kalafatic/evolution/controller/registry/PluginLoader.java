@@ -1,4 +1,5 @@
 package eu.kalafatic.evolution.controller.registry;
+import eu.kalafatic.utils.semantic.AIContextTool;
 
 import java.util.Map;
 import eu.kalafatic.evolution.controller.orchestration.llm.OllamaProvider;
@@ -8,6 +9,10 @@ import eu.kalafatic.evolution.controller.orchestration.llm.ILlmProvider;
 import eu.kalafatic.evolution.controller.tools.*;
 import eu.kalafatic.evolution.controller.vcs.GitVersionControlProvider;
 import eu.kalafatic.evolution.controller.vcs.IRepositoryProvider;
+import eu.kalafatic.evolution.controller.kernel.IMemoryProvider;
+import eu.kalafatic.evolution.controller.kernel.IEvolutionEngine;
+import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService;
+import eu.kalafatic.evolution.controller.orchestration.selfdev.DarwinEngine;
 import eu.kalafatic.evolution.controller.agents.*;
 import eu.kalafatic.evolution.controller.orchestration.WebSearchAgent;
 import java.util.HashMap;
@@ -33,11 +38,22 @@ public class PluginLoader {
         registry.register(new PluginDescriptor("tool.git", "1.0", ITool.class, Map.of("name", "git"), 0), new GitTool());
         registry.register(new PluginDescriptor("tool.maven", "1.0", ITool.class, Map.of("name", "maven"), 0), new MavenTool());
         registry.register(new PluginDescriptor("tool.shell", "1.0", ITool.class, Map.of("name", "shell"), 0), new ShellTool());
+        registry.register(new PluginDescriptor("tool.cpp", "1.0", ITool.class, Map.of("name", "cpp"), 0), new CppTool());
+        registry.register(new PluginDescriptor("tool.database", "1.0", ITool.class, Map.of("name", "database"), 0), new DatabaseTool());
+        registry.register(new PluginDescriptor("tool.eclipse", "1.0", ITool.class, Map.of("name", "eclipse"), 0), new EclipseTool());
+        registry.register(new PluginDescriptor("tool.aicontext", "1.0", ITool.class, Map.of("name", "aicontext"), 0), new AIContextTool());
 
+        // 3. Repository
         // 3. Repository
         registry.register(new PluginDescriptor("repo.git", "1.0", IRepositoryProvider.class, Map.of("type", "git"), 0), new GitVersionControlProvider());
 
-        // 4. Agents (Registered as classes to ensure fresh instantiation per session for isolation)
+        // 4. Memory
+        registry.register(new PluginDescriptor("memory.default", "1.0", IMemoryProvider.class, Map.of("type", "default"), 0), IterationMemoryService.class);
+
+        // 5. Evolution
+        registry.register(new PluginDescriptor("engine.darwin", "1.0", IEvolutionEngine.class, Map.of("type", "darwin"), 0), DarwinEngine.class);
+
+        // 6. Agents (Registered as classes to ensure fresh instantiation per session for isolation)
         registry.register(new PluginDescriptor("agent.analytic", "1.0", IAgent.class, Map.of("type", "Analytic"), 0), AnalyticAgent.class);
         registry.register(new PluginDescriptor("agent.validator", "1.0", IAgent.class, Map.of("type", "Validator"), 0), ValidatorAgent.class);
         registry.register(new PluginDescriptor("agent.repair", "1.0", IAgent.class, Map.of("type", "Repair"), 0), RepairAgent.class);

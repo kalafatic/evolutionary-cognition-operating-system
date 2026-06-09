@@ -17,6 +17,7 @@ eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/I
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/IEvaluatingAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/JavaDevAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/MavenAgent.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/MetadataAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/QualityAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/RepairAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/ReviewerAgent.java
@@ -25,6 +26,9 @@ eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/T
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/TesterAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/agents/ValidatorAgent.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/headless/HeadlessEvolutionServer.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/kernel/IEvolutionEngine.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/kernel/IMemoryProvider.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/mediation/analysis/SemanticExtractor.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/ContextAssistant.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/ContextBuilder.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/DarwinFlow.java
@@ -36,7 +40,9 @@ eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestr
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/design/DesignExporter.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/export/ContextSelectionEngine.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/llm/LlmRouter.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/selfdev/DarwinEngine.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/selfdev/Evaluator.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/selfdev/IterationMemoryService.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/orchestration/workspace/WorkspaceDeltaAnalyzer.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/registry/ComponentRegistry.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/registry/DefaultProviderResolver.java
@@ -48,6 +54,7 @@ eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/Ec
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/GitTool.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/MavenTool.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/ToolFactory.java
+eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/tools/wrapper/AIContextToolWrapper.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/vcs/GitVersionControlProvider.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/vcs/VersionControlProvider.java
 eu.kalafatic.evolution.controller/src/eu/kalafatic/evolution/controller/vcs/PACKAGE_CONTEXT.md
