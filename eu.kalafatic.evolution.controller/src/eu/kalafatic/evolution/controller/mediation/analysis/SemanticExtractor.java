@@ -1,7 +1,4 @@
 package eu.kalafatic.evolution.controller.mediation.analysis;
-import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
-import eu.kalafatic.evolution.controller.tools.ITool;
-import java.util.Map;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,14 +21,7 @@ import eu.kalafatic.utils.semantic.EvoMetadata;
  */
 public class SemanticExtractor {
 
-    private final ITool contextTool = DefaultProviderResolver.resolve(ITool.class, Map.of("name", "aicontext"));
-
-    private eu.kalafatic.utils.semantic.AIContextTool getContextTool() {
-        if (contextTool instanceof eu.kalafatic.evolution.controller.tools.wrapper.AIContextToolWrapper) {
-            return ((eu.kalafatic.evolution.controller.tools.wrapper.AIContextToolWrapper) contextTool).getDelegate();
-        }
-        return new eu.kalafatic.utils.semantic.AIContextTool(); // Fallback
-    }
+    private final AIContextTool contextTool = new AIContextTool();
 
     public void extract(TargetDescriptor target, File root) {
         for (FileDescriptor file : target.getFiles()) {
@@ -70,7 +60,7 @@ public class SemanticExtractor {
 
             // Collect metadata from all levels
             Map<String, String> annotationMeta = extractAnnotationMetadataFromLines(lines);
-            EvoMetadata sidecarMeta = getContextTool().loadMetadata(actualFile);
+            EvoMetadata sidecarMeta = contextTool.loadMetadata(actualFile);
             String packageDomain = inferDomainFromPath(file.getPath());
             String markdownContext = loadPackageMarkdownContext(actualFile.getParentFile());
 
@@ -104,7 +94,7 @@ public class SemanticExtractor {
 
             // Resolution with Authority Hierarchy
             Map<String, String> annotationMeta = extractAnnotationMetadataFromLines(lines);
-            EvoMetadata sidecarMeta = getContextTool().loadMetadata(actualFile);
+            EvoMetadata sidecarMeta = contextTool.loadMetadata(actualFile);
             String packageDomain = inferDomainFromPath(node.getPath());
             String markdownContext = loadPackageMarkdownContext(actualFile.getParentFile());
 

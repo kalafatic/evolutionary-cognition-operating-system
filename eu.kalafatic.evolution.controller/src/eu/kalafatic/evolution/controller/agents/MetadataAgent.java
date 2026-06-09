@@ -1,7 +1,4 @@
 package eu.kalafatic.evolution.controller.agents;
-import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
-import eu.kalafatic.evolution.controller.tools.ITool;
-import java.util.Map;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +17,6 @@ import eu.kalafatic.evolution.controller.mediation.model.TargetSnapshot;
 import eu.kalafatic.evolution.controller.mediation.scanner.TargetScanner;
 import eu.kalafatic.utils.semantic.AIContextTool;
 import eu.kalafatic.utils.semantic.EvoMetadata;
-import eu.kalafatic.evolution.controller.tools.wrapper.AIContextToolWrapper;
 import eu.kalafatic.utils.semantic.Stability;
 
 /**
@@ -35,14 +31,7 @@ public class MetadataAgent {
     public static final String TRAJECTORY_MAP = "TRAJECTORY_MAP.json";
     public static final String PACKAGE_CONTEXT = "PACKAGE_CONTEXT.md";
 
-    private final ITool contextTool = DefaultProviderResolver.resolve(ITool.class, Map.of("name", "aicontext"));
-
-    private AIContextTool getContextTool() {
-        if (contextTool instanceof AIContextToolWrapper) {
-            return ((AIContextToolWrapper) contextTool).getDelegate();
-        }
-        return new AIContextTool(); // Fallback
-    }
+    private final AIContextTool contextTool = new AIContextTool();
     private final Map<File, EvoMetadata> processedMetadata = new HashMap<>();
 
     public MetadataResult generate(File root) {
@@ -119,7 +108,7 @@ public class MetadataAgent {
     }
 
     private void processFile(File file, File root, MetadataResult result) {
-        EvoMetadata meta = getContextTool().loadMetadata(file);
+        EvoMetadata meta = contextTool.loadMetadata(file);
         if (meta == null) {
             meta = new EvoMetadata();
             meta.setPath(root.toURI().relativize(file.toURI()).getPath());
@@ -138,10 +127,10 @@ public class MetadataAgent {
         }
 
         // 2f: Save Sidecar
-        getContextTool().saveMetadata(file, meta);
+        contextTool.saveMetadata(file, meta);
         processedMetadata.put(file, meta);
 
-        result.addGeneratedFile(new File(file.getParentFile(), file.getName() + ".ai.json"));
+        result.addGeneratedFile(new File(file.getParentFile(), file.getName() + AIContextTool.METADATA_SUFFIX));
         result.incrementRoleStat(meta.getRole());
     }
 

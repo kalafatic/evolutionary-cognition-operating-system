@@ -15,7 +15,7 @@ import eu.kalafatic.evolution.controller.workflow.RuntimeEventType;
 /**
  * Specialized agent for code review and evaluation.
  */
-public class ReviewerAgent extends BaseAiAgent implements IEvaluatingAgent {
+public class ReviewerAgent extends BaseAiAgent {
 
     public ReviewerAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Reviewer", "Reviewer", container);

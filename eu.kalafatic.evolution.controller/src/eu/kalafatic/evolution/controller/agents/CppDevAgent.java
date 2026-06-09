@@ -1,10 +1,4 @@
 package eu.kalafatic.evolution.controller.agents;
-import eu.kalafatic.evolution.controller.tools.ITool;
-import java.util.Map;
-import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
-
-import eu.kalafatic.evolution.controller.tools.ToolFactory;
-import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 
 import eu.kalafatic.evolution.controller.tools.CppTool;
 import eu.kalafatic.evolution.controller.tools.FileTool;
@@ -17,10 +11,10 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class CppDevAgent extends BaseAiAgent {
     public CppDevAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("CppDev", "CppDev", container);
-        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_FILE));
-        addTool(DefaultProviderResolver.resolve(ITool.class, Map.of("name", "cpp")));
-        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_GIT));
-        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_SHELL));
+        addTool(new FileTool());
+        addTool(new CppTool());
+        addTool(new GitTool());
+        addTool(new ShellTool());
     }
 
     @Override

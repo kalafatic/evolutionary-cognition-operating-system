@@ -5,6 +5,6 @@
 ## Domain: general
 
 ## Components
-* `IRepositoryProvider.java`: package eu.kalafatic.evolution.controller.vcs; import java.io.File; import java.util.List;
+* `VersionControlProvider.java`: package eu.kalafatic.evolution.controller.vcs; import java.io.File; import java.util.List;
 * `GitVersionControlProvider.java`: package eu.kalafatic.evolution.controller.vcs; import java.io.File; import java.util.ArrayList;
 * `PACKAGE_CONTEXT.md`: 

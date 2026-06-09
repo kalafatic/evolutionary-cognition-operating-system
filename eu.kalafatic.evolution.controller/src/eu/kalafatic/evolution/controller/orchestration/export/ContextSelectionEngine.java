@@ -10,15 +10,13 @@ import eu.kalafatic.evolution.controller.orchestration.ContextBuilder;
 import eu.kalafatic.evolution.controller.orchestration.ContextPackage;
 import eu.kalafatic.evolution.model.orchestration.Task;
 import eu.kalafatic.evolution.model.orchestration.OrchestrationFactory;
-import eu.kalafatic.evolution.controller.tools.ITool;
-import eu.kalafatic.evolution.controller.tools.ToolFactory;
-import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+import eu.kalafatic.evolution.controller.tools.FileTool;
 
 /**
  * Selects relevant source files and builds high-density context.
  */
 public class ContextSelectionEngine {
-    private final ITool fileTool = ToolFactory.getTool(EvolutionConstants.TOOL_FILE);
+    private final FileTool fileTool = new FileTool();
 
     public Map<String, String> selectContext(String goal, JSONObject analysis, TaskContext context) throws Exception {
         context.log("[EXPORT] Selecting relevant context for goal: " + goal);

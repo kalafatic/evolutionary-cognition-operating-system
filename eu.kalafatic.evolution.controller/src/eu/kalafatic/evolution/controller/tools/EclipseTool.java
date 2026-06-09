@@ -1,5 +1,4 @@
 package eu.kalafatic.evolution.controller.tools;
-import eu.kalafatic.evolution.controller.tools.ITool;
 
 import java.io.File;
 
@@ -20,7 +19,7 @@ public class EclipseTool implements ITool {
     public String execute(String command, File workingDir, TaskContext context) throws Exception {
         context.log("EclipseTool: Executing " + command);
 
-        ITool shell = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", "shell"));
+        ShellTool shell = new ShellTool();
         String os = System.getProperty("os.name").toLowerCase();
         // Default to 'mvn' (Linux/Ubuntu) unless Windows is explicitly detected
         String mvnCmd = os.contains("win") ? "mvn.cmd" : "mvn";
@@ -60,7 +59,7 @@ public class EclipseTool implements ITool {
         }
 
         try {
-            ITool shell = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", "shell"));
+            ShellTool shell = new ShellTool();
             String mvnVer = shell.execute(System.getProperty("os.name").toLowerCase().contains("win") ? "mvn.cmd -version" : "mvn -version", workingDir, context);
             sb.append("Environment check: SUCCESS\n").append(mvnVer);
         } catch (Exception e) {

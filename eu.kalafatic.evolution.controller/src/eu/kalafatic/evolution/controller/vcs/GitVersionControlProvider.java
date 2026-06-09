@@ -5,21 +5,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import eu.kalafatic.evolution.controller.tools.ITool;
-import eu.kalafatic.evolution.controller.tools.ToolFactory;
-import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
-import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
-import java.util.Map;
+import eu.kalafatic.evolution.controller.tools.ShellTool;
 
-public class GitVersionControlProvider implements IRepositoryProvider {
-    private ITool shell;
-
-    public GitVersionControlProvider() {
-        this.shell = DefaultProviderResolver.resolve(ITool.class, Map.of("name", "shell"));
-        if (this.shell == null) {
-            this.shell = ToolFactory.getTool(EvolutionConstants.TOOL_SHELL);
-        }
-    }
+public class GitVersionControlProvider implements VersionControlProvider {
+    private ShellTool shell = new ShellTool();
 
     @Override
     public List<String> fetchCommits(File workingDir) throws Exception {
@@ -189,20 +178,6 @@ public class GitVersionControlProvider implements IRepositoryProvider {
     @Override
     public void revertFile(File workingDir, String filePath) throws Exception {
         shell.execute("git checkout HEAD -- " + quote(filePath), workingDir, null);
-    }
-
-    @Override
-    public List<String> getBranches(File workingDir) throws Exception {
-        String output = shell.execute("git branch --format=%(refname:short)", workingDir, null);
-        List<String> branches = new ArrayList<>();
-        if (output != null) {
-            for (String line : output.split("\n")) {
-                if (!line.trim().isEmpty()) {
-                    branches.add(line.trim());
-                }
-            }
-        }
-        return branches;
     }
 
     private boolean isHeadValid(File workingDir) {

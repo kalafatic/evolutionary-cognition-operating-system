@@ -37,9 +37,7 @@ import eu.kalafatic.evolution.controller.mediation.model.MediationCandidate;
 
 import eu.kalafatic.evolution.controller.orchestration.SessionManager;
 
-import eu.kalafatic.evolution.controller.kernel.IEvolutionEngine;
-
-public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationContract, IEvolutionEngine {
+public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationContract {
     private final TaskContext context;
     private final IterationMemoryService memoryService;
     private final SystemStateSignalProvider stateProvider;

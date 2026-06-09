@@ -3,8 +3,6 @@ package eu.kalafatic.evolution.controller.agents;
 import org.json.JSONObject;
 import eu.kalafatic.evolution.controller.orchestration.ChangeUnit;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
-import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
-import java.util.Map;
 
 /**
  * Unified Validator role that merges responsibilities of ReviewerAgent and ConstraintAgent.
@@ -13,19 +11,13 @@ import java.util.Map;
  * @evo:21:A reason=unified-validator-role
  */
 public class ValidatorAgent extends BaseAiAgent {
-    private final IAgent reviewer;
-    private final IAgent constraintAgent;
+    private final ReviewerAgent reviewer;
+    private final ConstraintAgent constraintAgent;
 
     public ValidatorAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Validator", "Validator", container);
-        this.reviewer = DefaultProviderResolver.resolve(IAgent.class, Map.of("type", "Reviewer"));
-        if (this.reviewer != null) {
-            this.reviewer.setSessionContainer(container);
-        }
-        this.constraintAgent = DefaultProviderResolver.resolve(IAgent.class, Map.of("type", "Constraint"));
-        if (this.constraintAgent != null) {
-            this.constraintAgent.setSessionContainer(container);
-        }
+        this.reviewer = new ReviewerAgent(container);
+        this.constraintAgent = new ConstraintAgent(container);
     }
 
 
@@ -46,23 +38,15 @@ public class ValidatorAgent extends BaseAiAgent {
         String result = change.getPatch();
 
         // 1. Review completion
-        JSONObject reviewEval = null;
-        if (reviewer instanceof IEvaluatingAgent) {
-            reviewEval = ((IEvaluatingAgent)reviewer).evaluate(result, taskName, context);
-        }
-
-        if (reviewEval != null && !reviewEval.optBoolean("success", false)) {
+        JSONObject reviewEval = reviewer.evaluate(result, taskName, context);
+        if (!reviewEval.optBoolean("success", false)) {
             context.log("Validator: Reviewer failed. Reason: " + reviewEval.optString("feedback"));
             return reviewEval;
         }
 
         // 2. Verify constraints
-        JSONObject constraintEval = null;
-        if (constraintAgent instanceof IEvaluatingAgent) {
-            constraintEval = ((IEvaluatingAgent)constraintAgent).evaluate(result, taskName, context);
-        }
-
-        if (constraintEval != null && !constraintEval.optBoolean("success", false)) {
+        JSONObject constraintEval = constraintAgent.evaluate(result, taskName, context);
+        if (!constraintEval.optBoolean("success", false)) {
             context.log("Validator: Constraint violation detected. Reason: " + constraintEval.optString("feedback"));
             return constraintEval;
         }

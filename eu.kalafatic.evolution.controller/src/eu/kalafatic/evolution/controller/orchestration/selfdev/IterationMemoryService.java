@@ -20,9 +20,7 @@ import eu.kalafatic.evolution.controller.trajectory.TrajectoryAnalysisRecord;
 import eu.kalafatic.evolution.controller.log.Log;
 
 
-import eu.kalafatic.evolution.controller.kernel.IMemoryProvider;
-
-public class IterationMemoryService implements IMemoryProvider {
+public class IterationMemoryService {
     private File projectRoot;
     private final File memoryDir;
     private final File auditFile;

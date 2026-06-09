@@ -2,10 +2,8 @@ package eu.kalafatic.evolution.controller.agents;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import eu.kalafatic.evolution.controller.orchestration.WebSearchAgent;
 import eu.kalafatic.evolution.controller.orchestration.SessionContainer;
-import eu.kalafatic.evolution.controller.registry.ComponentRegistry;
 
 /**
  * Factory for AI Agents.
@@ -17,16 +15,25 @@ public class AgentFactory {
      */
     public static List<IAgent> createIsolatedAgents(SessionContainer container) {
         List<IAgent> isolated = new ArrayList<>();
-
-        // Load from registry
-        ComponentRegistry registry = ComponentRegistry.getInstance();
-        List<IAgent> registered = registry.findPlugins(IAgent.class);
-
-        for (IAgent agent : registered) {
-            agent.setSessionContainer(container);
-            isolated.add(agent);
-        }
-
+        isolated.add(new AnalyticAgent(container));
+        isolated.add(new ArchitectAgent(container));
+        isolated.add(new JavaDevAgent(container));
+        isolated.add(new TesterAgent(container));
+        isolated.add(new ValidatorAgent(container));
+        isolated.add(new GeneralAgent(container));
+        isolated.add(new TerminalAgent(container));
+        isolated.add(new FileAgent(container));
+        isolated.add(new MavenAgent(container));
+        isolated.add(new GitAgent(container));
+        isolated.add(new StructureAgent(container));
+        isolated.add(new WebSearchAgent(container));
+        isolated.add(new QualityAgent(container));
+        isolated.add(new ObservabilityAgent(container));
+        isolated.add(new RepairAgent(container));
+        isolated.add(new PlannerAgent(container));
+        isolated.add(new ProposalConsolidatorAgent(container));
+        isolated.add(new CriticAgent(container));
+        isolated.add(new FinalResponseAgent(container));
         return isolated;
     }
 

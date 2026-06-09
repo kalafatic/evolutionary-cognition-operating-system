@@ -11,9 +11,7 @@ import java.util.stream.Collectors;
 import eu.kalafatic.evolution.controller.orchestration.attachments.AttachmentInjector;
 import eu.kalafatic.evolution.controller.orchestration.workspace.ContextResolver;
 import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceArtifact;
-import eu.kalafatic.evolution.controller.tools.ITool;
-import eu.kalafatic.evolution.controller.tools.ToolFactory;
-import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
+import eu.kalafatic.evolution.controller.tools.FileTool;
 import eu.kalafatic.evolution.model.orchestration.Task;
 
 /**
@@ -52,7 +50,7 @@ public class ContextBuilder {
         // 3. ENRICHMENT (Reading content, dependencies, and attachments)
         StringBuilder codeBuilder = new StringBuilder();
         StringBuilder depBuilder = new StringBuilder();
-        ITool fileTool = ToolFactory.getTool(EvolutionConstants.TOOL_FILE);
+        FileTool fileTool = new FileTool();
 
         for (String path : scope) {
             try {

@@ -9,7 +9,7 @@ import eu.kalafatic.evolution.model.orchestration.Orchestrator;
  * Pre-processing assistant that improves user experience and mode selection.
  */
 public class ContextAssistant {
-    private final LlmRouter llmRouter = LlmRouter.getInstance();
+    private final LlmRouter llmRouter = new LlmRouter();
 
     public ContextAssistResult analyze(String input, TaskContext context) throws Exception {
         Orchestrator orchestrator = context.getOrchestrator();

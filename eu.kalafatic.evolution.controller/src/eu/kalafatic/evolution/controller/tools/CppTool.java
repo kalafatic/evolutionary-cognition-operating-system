@@ -1,5 +1,4 @@
 package eu.kalafatic.evolution.controller.tools;
-import eu.kalafatic.evolution.controller.tools.ITool;
 
 import java.io.File;
 
@@ -45,7 +44,7 @@ public class CppTool implements ITool {
                 break;
             case "TEST_CONNECTION":
                 StringBuilder sb = new StringBuilder();
-                ITool shell = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", "shell"));
+                ShellTool shell = new ShellTool();
                 try { sb.append("GCC: ").append(shell.execute(gccPath + " --version", workingDir, context).split("\n")[0]).append("\n"); } catch (Exception e) { sb.append("GCC: Not found\n"); }
                 try { sb.append("G++: ").append(shell.execute(gppPath + " --version", workingDir, context).split("\n")[0]).append("\n"); } catch (Exception e) { sb.append("G++: Not found\n"); }
                 try { sb.append("Make: ").append(shell.execute(makePath + " --version", workingDir, context).split("\n")[0]).append("\n"); } catch (Exception e) { sb.append("Make: Not found\n"); }
@@ -56,7 +55,7 @@ public class CppTool implements ITool {
                 fullCommand = command;
         }
 
-        ITool shell = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", "shell"));
+        ShellTool shell = new ShellTool();
         return shell.execute(fullCommand, workingDir, context);
     }
 }

@@ -1,8 +1,5 @@
 package eu.kalafatic.evolution.controller.agents;
 
-import eu.kalafatic.evolution.controller.tools.ToolFactory;
-import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
-
 import org.json.JSONObject;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.trajectory.EvaluationSignal;
@@ -19,8 +16,8 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class QualityAgent extends BaseAiAgent {
     public QualityAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Quality", "Quality", container);
-        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_MAVEN));
-        addTool(ToolFactory.getTool(EvolutionConstants.TOOL_SHELL));
+        addTool(new MavenTool());
+        addTool(new ShellTool());
     }
 
 

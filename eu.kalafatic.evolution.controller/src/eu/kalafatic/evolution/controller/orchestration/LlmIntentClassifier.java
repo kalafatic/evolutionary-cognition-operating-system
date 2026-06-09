@@ -9,7 +9,7 @@ import eu.kalafatic.evolution.controller.parsers.JsonUtils;
  * LLM-based intent classification optimized for small models.
  */
 public class LlmIntentClassifier implements IIntentClassifier {
-    private final LlmRouter llmRouter = LlmRouter.getInstance();
+    private final LlmRouter llmRouter = new LlmRouter();
     private AiService aiService = new AiService();
 
     @Override
