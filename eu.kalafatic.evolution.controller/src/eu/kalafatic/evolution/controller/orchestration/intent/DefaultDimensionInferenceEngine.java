@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.orchestration.selfdev.EvolutionDimensio
 /**
  * Default implementation of DimensionInferenceEngine that delegates to IntentExpansionEngine.
  */
-public class DefaultDimensionInferenceEngine implements DimensionInferenceEngine {
+public class DefaultDimensionInferenceEngine implements IDimensionInferenceEngine {
 
     private final IntentExpansionEngine expansionEngine;
 

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import eu.kalafatic.evolution.controller.orchestration.attachments.AttachmentInjector;
 import eu.kalafatic.evolution.controller.orchestration.workspace.ContextResolver;
 import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceArtifact;
+import eu.kalafatic.evolution.controller.tools.ITool;
 import eu.kalafatic.evolution.controller.tools.FileTool;
 import eu.kalafatic.evolution.model.orchestration.Task;
 
@@ -50,7 +51,7 @@ public class ContextBuilder {
         // 3. ENRICHMENT (Reading content, dependencies, and attachments)
         StringBuilder codeBuilder = new StringBuilder();
         StringBuilder depBuilder = new StringBuilder();
-        FileTool fileTool = new FileTool();
+        ITool fileTool = eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_FILE);
 
         for (String path : scope) {
             try {
@@ -80,7 +81,8 @@ public class ContextBuilder {
         pkg.setDependencies(depBuilder.toString());
 
         // 4b. SEMANTIC WORKSPACE INJECTION (Trajectory & Hypothesis Aware)
-        ContextResolver resolver = new ContextResolver(context.getSessionId());
+        ContextResolver resolver = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ContextResolver.class);
+        if (resolver != null) resolver.setSessionId(context.getSessionId());
 
         // Enhance goal with trajectory and hypothesis metadata for better semantic retrieval
         String semanticGoal = pkg.getGoal();

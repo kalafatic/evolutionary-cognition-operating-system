@@ -6,7 +6,7 @@
          id="eu.kalafatic.evolution.view.product"
          point="org.eclipse.core.runtime.products">
       <product
-            name="AI Evolution"
+            name="ECOS"
             application="eu.kalafatic.evolution.view.application.Application">
          <property
                name="windowImages"
@@ -14,7 +14,7 @@
          </property>
          <property
                name="appName"
-               value="AI Evolution">
+               value="ECOS">
          </property>
          <property
                name="preferenceCustomization"
@@ -347,7 +347,7 @@
             locationURI="popup:org.eclipse.ui.popup.any">
          <menu
                id="eu.kalafatic.evolution.view.contextMenu"
-               label="AI Evolution">
+               label="ECOS">
             <visibleWhen
                   checkEnabled="false">
                <or>
@@ -553,7 +553,7 @@
          point="org.eclipse.ui.newWizards">
       <category
             id="eu.kalafatic.evolution.view.category"
-            name="AI Evolution">
+            name="ECOS">
       </category>
       <wizard
             category="eu.kalafatic.evolution.view.category"

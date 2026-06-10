@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.tools.FileTool;
 public class FileAgent extends BaseAiAgent {
     public FileAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("File", "File", container);
-        addTool(new FileTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_FILE));
     }
 
     @Override

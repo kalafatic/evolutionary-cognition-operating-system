@@ -4,7 +4,7 @@ import java.io.File;
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceDeltaAnalyzer;
 
-public class DefaultRealityEngine implements RealityEngine {
+public class DefaultRealityEngine implements IRealityEngine {
     private final File projectRoot;
     private final TaskContext context;
 

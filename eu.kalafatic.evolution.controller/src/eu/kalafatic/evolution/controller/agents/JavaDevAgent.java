@@ -9,8 +9,8 @@ import eu.kalafatic.evolution.controller.tools.MavenTool;
 public class JavaDevAgent extends BaseAiAgent {
     public JavaDevAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("JavaDev", "JavaDev", container);
-        addTool(new FileTool());
-        addTool(new MavenTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_FILE));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_MAVEN));
     }
 
     @Override

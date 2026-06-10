@@ -32,7 +32,7 @@ import eu.kalafatic.evolution.model.orchestration.SelfDevDecision;
 public class Evaluator implements ICapability, IEvaluationContract {
     private final File projectRoot;
     private final TaskContext context;
-    private eu.kalafatic.evolution.controller.tools.ITool mavenTool = new MavenTool();
+    private eu.kalafatic.evolution.controller.tools.ITool mavenTool = eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_MAVEN);
     private CapabilityStatus status = CapabilityStatus.STOPPED;
 
     public eu.kalafatic.evolution.controller.tools.ITool getMavenTool() {

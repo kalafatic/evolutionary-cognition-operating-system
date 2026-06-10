@@ -1,63 +1,58 @@
-# ECOS PROVIDER MAP
+# PROVIDER MAP
 
-This document maps current implementations to conceptual categories as per the ECOS architectural vision.
+This document maps current implementations to conceptual Evolutionary OS (ECOS) categories.
 
-## 1. LLM Provider
-Current implementations responsible for communicating with large language models.
+## LLM Provider
+*Conceptual Role: Abstract interface for token generation and reasoning requests.*
 
-- `OpenAIProvider`: Implements OpenAI Chat Completions API.
-- `GeminiProvider`: Implements Google Gemini API.
-- `OllamaProvider`: Implements local Ollama API.
-- `LlmRouter`: Orchestrates provider selection and fallback logic.
-- `AiProviders`: Static configuration registry for LLM endpoints.
+*   **OpenAIProvider**: Remote LLM via OpenAI API (deepseek, gpt-4, etc.)
+*   **OllamaProvider**: Local LLM via Ollama API (llama3, etc.)
+*   **GeminiProvider**: Remote LLM via Google Gemini API
 
-## 2. Agent System
-Modular cognitive units designed for specific tasks.
+## Agent System
+*Conceptual Role: Specialized cognitive workers with distinct personas and toolsets.*
 
-- `AgentFactory`: Centralized instantiation of agents.
-- `AnalyticAgent`: Analysis and reasoning.
-- `ArchitectAgent`: Design and architectural planning.
-- `JavaDevAgent` / `CppDevAgent`: Language-specific development agents.
-- `TesterAgent` / `ValidatorAgent`: Quality assurance and verification.
-- `FileAgent` / `GitAgent` / `MavenAgent`: Domain-specific tool wrappers.
-- `PlannerAgent`: Task planning and decomposition.
-- `CriticAgent` / `ReviewerAgent`: Peer review and critique.
+*   **AnalyticAgent**: Problem diagnosis and root cause analysis
+*   **ArchitectAgent**: Structural design and architectural review
+*   **JavaDevAgent / CppDevAgent**: Implementation and code generation
+*   **TesterAgent**: Test generation and execution
+*   **ValidatorAgent**: Verification of changes against goals
+*   **PlannerAgent**: Strategic trajectory and task planning
+*   **CriticAgent**: Peer review and strategy refinement
+*   **MetadataAgent**: Repository cognition and structural analysis
 
-## 3. Tool System
-Execution units for interacting with the physical environment (filesystem, shell, build systems).
+## Tool System
+*Conceptual Role: Physical effectors for interacting with the environment (FS, Shell, Build).*
 
-- `ToolFactory`: Registry for tool discovery and access.
-- `FileTool`: Filesystem operations (Read, Write, Delete, Mkdir).
-- `GitTool`: Version control operations via shell.
-- `MavenTool`: Build and test execution via Maven shell commands.
-- `ShellTool`: Generic process execution with security policy enforcement.
-- `EclipseTool`: Interaction with the Eclipse IDE workspace.
-- `CppTool` / `DatabaseTool`: Specialized domain tools.
+*   **FileTool**: File system CRUD operations
+*   **MavenTool**: Java build and test execution
+*   **GitTool**: Version control operations (commit, diff, branch)
+*   **ShellTool**: Arbitrary command execution
+*   **EclipseTool**: Integration with Eclipse IDE features
+*   **CppTool**: C++ build environment interaction
+*   **DatabaseTool**: SQL and data schema operations
 
-## 4. Memory System
-Systems responsible for persistence and retrieval of evolutionary state and knowledge.
+## Memory System
+*Conceptual Role: Persistence of trajectories, checkpoints, and semantic workspace.*
 
-- `IterationMemoryService`: File-based persistence for iteration records and checkpoints.
-- `TrajectoryMemory`: Tracking of evolutionary paths and fitness history.
-- `EvolutionMemoryGraph`: Graph-based representation of evolutionary territory and causal links.
-- `FailureMemory`: Persistent tracking of failed strategies and error fingerprints.
-- `SessionManager` / `SessionContext`: In-memory isolation of state for concurrent sessions.
+*   **IterationMemoryService**: Storage for iteration records and checkpoints
+*   **SemanticWorkspace**: Vector-like storage for artifacts and trajectory memory
+*   **EvolutionMemoryGraph**: Entropy and lineage tracking
+*   **ConversationState**: Persistence of chat history and requirements
 
-## 5. Evolution System
-Core cognitive engines and logic for evolutionary processes.
+## Evolution System
+*Conceptual Role: Evolutionary cognitive transition logic (Phase, Mutation, Selection).*
 
-- `IterationManager`: The primary controller for evolutionary iterations.
-- `DarwinEngine`: Implements proposal generation, mutation, and selection logic.
-- `DarwinFlow`: The core orchestration loop for Darwinian evolution.
-- `EvolutionKernel` (and implementations): The abstract core of ECOS cognition.
-- `FitnessEngine` / `Evaluator`: Logic for scoring and validating evolutionary candidates.
-- `PressureEngine`: Analysis of evolutionary pressures (correctness, stability, etc.).
+*   **DarwinEngine**: Variant proposal generation and survival analysis
+*   **EvolutionaryTrajectoryEngine**: Recursive mutation and pressure adaptation
+*   **DefaultPhaseEngine**: Evolution phase state transitions
+*   **DefaultMutationEngine**: Proposal mutation logic
+*   **DefaultFitnessEngine**: Variant scoring and ranking
+*   **DefaultAuthorityEngine**: Winner selection and lifecycle management
 
-## 6. Repository System
-Systems for managing the source code repository and workspace state.
+## Repository System
+*Conceptual Role: Abstraction for version control and workspace management.*
 
-- `GitVersionControlProvider`: Interface for Git-based workspace management.
-- `GitManager` (Supervisor): Standalone Git orchestration for self-development.
-- `WorkspaceDeltaAnalyzer`: Logic for detecting and analyzing physical changes in the workspace.
-- `ContextBuilder`: Deterministic assembly of repository context for LLM prompts.
-- `TargetScanner`: Repository traversal and metadata extraction.
+*   **GitVersionControlProvider**: Implementation of VCS via Git
+*   **TargetScanner**: Structural repository scanning
+*   **WorkspaceArtifact**: Semantic representation of repository entities

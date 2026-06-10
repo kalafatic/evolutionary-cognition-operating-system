@@ -25,7 +25,19 @@ public class LlmRouter {
         return INSTANCE;
     }
 
-    private ILlmProvider ollamaProvider = new OllamaProvider();
+    private ILlmProvider ollamaProvider;
+    private ILlmProvider openAiProvider;
+    private ILlmProvider geminiProvider;
+
+    public LlmRouter() {
+        refreshProviders();
+    }
+
+    public void refreshProviders() {
+        this.ollamaProvider = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ILlmProvider.class, java.util.Map.of("provider", "ollama"));
+        this.openAiProvider = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ILlmProvider.class, java.util.Map.of("provider", "openai"));
+        this.geminiProvider = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ILlmProvider.class, java.util.Map.of("provider", "gemini"));
+    }
 
     public void setLocalProvider(ILlmProvider provider) {
         this.ollamaProvider = provider;
@@ -34,9 +46,6 @@ public class LlmRouter {
     public ILlmProvider getLocalProvider() {
         return ollamaProvider;
     }
-
-    private final ILlmProvider openAiProvider = new OpenAIProvider();
-    private final ILlmProvider geminiProvider = new GeminiProvider();
 
     /**
      * Routes the request to the appropriate LLM provider.

@@ -243,7 +243,7 @@ public class OrchestrationCommandHandler extends AbstractOrchestratorHandler {
         // Simple heuristic mapping
         if (lowerTask.contains("add") || lowerTask.contains("commit")) {
             output.append(executeCommand(workingDir, "git", "add", ".")).append("\n");
-            output.append(executeCommand(workingDir, "git", "commit", "-m", "AI Evolution step: " + taskName)).append("\n");
+            output.append(executeCommand(workingDir, "git", "commit", "-m", "ECOS step: " + taskName)).append("\n");
             if (project != null) project.refreshLocal(IResource.DEPTH_INFINITE, null);
         }
 

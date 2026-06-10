@@ -7,14 +7,9 @@ import java.util.stream.Collectors;
 /**
  * Generates clarification strategies based on intent expansion results.
  */
-public class ClarificationPlanner {
+public class ClarificationPlanner implements IClarificationPlanner {
 
-    public enum Strategy {
-        AUTO_INFER,      // Low ambiguity, proceed with assumptions
-        BRANCH_PARALLEL, // Medium ambiguity, create parallel Darwin hypotheses
-        CLARIFY_USER     // High ambiguity, must ask user
-    }
-
+    @Override
     public Strategy determineStrategy(IntentExpansionResult result, eu.kalafatic.evolution.controller.orchestration.TaskContext context) {
         InterpretationState state = result.getState();
         context.consoleLog("[KERNEL] Determining clarification strategy for InterpretationState: " + state);
@@ -59,6 +54,7 @@ public class ClarificationPlanner {
         return Strategy.AUTO_INFER;
     }
 
+    @Override
     public List<String> generateQuestions(IntentExpansionResult result) {
         return result.getDimensions().stream()
                 .filter(d -> d.getAmbiguityScore() > 0.5 || d.isRequiresUserInput())
@@ -67,6 +63,7 @@ public class ClarificationPlanner {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public String formatClarificationRequest(IntentExpansionResult result) {
         List<String> questions = generateQuestions(result);
         if (questions.isEmpty()) return null;

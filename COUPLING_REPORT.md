@@ -1,57 +1,52 @@
 # ARCHITECTURE COUPLING REPORT
 
-This report documents the hardcoded dependencies and coupling found within the ECOS codebase as of the current analysis.
+This report identifies hardcoded dependencies and coupling points within the Evolutionary OS (ECOS) codebase as of Phase J.
 
-## 1. LLM Provider Subsystem
+## 1. LLM Providers
 
-| Aspect | Findings |
-| --- | --- |
-| **Where it is hardcoded** | `AiProviders.java` (Static map of URLs and API keys for OpenAI, Anthropic, Gemini, DeepSeek, Groq, Ollama). `GeminiProvider.java` (Default URL). `EvolutionServer.java` (Default Ollama URL `http://localhost:11434`). `OrchestratorServiceImpl.java` (Default Ollama URL). |
-| **How it is instantiated** | `LlmRouter.java` instantiates `OpenAIProvider`, `GeminiProvider`, and `OllamaProvider` as private final fields. |
-| **Where it is directly referenced** | `AiService`, `LlmRouter`, `AiProviders`, `OpenAIProvider`, `GeminiProvider`, `OllamaProvider`. |
-| **Injectable or Static** | **Static/Hardcoded**. `LlmRouter` uses fixed instances for remote providers. `AiProviders` is a static registry. `AiService` allows setting an `LlmRouter` instance, but `LlmRouter` itself is a singleton with hardcoded providers. |
+| Subsystem | Location | Instantiation | Direct References | Injectable? |
+|-----------|----------|---------------|-------------------|-------------|
+| OpenAI | `LlmRouter.java` | `private final ILlmProvider openAiProvider = new OpenAIProvider();` | `sendRemoteRequest`, `testConnection` | No (Static) |
+| Ollama | `LlmRouter.java` | `private ILlmProvider ollamaProvider = new OllamaProvider();` | `sendLocalRequest`, `testConnection`, `buildContextLocally`, `verifyResponseLocally` | Partially (`setLocalProvider`) |
+| Gemini | `LlmRouter.java` | `private final ILlmProvider geminiProvider = new GeminiProvider();` | `sendRemoteRequest`, `testConnection` | No (Static) |
 
-## 2. Git Subsystem
+## 2. Git Operations
 
-| Aspect | Findings |
-| --- | --- |
-| **Where it is hardcoded** | `GitVersionControlProvider.java`, `GitTool.java`, and `GitManager.java` (Supervisor) all contain hardcoded string literals for Git commands (e.g., `"git log"`, `"git diff"`, `"git commit"`). `GitTool.java` has hardcoded logic for metadata injection. |
-| **How it is instantiated** | `DarwinFlow.java`, `EvolutionServer.java`, and `WorkspaceDeltaAnalyzer.java` instantiate `new GitTool()` directly. `GitVersionControlProvider` instantiates `new ShellTool()`. `SelfDevSupervisor` instantiates `new GitManager()`. |
-| **Where it is directly referenced** | `DarwinFlow`, `EvolutionOrchestrator` (via `ToolFactory`), `GitAgent`, `SelfDevSupervisor`, `GitEmfReconciler`. |
-| **Injectable or Static** | **Mixed/Hardcoded**. While `EvolutionOrchestrator` uses `ToolFactory` (static registry), many core components like `DarwinFlow` bypass the factory and use `new GitTool()`. Supervisor's `GitManager` is strictly hardcoded. |
+| Subsystem | Location | Instantiation | Direct References | Injectable? |
+|-----------|----------|---------------|-------------------|-------------|
+| VCS Provider | `PeerReviewService.java` | `this.vcsProvider = new GitVersionControlProvider();` | `checkImpact`, `verifySafeState` | No (Hardcoded in constructor) |
+| Git Tool | `ToolFactory.java` | `registerTool(EvolutionConstants.TOOL_GIT, new GitTool());` | `ToolFactory.getTool("git")` | No (Static Registry) |
+| Git Tool (Agent) | `GitAgent.java`, `CppDevAgent.java` | `addTool(new GitTool());` | `tools` list in `BaseAiAgent` | No (Hardcoded in constructor) |
+| Git Tool (Direct) | `WorkspaceDeltaAnalyzer.java`, `EvolutionServer.java`, `DarwinFlow.java` | `new GitTool()` | Direct method calls | No (Hardcoded) |
 
-## 3. Agent Subsystem
+## 3. Agent System
 
-| Aspect | Findings |
-| --- | --- |
-| **Where it is hardcoded** | `AgentFactory.java` contains a hardcoded list of all agent classes (`AnalyticAgent`, `ArchitectAgent`, `JavaDevAgent`, etc.). |
-| **How it is instantiated** | `AgentFactory.createIsolatedAgents(SessionContainer)` instantiates each agent class using `new`. |
-| **Where it is directly referenced** | `EvolutionOrchestrator`, `SessionContext`, `KernelFactory`. |
-| **Injectable or Static** | **Injectable**. Agents are registered in a `SessionContainer`'s registry, allowing for per-session isolation and potential overriding, though the default set is hardcoded in the factory. |
+| Subsystem | Location | Instantiation | Direct References | Injectable? |
+|-----------|----------|---------------|-------------------|-------------|
+| Agent Suite | `AgentFactory.java` | `isolated.add(new AnalyticAgent(container));` (19 agents total) | `IterationManager` | No (Hardcoded factory methods) |
+| Agent Discovery | `IterationManager.java` | `getInternalAgent(EvolutionConstants.AGENT_ANALYTIC)` (Casts to concrete classes) | `analyticAgent`, `strategicPlanner`, `criticAgent`, etc. | No (Concrete class coupling) |
 
-## 4. Tool Subsystem
+## 4. Tool System
 
-| Aspect | Findings |
-| --- | --- |
-| **Where it is hardcoded** | `ToolFactory.java` contains a static registry mapping names to tool instances. Many tools (e.g., `MavenTool`, `GitTool`, `CppTool`) have hardcoded paths to executables or use `new ShellTool()` internally. |
-| **How it is instantiated** | `ToolFactory` static block instantiates default tools (`new FileTool()`, `new MavenTool()`, etc.). |
-| **Where it is directly referenced** | `EvolutionOrchestrator` (via `ToolFactory`), `GitTool`, `MavenTool`, `CppTool`, `EclipseTool`, `ContextSelectionEngine`. |
-| **Injectable or Static** | **Static Registry**. Tools are accessed via `ToolFactory.getTool(name)`. Most tools are singletons within the factory but often instantiate other tools (like `ShellTool`) directly. |
+| Subsystem | Location | Instantiation | Direct References | Injectable? |
+|-----------|----------|---------------|-------------------|-------------|
+| Tool Registry | `ToolFactory.java` | Static initializer: `registerTool(..., new FileTool());` | `ToolFactory.getTool(...)` | No (Static Registry) |
+| File Tool | `ContextBuilder.java` | `FileTool fileTool = new FileTool();` | `fileTool.execute(...)` | No (Hardcoded) |
+| Maven Tool | `Evaluator.java`, `TesterAgent.java`, `MavenAgent.java`, `JavaDevAgent.java`, `QualityAgent.java` | `new MavenTool()` | `mavenTool.execute(...)` | No (Hardcoded) |
 
-## 5. Memory / Storage System
+## 5. Memory/Storage Systems
 
-| Aspect | Findings |
-| --- | --- |
-| **Where it is hardcoded** | `IterationMemoryService.java` has hardcoded relative paths: `orchestrator/memory`, `orchestrator/audit_trail.jsonl`, and `iterations`. |
-| **How it is instantiated** | `KernelFactory.create` instantiates `new IterationMemoryService(projectRoot)`. |
-| **Where it is directly referenced** | `DarwinFlow`, `IterationManager`, `DarwinEngine`, `KernelFactory`, `SessionContext`. |
-| **Injectable or Static** | **Injectable but Hardcoded Paths**. The service is passed via constructors (injectable), but its internal persistence logic is tied to hardcoded filesystem structures. |
+| Subsystem | Location | Instantiation | Direct References | Injectable? |
+|-----------|----------|---------------|-------------------|-------------|
+| Memory Service | `EvolutionKernelContext.java` | `new IterationMemoryService(projectRoot)` | `this.memoryService` | Partially (Constructor allows null fallback) |
+| Session Memory | `SessionContext.java` | `memoryService = new IterationMemoryService(projectRoot);` | `session.getMemoryService(...)` | No (Hardcoded in constructor) |
 
-## 6. Workflow / Orchestration Logic
+## 6. Workflow Orchestration Logic
 
-| Aspect | Findings |
-| --- | --- |
-| **Where it is hardcoded** | `ModeRouter.java` contains hardcoded switch-case and if-else logic mapping `PlatformMode` and prompt keywords to specific flows (primarily `DarwinFlow`). |
-| **How it is instantiated** | `ModeRouter.resolveFlow` instantiates `new DarwinFlow(...)` directly. |
-| **Where it is directly referenced** | `EvolutionOrchestrator`, `IterationManager`, `KernelFactory`. |
-| **Injectable or Static** | **Hardcoded Logic**. The choice of orchestration flow is not extensible without modifying `ModeRouter`. `DarwinFlow` is the hardcoded default for most evolutionary modes. |
+| Subsystem | Location | Instantiation | Direct References | Injectable? |
+|-----------|----------|---------------|-------------------|-------------|
+| Kernel State Machine | `KernelFactory.java` | `return new IterationManager(...)` | `KernelFacade.handle()` | No (Hardcoded factory) |
+| Evolution Engines | `IterationManager.java` | `this.phaseEngine = new DefaultPhaseEngine();`<br>`this.branchManager = new DefaultBranchManager();`<br>`this.mutationEngine = new DefaultMutationEngine(...);`<br>`this.fitnessEngine = new DefaultFitnessEngine(...);`<br>`this.realityEngine = new DefaultRealityEngine(...);`<br>`this.authorityEngine = new DefaultAuthorityEngine(...);`<br>`this.trajectoryEngine = new DefaultTrajectoryEngine(...);`<br>`this.gitAdapter = new DefaultGitEvolutionAdapter();` | Internal state transition, mutation, and evaluation logic | No (Hardcoded in constructor) |
+| Trajectory Engine | `IterationManager.java` | `private final EvolutionaryTrajectoryEngine evolutionaryTrajectoryEngine = new EvolutionaryTrajectoryEngine();` | `evolve()` | No (Hardcoded field) |
+| Intent Engines | `IterationManager.java` | `this.intentExpansionEngine = new IntentExpansionEngine(sessionContainer);`<br>`this.dimensionInferenceEngine = new DefaultDimensionInferenceEngine(...);`<br>`this.clarificationManager = new ClarificationManager();`<br>`this.clarificationPlanner = new ClarificationPlanner();` | `runDarwinIteration()` | No (Hardcoded in constructor/fields) |
+| Mediation Components | `IterationManager.java` | `new TargetScanner()`, `new ContextCurator()`, `new SemanticExtractor()`, `new PromptSynthesizer()`, `new MediatedExportManager()` | `performMediatedExportConvergence()` | No (Hardcoded in method) |

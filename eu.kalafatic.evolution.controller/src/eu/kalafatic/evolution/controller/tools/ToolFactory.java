@@ -19,13 +19,7 @@ public class ToolFactory {
     }
 
     private static void registerDefaultTools() {
-        registerTool(EvolutionConstants.TOOL_FILE, new FileTool());
-        registerTool(EvolutionConstants.TOOL_MAVEN, new MavenTool());
-        registerTool(EvolutionConstants.TOOL_GIT, new GitTool());
-        registerTool(EvolutionConstants.TOOL_SHELL, new ShellTool());
-        registerTool(EvolutionConstants.TOOL_ECLIPSE, new EclipseTool());
-        registerTool(EvolutionConstants.TOOL_CPP, new CppTool());
-        registerTool(EvolutionConstants.TOOL_DATABASE, new DatabaseTool());
+        // Now handled by PluginLoader and ComponentRegistry
     }
 
     /**
@@ -43,6 +37,10 @@ public class ToolFactory {
      * @return ITool instance or null if not found.
      */
     public static ITool getTool(String name) {
-        return tools.get(name);
+        ITool tool = tools.get(name);
+        if (tool == null) {
+            tool = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ITool.class, java.util.Map.of("name", name));
+        }
+        return tool;
     }
 }

@@ -38,4 +38,14 @@ public interface IAgent {
      * @return the list of tools this agent can access.
      */
     List<ITool> getTools();
+
+    /**
+     * Sets the session container for this agent.
+     */
+    void setSessionContainer(eu.kalafatic.evolution.controller.orchestration.SessionContainer container);
+
+    /**
+     * Sets the AI service for this agent.
+     */
+    void setAiService(eu.kalafatic.evolution.controller.orchestration.AiService aiService);
 }
