@@ -6,7 +6,7 @@ import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 /**
  * Interface for evolution-aware Git operations.
  */
-public interface GitEvolutionAdapter {
+public interface IGitEvolutionAdapter {
     boolean isGitRepository();
     void ensureInitialCommit() throws Exception;
     String getCurrentBranch() throws Exception;

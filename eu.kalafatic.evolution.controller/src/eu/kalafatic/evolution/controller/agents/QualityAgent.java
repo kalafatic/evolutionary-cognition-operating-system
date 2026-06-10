@@ -16,8 +16,8 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class QualityAgent extends BaseAiAgent {
     public QualityAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Quality", "Quality", container);
-        addTool(new MavenTool());
-        addTool(new ShellTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_MAVEN));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_SHELL));
     }
 
 

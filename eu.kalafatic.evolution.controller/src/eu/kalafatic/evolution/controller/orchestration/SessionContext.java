@@ -11,7 +11,8 @@ import eu.kalafatic.evolution.controller.execution.BackpressureController;
 import eu.kalafatic.evolution.controller.manager.OrchestrationStatusManager;
 import eu.kalafatic.evolution.controller.orchestration.capability.CapabilityRegistry;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.EvolutionMemoryGraph;
-import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService;
+import eu.kalafatic.evolution.controller.orchestration.selfdev.IMemoryProvider;
+import eu.kalafatic.evolution.controller.registry.DefaultProviderResolver;
 import eu.kalafatic.evolution.controller.trajectory.EvolutionRegistry;
 import eu.kalafatic.evolution.controller.trajectory.SignalBus;
 import eu.kalafatic.evolution.controller.workflow.RuntimeEventBus;
@@ -42,7 +43,7 @@ public class SessionContext implements SessionContainer {
     private final eu.kalafatic.evolution.controller.kernel.EvolutionaryPressureEngine pressureEngine;
 
     private final Map<String, IAgent> agentRegistry = new ConcurrentHashMap<>();
-    private IterationMemoryService memoryService;
+    private IMemoryProvider memoryService;
     private IterationManager iterationManager;
     private TaskContext taskContext;
 
@@ -192,9 +193,12 @@ public class SessionContext implements SessionContainer {
         return pressureEngine;
     }
 
-    public synchronized IterationMemoryService getMemoryService(File projectRoot) {
+    public synchronized IMemoryProvider getMemoryService(File projectRoot) {
         if (memoryService == null) {
-            memoryService = new IterationMemoryService(projectRoot);
+            memoryService = DefaultProviderResolver.resolve(IMemoryProvider.class);
+            if (memoryService instanceof eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService) {
+                memoryService = new eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService(projectRoot);
+            }
         }
         return memoryService;
     }

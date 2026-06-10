@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.supervision.EvolutionDecision;
 /**
  * Interface for centralized selection decisions.
  */
-public interface AuthorityEngine {
+public interface IAuthorityEngine {
     EvolutionDecision decide(String iterationId, List<BranchVariant> variants, TaskContext context, String manualSelectionId);
     void updateLifecycle(List<BranchVariant> variants, String targetId, BranchVariant.ActivationState newState, TaskContext context);
 }

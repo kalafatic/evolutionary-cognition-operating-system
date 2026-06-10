@@ -28,12 +28,22 @@ import eu.kalafatic.evolution.controller.workflow.RuntimeEventType;
 /**
  * Engine for expanding user intent and exploring ambiguity before Darwin execution.
  */
-public class IntentExpansionEngine extends BaseAiAgent {
+public class IntentExpansionEngine extends BaseAiAgent implements IIntentExpansionEngine {
 
     private final StructuredResponsePipeline pipeline = new StructuredResponsePipeline();
 
     public IntentExpansionEngine(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("IntentExpansionEngine", "IntentExpansionEngine", container);
+    }
+
+    @Override
+    public void setSessionContainer(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
+        this.sessionContainer = container;
+    }
+
+    @Override
+    public void setAiService(eu.kalafatic.evolution.controller.orchestration.AiService aiService) {
+        this.aiService = aiService;
     }
 
     @Override

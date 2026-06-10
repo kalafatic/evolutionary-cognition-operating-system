@@ -137,7 +137,7 @@ public class DevelopmentPage extends AEvoPage implements RuntimeEventListener {
             }
         }
         if (projectRoot != null) {
-            this.memoryService = new IterationMemoryService(projectRoot);
+            this.memoryService = new eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService(projectRoot);
             this.bootstrapController = new SelfDevBootstrapController(projectRoot, orchestrator);
         }
     }

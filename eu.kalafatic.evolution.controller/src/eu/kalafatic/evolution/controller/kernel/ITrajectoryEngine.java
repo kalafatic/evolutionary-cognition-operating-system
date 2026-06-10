@@ -6,7 +6,7 @@ import eu.kalafatic.evolution.controller.trajectory.TrajectoryAnalysisRecord;
 /**
  * Interface for tracking evolutionary trends and history.
  */
-public interface TrajectoryEngine {
+public interface ITrajectoryEngine {
     void recordTrajectory(Trajectory trajectory);
     void saveTrajectoryAnalysis(TrajectoryAnalysisRecord record);
     void flush();

@@ -14,26 +14,10 @@ public class AgentFactory {
      * Creates new instances of all default agents for session-specific isolation.
      */
     public static List<IAgent> createIsolatedAgents(SessionContainer container) {
-        List<IAgent> isolated = new ArrayList<>();
-        isolated.add(new AnalyticAgent(container));
-        isolated.add(new ArchitectAgent(container));
-        isolated.add(new JavaDevAgent(container));
-        isolated.add(new TesterAgent(container));
-        isolated.add(new ValidatorAgent(container));
-        isolated.add(new GeneralAgent(container));
-        isolated.add(new TerminalAgent(container));
-        isolated.add(new FileAgent(container));
-        isolated.add(new MavenAgent(container));
-        isolated.add(new GitAgent(container));
-        isolated.add(new StructureAgent(container));
-        isolated.add(new WebSearchAgent(container));
-        isolated.add(new QualityAgent(container));
-        isolated.add(new ObservabilityAgent(container));
-        isolated.add(new RepairAgent(container));
-        isolated.add(new PlannerAgent(container));
-        isolated.add(new ProposalConsolidatorAgent(container));
-        isolated.add(new CriticAgent(container));
-        isolated.add(new FinalResponseAgent(container));
+        List<IAgent> isolated = eu.kalafatic.evolution.controller.registry.ComponentRegistry.getInstance().getProviders(IAgent.class);
+        for (IAgent agent : isolated) {
+            agent.setSessionContainer(container);
+        }
         return isolated;
     }
 

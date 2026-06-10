@@ -2,7 +2,7 @@ package eu.kalafatic.evolution.controller.orchestration;
 
 import java.io.File;
 
-import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService;
+import eu.kalafatic.evolution.controller.orchestration.selfdev.IMemoryProvider;
 import eu.kalafatic.evolution.controller.supervision.AuthorityController;
 import eu.kalafatic.evolution.controller.trajectory.SignalBus;
 import eu.kalafatic.evolution.controller.workflow.RuntimeEventBus;
@@ -14,16 +14,16 @@ import eu.kalafatic.evolution.controller.workflow.RuntimeEventBus;
  */
 public class EvolutionKernelContext {
     private final AuthorityController authority;
-    private IterationMemoryService memoryService;
+    private IMemoryProvider memoryService;
     private final File projectRoot;
     private final RuntimeEventBus eventBus;
     private final SignalBus signalBus;
 
-    public EvolutionKernelContext(File projectRoot, RuntimeEventBus eventBus, SignalBus signalBus, IterationMemoryService memoryService) {
+    public EvolutionKernelContext(File projectRoot, RuntimeEventBus eventBus, SignalBus signalBus, IMemoryProvider memoryService) {
         this.projectRoot = projectRoot;
         this.eventBus = eventBus;
         this.signalBus = signalBus;
-        this.memoryService = memoryService != null ? memoryService : new IterationMemoryService(projectRoot);
+        this.memoryService = memoryService != null ? memoryService : new eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService(projectRoot);
         this.authority = new AuthorityController();
     }
 
@@ -39,11 +39,11 @@ public class EvolutionKernelContext {
         return signalBus;
     }
 
-    public IterationMemoryService getMemoryService() {
+    public IMemoryProvider getMemoryService() {
         return memoryService;
     }
 
-    public void setMemoryService(IterationMemoryService memoryService) {
+    public void setMemoryService(IMemoryProvider memoryService) {
         this.memoryService = memoryService;
     }
 

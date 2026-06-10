@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.tools.GitTool;
 public class GitAgent extends BaseAiAgent {
     public GitAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Git", "Git", container);
-        addTool(new GitTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_GIT));
     }
 
     @Override

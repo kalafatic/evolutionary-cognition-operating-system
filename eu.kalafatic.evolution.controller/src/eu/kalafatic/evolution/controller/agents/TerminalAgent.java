@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class TerminalAgent extends BaseAiAgent {
     public TerminalAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Terminal", "Terminal", container);
-        addTool(new ShellTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_SHELL));
     }
 
     @Override

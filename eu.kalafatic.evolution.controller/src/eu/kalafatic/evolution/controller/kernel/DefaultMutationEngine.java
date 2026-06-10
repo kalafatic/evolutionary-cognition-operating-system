@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.orchestration.selfdev.FailureMemory;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.EvolutionaryPressureVector;
 import eu.kalafatic.evolution.controller.trajectory.Trajectory;
 
-public class DefaultMutationEngine implements MutationEngine {
+public class DefaultMutationEngine implements IMutationEngine {
     private final DarwinEngine engine;
 
     public DefaultMutationEngine(DarwinEngine engine) {

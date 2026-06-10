@@ -2,7 +2,7 @@ package eu.kalafatic.evolution.controller.kernel;
 
 import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 
-public class DefaultGitEvolutionAdapter implements GitEvolutionAdapter {
+public class DefaultGitEvolutionAdapter implements IGitEvolutionAdapter {
 
     public DefaultGitEvolutionAdapter() {
     }

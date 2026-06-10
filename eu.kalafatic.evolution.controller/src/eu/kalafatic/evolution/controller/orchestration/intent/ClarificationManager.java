@@ -10,7 +10,7 @@ import eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants;
 /**
  * Manages the clarification process when user requests are incomplete, ambiguous or contradictory.
  */
-public class ClarificationManager {
+public class ClarificationManager implements IClarificationManager {
 
     private double confidenceThreshold = EvolutionConstants.DEFAULT_CONFIDENCE_THRESHOLD;
 

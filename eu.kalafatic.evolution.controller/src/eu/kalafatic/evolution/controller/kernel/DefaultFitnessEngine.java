@@ -7,7 +7,7 @@ import eu.kalafatic.evolution.controller.orchestration.SessionContainer;
 import eu.kalafatic.evolution.controller.orchestration.selfdev.Evaluator;
 import eu.kalafatic.evolution.controller.orchestration.capability.contracts.IEvaluationContract;
 
-public class DefaultFitnessEngine implements FitnessEngine {
+public class DefaultFitnessEngine implements IFitnessEngine {
     private final Evaluator evaluator;
     private final SessionContainer sessionContainer;
 

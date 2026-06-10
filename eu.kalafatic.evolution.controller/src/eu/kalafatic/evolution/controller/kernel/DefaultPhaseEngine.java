@@ -3,7 +3,7 @@ package eu.kalafatic.evolution.controller.kernel;
 import eu.kalafatic.evolution.controller.orchestration.EvolutionPhase;
 import eu.kalafatic.evolution.controller.orchestration.EvolutionPhaseMachine;
 
-public class DefaultPhaseEngine implements PhaseEngine {
+public class DefaultPhaseEngine implements IPhaseEngine {
     private final EvolutionPhaseMachine machine = new EvolutionPhaseMachine();
 
     @Override

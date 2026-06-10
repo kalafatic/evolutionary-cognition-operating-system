@@ -37,7 +37,11 @@ import eu.kalafatic.evolution.controller.mediation.model.MediationCandidate;
 
 import eu.kalafatic.evolution.controller.orchestration.SessionManager;
 
-public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationContract {
+import eu.kalafatic.evolution.model.orchestration.EvaluationResult;
+import eu.kalafatic.evolution.controller.supervision.EvolutionDecision;
+import eu.kalafatic.evolution.controller.orchestration.DarwinFlow;
+
+public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationContract, IEvolutionEngine {
     private final TaskContext context;
     private final IterationMemoryService memoryService;
     private final SystemStateSignalProvider stateProvider;
@@ -96,6 +100,17 @@ public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationC
     }
 
     @Override
+    public EvaluationResult executeWinner(TaskContext context, EvolutionDecision decision, List<BranchVariant> variants, String goal) {
+        try {
+            return new DarwinFlow(aiService, null).executeWinner(context, decision, variants, goal);
+        } catch (Exception e) {
+            eu.kalafatic.evolution.model.orchestration.EvaluationResult res = eu.kalafatic.evolution.model.orchestration.OrchestrationFactory.eINSTANCE.createEvaluationResult();
+            res.setSuccess(false);
+            return res;
+        }
+    }
+
+    @Override
     public List<String> getSupportedContracts() {
         return Collections.singletonList(IMutationContract.ID);
     }
@@ -123,6 +138,20 @@ public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationC
     @Override
     protected String getFooterInstructions() {
         return "CRITICAL: Return a valid JSON object for the requested Darwin evolutionary trajectory.";
+    }
+
+    @Override
+    public void setSessionContainer(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
+        this.sessionContainer = container;
+    }
+
+    @Override
+    public List<BranchVariant> generateProposals(TaskContext context, String goal) {
+        try {
+            return generateVariants(goal, null, null, null, null);
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
     }
 
     public List<BranchVariant> generateVariants(String goal, StateSnapshot snapshot, FailureMemory failureMemory, Trajectory trajectory, EvolutionaryPressureVector pressure) throws Exception {
@@ -571,35 +600,55 @@ public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationC
     private List<TrajectoryBlueprint> generateMediatedBlueprints(String goal, int limit) {
         List<TrajectoryBlueprint> blueprints = new ArrayList<>();
 
-        // LINEAGE A: CORE LINEAGE (System Execution)
-        TrajectoryBlueprint core = new TrajectoryBlueprint("core_lineage", goal, "Core execution-centric lineage");
-        core.setStrategyType(DarwinStrategyType.ARCHITECTURE_MAPPING);
-        core.addRequiredCharacteristic("Minimal set required to understand system execution");
-        core.addRequiredCharacteristic("Primary execution entrypoints and bootstrap logic");
-        core.setArchitecturalDirection("Focus: Execution flow. Strategy: Identify and select the minimal set of files that define the system's runtime execution path.");
-        core.getEngineeringDimensions().put("philosophy", "execution-centric distillation");
-        core.getEngineeringDimensions().put("abstraction_depth", "medium");
-        blueprints.add(core);
+        // BRANCH A - MINIMAL_CONTEXT (High Density)
+        TrajectoryBlueprint minimal = new TrajectoryBlueprint("minimal_context", goal, "Minimal high-density context");
+        minimal.setStrategyType(DarwinStrategyType.ARCHITECTURE_MAPPING);
+        minimal.addRequiredCharacteristic("Select EXACTLY 6 highest-signal files");
+        minimal.addRequiredCharacteristic("Maximum information density per file");
+        minimal.setArchitecturalDirection("Focus: Extreme distillation. Strategy: Propose a theory of the repository using only 6 files that provide the absolute maximum signal-to-noise ratio.");
+        minimal.getEngineeringDimensions().put("philosophy", "minimalist/high-density");
+        minimal.getEngineeringDimensions().put("abstraction_depth", "mixed");
+        blueprints.add(minimal);
 
-        // LINEAGE B: STRUCTURAL LINEAGE (Architecture & Wiring)
-        TrajectoryBlueprint structural = new TrajectoryBlueprint("structural_lineage", goal, "Structural architecture-centric lineage");
-        structural.setStrategyType(DarwinStrategyType.ARCHITECTURE_MAPPING);
-        structural.addRequiredCharacteristic("Architecture, config, and dependency wiring");
-        structural.addRequiredCharacteristic("Framework glue and orchestration logic");
-        structural.setArchitecturalDirection("Focus: Structural skeleton. Strategy: Select files that define the architectural topology and component wiring.");
-        structural.getEngineeringDimensions().put("philosophy", "structural/wiring mapping");
-        structural.getEngineeringDimensions().put("abstraction_depth", "high");
-        blueprints.add(structural);
+        // BRANCH B - ARCHITECTURE_DRIVEN (Structural Core)
+        TrajectoryBlueprint arch = new TrajectoryBlueprint("architecture_driven", goal, "Architecture and structural core");
+        arch.setStrategyType(DarwinStrategyType.ARCHITECTURE_MAPPING);
+        arch.addRequiredCharacteristic("Interfaces and core abstractions");
+        arch.addRequiredCharacteristic("Entry points and bootstrap logic");
+        arch.setArchitecturalDirection("Focus: Structural skeleton. Strategy: Select files that define the system's architectural topology, core interfaces, and initialization sequence.");
+        arch.getEngineeringDimensions().put("philosophy", "architectural/structural");
+        arch.getEngineeringDimensions().put("abstraction_depth", "high");
+        blueprints.add(arch);
 
-        // LINEAGE C: BEHAVIORAL LINEAGE (Domain & Logic)
-        TrajectoryBlueprint behavioral = new TrajectoryBlueprint("behavioral_lineage", goal, "Behavioral domain-centric lineage");
-        behavioral.setStrategyType(DarwinStrategyType.REFACTOR_HOTSPOT_ANALYSIS);
-        behavioral.addRequiredCharacteristic("Business logic and domain rules");
-        behavioral.addRequiredCharacteristic("Mutation-heavy logic and behavioral hotspots");
-        behavioral.setArchitecturalDirection("Focus: Behavioral density. Strategy: Target the logic-dense files directly involved in system behavior and domain rules.");
-        behavioral.getEngineeringDimensions().put("philosophy", "behavioral/domain auditing");
-        behavioral.getEngineeringDimensions().put("execution_model", "analytical");
-        blueprints.add(behavioral);
+        // BRANCH C - IMPLEMENTATION_DRIVEN (Execution Path)
+        TrajectoryBlueprint impl = new TrajectoryBlueprint("implementation_driven", goal, "Critical execution path focus");
+        impl.setStrategyType(DarwinStrategyType.REFACTOR_HOTSPOT_ANALYSIS);
+        impl.addRequiredCharacteristic("Critical execution path files");
+        impl.addRequiredCharacteristic("Main processing logic");
+        impl.setArchitecturalDirection("Focus: Operational flow. Strategy: Trace the primary execution path for the goal and select the concrete implementation files along that path.");
+        impl.getEngineeringDimensions().put("philosophy", "implementation/execution-path");
+        impl.getEngineeringDimensions().put("abstraction_depth", "low");
+        blueprints.add(impl);
+
+        // BRANCH D - DEPENDENCY_DRIVEN (Graph Centrality)
+        TrajectoryBlueprint dep = new TrajectoryBlueprint("dependency_driven", goal, "Dependency graph centrality focus");
+        dep.setStrategyType(DarwinStrategyType.ARCHITECTURE_MAPPING);
+        dep.addRequiredCharacteristic("High-centrality dependency nodes");
+        dep.addRequiredCharacteristic("Shared utilities and common types");
+        dep.setArchitecturalDirection("Focus: Dependency topology. Strategy: Select files that act as the primary hubs in the dependency graph, providing the most 'wiring' context.");
+        dep.getEngineeringDimensions().put("philosophy", "dependency/centrality");
+        dep.getEngineeringDimensions().put("abstraction_depth", "medium");
+        blueprints.add(dep);
+
+        // BRANCH E - BEHAVIOR_DRIVEN (Runtime Behavior)
+        TrajectoryBlueprint behavior = new TrajectoryBlueprint("behavior_driven", goal, "Runtime behavior and state focus");
+        behavior.setStrategyType(DarwinStrategyType.REFACTOR_HOTSPOT_ANALYSIS);
+        behavior.addRequiredCharacteristic("State management and data flow");
+        behavior.addRequiredCharacteristic("Observable runtime behavior points");
+        behavior.setArchitecturalDirection("Focus: Dynamic behavior. Strategy: Select files that govern how system state changes and how it interacts with external environment during runtime.");
+        behavior.getEngineeringDimensions().put("philosophy", "behavioral/state-flow");
+        behavior.getEngineeringDimensions().put("execution_model", "reactive/stateful");
+        blueprints.add(behavior);
 
         if (limit > 0 && blueprints.size() > limit) {
             return blueprints.subList(0, limit);

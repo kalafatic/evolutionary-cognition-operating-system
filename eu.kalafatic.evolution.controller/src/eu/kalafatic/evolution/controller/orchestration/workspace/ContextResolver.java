@@ -25,6 +25,10 @@ public class ContextResolver {
         this.sessionId = sessionId;
     }
 
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public List<WorkspaceArtifact> resolveRelevantArtifacts(String currentGoal, SemanticWorkspace workspace) {
         List<WorkspaceArtifact> allArtifacts = workspace.getAllArtifacts();
 

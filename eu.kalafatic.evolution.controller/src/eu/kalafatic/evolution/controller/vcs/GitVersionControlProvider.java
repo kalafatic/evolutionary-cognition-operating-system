@@ -8,6 +8,28 @@ import java.util.List;
 import eu.kalafatic.evolution.controller.tools.ShellTool;
 
 public class GitVersionControlProvider implements VersionControlProvider {
+
+    @Override
+    public void commit(File root, String message) throws Exception {
+        commitChanges(root, message);
+    }
+
+    @Override
+    public String diff(File root, String branch1, String branch2) throws Exception {
+        return getDiff(root, branch1); // Simplified for now
+    }
+
+    @Override
+    public void createBranch(File root, String name) throws Exception {
+        shell.execute("git checkout -b " + quote(name), root, null);
+    }
+
+    @Override
+    public List<String> getBranches(File root) throws Exception {
+        String output = shell.execute("git branch --format='%(refname:short)'", root, null);
+        if (output == null || output.isEmpty()) return new ArrayList<>();
+        return Arrays.asList(output.split("\n"));
+    }
     private ShellTool shell = new ShellTool();
 
     @Override

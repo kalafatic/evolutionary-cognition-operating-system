@@ -11,10 +11,10 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class CppDevAgent extends BaseAiAgent {
     public CppDevAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("CppDev", "CppDev", container);
-        addTool(new FileTool());
-        addTool(new CppTool());
-        addTool(new GitTool());
-        addTool(new ShellTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_FILE));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_CPP));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_GIT));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_SHELL));
     }
 
     @Override

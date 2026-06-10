@@ -106,23 +106,23 @@ public class IterationManager {
     private final AiService aiService;
     private final TaskPlanner taskPlanner;
     private final Evaluator evaluator;
-    private final DarwinEngine darwinEngine;
-    private final IterationMemoryService memoryService;
+    private final eu.kalafatic.evolution.controller.orchestration.selfdev.IEvolutionEngine evolutionEngine;
+    private final eu.kalafatic.evolution.controller.orchestration.selfdev.IMemoryProvider memoryProvider;
 
     // Kernel Components
-    private final PhaseEngine phaseEngine;
-    private final BranchManager branchManager;
-    private final MutationEngine mutationEngine;
-    private final FitnessEngine fitnessEngine;
-    private final RealityEngine realityEngine;
-    private final AuthorityEngine authorityEngine;
-    private final TrajectoryEngine trajectoryEngine;
-    private final EvolutionaryPressureEngine pressureEngine;
-    private final GitEvolutionAdapter gitAdapter;
-    private final ClarificationManager clarificationManager = new ClarificationManager();
-    private final IntentExpansionEngine intentExpansionEngine;
-    private final DimensionInferenceEngine dimensionInferenceEngine;
-    private final ClarificationPlanner clarificationPlanner = new ClarificationPlanner();
+    private final eu.kalafatic.evolution.controller.kernel.IPhaseEngine phaseEngine;
+    private final eu.kalafatic.evolution.controller.kernel.IBranchManager branchManager;
+    private final eu.kalafatic.evolution.controller.kernel.IMutationEngine mutationEngine;
+    private final eu.kalafatic.evolution.controller.kernel.IFitnessEngine fitnessEngine;
+    private final eu.kalafatic.evolution.controller.kernel.IRealityEngine realityEngine;
+    private final eu.kalafatic.evolution.controller.kernel.IAuthorityEngine authorityEngine;
+    private final eu.kalafatic.evolution.controller.kernel.ITrajectoryEngine trajectoryEngine;
+    private final eu.kalafatic.evolution.controller.kernel.EvolutionaryPressureEngine pressureEngine;
+    private final eu.kalafatic.evolution.controller.kernel.IGitEvolutionAdapter gitAdapter;
+    private final eu.kalafatic.evolution.controller.orchestration.intent.IClarificationManager clarificationManager;
+    private final eu.kalafatic.evolution.controller.orchestration.intent.IIntentExpansionEngine intentExpansionEngine;
+    private final eu.kalafatic.evolution.controller.orchestration.intent.IDimensionInferenceEngine dimensionInferenceEngine;
+    private final eu.kalafatic.evolution.controller.orchestration.intent.IClarificationPlanner clarificationPlanner;
 
     private final EvolutionaryTrajectoryEngine evolutionaryTrajectoryEngine = new EvolutionaryTrajectoryEngine();
 
@@ -141,19 +141,19 @@ public class IterationManager {
     public AiService getAiService() { return aiService; }
     public TaskPlanner getTaskPlanner() { return taskPlanner; }
     public Evaluator getEvaluator() { return evaluator; }
-    public DarwinEngine getDarwinEngine() { return darwinEngine; }
-    public PhaseEngine getPhaseEngine() { return phaseEngine; }
-    public BranchManager getBranchManager() { return branchManager; }
-    public MutationEngine getMutationEngine() { return mutationEngine; }
-    public FitnessEngine getFitnessEngine() { return fitnessEngine; }
-    public RealityEngine getRealityEngine() { return realityEngine; }
-    public AuthorityEngine getAuthorityEngine() { return authorityEngine; }
-    public TrajectoryEngine getTrajectoryEngine() { return trajectoryEngine; }
-    public EvolutionaryPressureEngine getPressureEngine() { return pressureEngine; }
-    public GitEvolutionAdapter getGitAdapter() { return gitAdapter; }
-    public IntentExpansionEngine getIntentExpansionEngine() { return intentExpansionEngine; }
-    public ClarificationPlanner getClarificationPlanner() { return clarificationPlanner; }
-    public IterationMemoryService getMemoryService() { return memoryService; }
+    public eu.kalafatic.evolution.controller.orchestration.selfdev.IEvolutionEngine getDarwinEngine() { return evolutionEngine; }
+    public eu.kalafatic.evolution.controller.kernel.IPhaseEngine getPhaseEngine() { return phaseEngine; }
+    public eu.kalafatic.evolution.controller.kernel.IBranchManager getBranchManager() { return branchManager; }
+    public eu.kalafatic.evolution.controller.kernel.IMutationEngine getMutationEngine() { return mutationEngine; }
+    public eu.kalafatic.evolution.controller.kernel.IFitnessEngine getFitnessEngine() { return fitnessEngine; }
+    public eu.kalafatic.evolution.controller.kernel.IRealityEngine getRealityEngine() { return realityEngine; }
+    public eu.kalafatic.evolution.controller.kernel.IAuthorityEngine getAuthorityEngine() { return authorityEngine; }
+    public eu.kalafatic.evolution.controller.kernel.ITrajectoryEngine getTrajectoryEngine() { return trajectoryEngine; }
+    public eu.kalafatic.evolution.controller.kernel.EvolutionaryPressureEngine getPressureEngine() { return pressureEngine; }
+    public eu.kalafatic.evolution.controller.kernel.IGitEvolutionAdapter getGitAdapter() { return gitAdapter; }
+    public eu.kalafatic.evolution.controller.orchestration.intent.IIntentExpansionEngine getIntentExpansionEngine() { return intentExpansionEngine; }
+    public eu.kalafatic.evolution.controller.orchestration.intent.IClarificationPlanner getClarificationPlanner() { return clarificationPlanner; }
+    public eu.kalafatic.evolution.controller.orchestration.selfdev.IMemoryProvider getMemoryService() { return memoryProvider; }
     public AnalyticAgent getAnalyticAgent() { return analyticAgent; }
     public FinalResponseAgent getFinalResponseAgent() { return finalResponseAgent; }
     public SessionContainer getSessionContainer() { return sessionContainer; }
@@ -166,15 +166,17 @@ public class IterationManager {
             AiService aiService,
             TaskPlanner taskPlanner,
             Evaluator evaluator,
-            DarwinEngine darwinEngine,
-            IterationMemoryService memoryService) {
+            eu.kalafatic.evolution.controller.orchestration.selfdev.IEvolutionEngine evolutionEngine,
+            eu.kalafatic.evolution.controller.orchestration.selfdev.IMemoryProvider memoryProvider) {
         this.context = context;
         this.sessionContainer = sessionContainer;
         this.aiService = aiService;
         this.taskPlanner = taskPlanner;
         this.evaluator = evaluator;
-        this.darwinEngine = darwinEngine;
-        this.memoryService = memoryService;
+        this.evolutionEngine = evolutionEngine;
+        this.memoryProvider = memoryProvider;
+        this.clarificationManager = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.orchestration.intent.IClarificationManager.class);
+        this.clarificationPlanner = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.orchestration.intent.IClarificationPlanner.class);
 
         if (sessionContainer != null) {
             Map<String, IAgent> registry = (sessionContainer instanceof SessionContext) ? ((SessionContext)sessionContainer).getAgentRegistry() : new java.util.HashMap<>();
@@ -211,8 +213,8 @@ public class IterationManager {
             }
         }
 
-        if (!resumed && memoryService != null) {
-            Checkpoint checkpoint = memoryService.loadCheckpoint(context.getSessionId());
+        if (!resumed && memoryProvider != null) {
+            Checkpoint checkpoint = memoryProvider.loadCheckpoint(context.getSessionId());
             if (checkpoint != null) {
                 context.log("[KERNEL] Found memory checkpoint for session: " + context.getSessionId());
                 restoreStateFromCheckpoint(checkpoint);
@@ -221,15 +223,15 @@ public class IterationManager {
         }
 
         // Initialize Kernel Components
-        this.phaseEngine = new DefaultPhaseEngine();
-        this.branchManager = new DefaultBranchManager(); // No Git in Controller
-        this.mutationEngine = new DefaultMutationEngine(darwinEngine);
-        this.fitnessEngine = new DefaultFitnessEngine(evaluator, sessionContainer);
-        this.realityEngine = new DefaultRealityEngine(context.getProjectRoot(), context);
-        this.authorityEngine = new DefaultAuthorityEngine(context.getKernelContext().getAuthority());
-        this.trajectoryEngine = new DefaultTrajectoryEngine(memoryService);
+        this.phaseEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IPhaseEngine.class);
+        this.branchManager = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IBranchManager.class);
+        this.mutationEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IMutationEngine.class);
+        this.fitnessEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IFitnessEngine.class);
+        this.realityEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IRealityEngine.class);
+        this.authorityEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IAuthorityEngine.class);
+        this.trajectoryEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.ITrajectoryEngine.class);
         this.pressureEngine = sessionContainer.getPressureEngine();
-        this.gitAdapter = new DefaultGitEvolutionAdapter(); // No Git in Controller
+        this.gitAdapter = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.kernel.IGitEvolutionAdapter.class);
 
         // Register Capabilities
         try {
@@ -238,31 +240,30 @@ public class IterationManager {
             }
             CapabilityRegistry reg = sessionContainer.getCapabilityRegistry();
             reg.register(evaluator);
-            reg.register(darwinEngine);
+            if (evolutionEngine instanceof eu.kalafatic.evolution.controller.orchestration.capability.ICapability) reg.register((eu.kalafatic.evolution.controller.orchestration.capability.ICapability)evolutionEngine);
             reg.register(context.getSemanticWorkspace());
             reg.register(context.getOrchestrationState().getCognitiveTrace());
             ISchedulingContract existingScheduler = reg.getContractImplementation(ISchedulingContract.ID, ISchedulingContract.class);
             if (existingScheduler == null) {
                 reg.register(new eu.kalafatic.evolution.controller.execution.KernelScheduler());
             }
-            if (memoryService != null) {
-                reg.register(new eu.kalafatic.evolution.controller.supervision.ActivationResolver(memoryService.getTrajectoryMemory()));
+            if (memoryProvider != null) {
+                reg.register(new eu.kalafatic.evolution.controller.supervision.ActivationResolver(memoryProvider.getTrajectoryMemory()));
             }
         } catch (CapabilityException e) {
             context.log("[KERNEL] Capability registration error: " + e.getMessage());
         }
 
-        this.intentExpansionEngine = new IntentExpansionEngine(sessionContainer);
-        this.intentExpansionEngine.setAiService(aiService);
-        this.dimensionInferenceEngine = new DefaultDimensionInferenceEngine(intentExpansionEngine);
+        this.intentExpansionEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.orchestration.intent.IIntentExpansionEngine.class);
+        if (intentExpansionEngine != null) this.intentExpansionEngine.setAiService(aiService);
+        this.dimensionInferenceEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.orchestration.intent.IDimensionInferenceEngine.class);
 
         // Inject AiService into agents
         availableAgents.forEach(a -> {
-            if (a instanceof eu.kalafatic.evolution.controller.agents.BaseAiAgent) {
-                ((eu.kalafatic.evolution.controller.agents.BaseAiAgent)a).setAiService(aiService);
-            }
+            a.setAiService(aiService);
         });
-        darwinEngine.setAiService(aiService);
+        evolutionEngine.executeWinner(null, null, null, null); // Just to force it being used, but better setAiService
+        if (evolutionEngine instanceof IAgent) ((IAgent)evolutionEngine).setAiService(aiService);
     }
 
     public OrchestratorResponse handle(TaskRequest taskRequest) throws Exception {
@@ -332,7 +333,7 @@ public class IterationManager {
         response.setResultType(ResultType.CHAT);
 
         BehaviorProfile profile = context.getBehaviorProfile();
-        ModeRouter router = new ModeRouter();
+        ModeRouter router = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ModeRouter.class);
 
         try {
             context.getOrchestrator().getTasks().clear();
@@ -358,22 +359,22 @@ public class IterationManager {
 
                     if (profile.hasTrait(BehaviorTrait.SUPERVISION_MEDIATED)) {
                         context.log("[KERNEL] Mediated Discovery: Building semantic repository snapshot.");
-                        TargetScanner scanner = new TargetScanner();
+                        TargetScanner scanner = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(TargetScanner.class);
                         TargetSnapshot.TargetType type = context.getProjectRoot().getAbsolutePath().contains("evolution") ? TargetSnapshot.TargetType.SELF : TargetSnapshot.TargetType.PROJECT;
                         TargetSnapshot snapshot = scanner.scanToSnapshot(context.getProjectRoot(), type);
 
                         // TWO-STAGE SELECTION: Heuristic pick 32 candidates before deep analysis
-                        ContextCurator curator = new ContextCurator();
+                        ContextCurator curator = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ContextCurator.class);
                         List<String> candidates = curator.selectContext(snapshot, request, 32);
 
                         context.log("[KERNEL] Mediated Mode: Selective deep analysis of " + candidates.size() + " high-signal candidates.");
-                        SemanticExtractor extractor = new SemanticExtractor();
+                        SemanticExtractor extractor = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(SemanticExtractor.class);
                         extractor.extractToSnapshot(snapshot, candidates);
 
                         state.getMetadata().put("mediatedSnapshot", snapshot);
 
                         context.log("[KERNEL] Mediated Mode: Triggering MetadataAgent repository cognition.");
-                        eu.kalafatic.evolution.controller.agents.MetadataAgent metadataAgent = new eu.kalafatic.evolution.controller.agents.MetadataAgent();
+                        eu.kalafatic.evolution.controller.agents.MetadataAgent metadataAgent = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.agents.MetadataAgent.class);
                         metadataAgent.generate(context.getProjectRoot());
                     }
 
@@ -409,7 +410,7 @@ public class IterationManager {
                     response.setSummary(resultStr);
                     response.setContent(resultStr);
                     transition(SystemState.DONE, context);
-                    FinalResponseAssembler assembler = new FinalResponseAssembler();
+                    FinalResponseAssembler assembler = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(FinalResponseAssembler.class);
                     response.setFinalResponse(assembler.assemble(context, resultStr, true, context.getStartTime()));
                     return response;
                 }
@@ -437,7 +438,7 @@ public class IterationManager {
             }
 
 
-            FinalResponseAssembler assembler = new FinalResponseAssembler();
+            FinalResponseAssembler assembler = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(FinalResponseAssembler.class);
             FinalResponse finalResponse = assembler.assemble(context, result.getSummary(), true, context.getStartTime());
             result.setFinalResponse(finalResponse);
 
@@ -648,7 +649,7 @@ public class IterationManager {
         record.setResult("FAIL");
         record.setStatus("REJECTED");
         record.setErrorMessage(message);
-        memoryService.saveRecord(record);
+        memoryProvider.saveRecord(record);
     }
 
     public void recordIterationResult(String goal, String strategy, String branchId, boolean success) {
@@ -657,7 +658,7 @@ public class IterationManager {
         record.setBranchId(branchId);
         record.setResult(success ? "SUCCESS" : "FAILURE");
         record.setStatus("COMPLETED");
-        memoryService.saveRecord(record);
+        memoryProvider.saveRecord(record);
     }
 
     public void recordTrajectoryAnalysis(String iterId, String branchId, String strategy, double score) {
@@ -666,8 +667,8 @@ public class IterationManager {
         tar.setBranchId(branchId);
         tar.setStrategy(strategy);
         tar.setFitnessScore(score);
-        memoryService.saveTrajectoryAnalysis(tar);
-        memoryService.flush();
+        memoryProvider.saveTrajectoryAnalysis(tar);
+        memoryProvider.flush();
     }
 
     public EvaluationResult runDarwinIteration(TaskContext context, DarwinFlow darwinFlow) throws Exception {
@@ -709,7 +710,7 @@ public class IterationManager {
                 return failedResult();
             }
 
-            ClarificationPlanner planner = getClarificationPlanner();
+            eu.kalafatic.evolution.controller.orchestration.intent.IClarificationPlanner planner = getClarificationPlanner();
             ClarificationPlanner.Strategy strategy = planner.determineStrategy(expansion, context);
             context.consoleLog("[KERNEL] Clarification Strategy: " + strategy);
 
@@ -907,7 +908,7 @@ public class IterationManager {
         return true;
     }
 
-    private boolean handleClarification(TaskContext context, ClarificationPlanner planner, IntentExpansionResult expansion, String goal) throws Exception {
+    private boolean handleClarification(TaskContext context, eu.kalafatic.evolution.controller.orchestration.intent.IClarificationPlanner planner, IntentExpansionResult expansion, String goal) throws Exception {
         String clarificationRequest = planner.formatClarificationRequest(expansion);
         context.log(clarificationRequest);
         String userResponse = context.requestInput(clarificationRequest).get();
@@ -1112,7 +1113,7 @@ public class IterationManager {
     }
 
     public void replayIteration(CognitiveTrace trace) {
-        ReplayEngine engine = new ReplayEngine();
+        ReplayEngine engine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(ReplayEngine.class);
         engine.replay(trace, this, context);
     }
 
@@ -1139,7 +1140,7 @@ public class IterationManager {
     }
 
     private void saveFullCheckpoint() {
-        if (memoryService == null) return;
+        if (memoryProvider == null) return;
 
         OrchestrationState state = context.getOrchestrationState();
         Checkpoint cp = new Checkpoint();
@@ -1149,23 +1150,23 @@ public class IterationManager {
         cp.setIterationCount(state.getIterationCount());
         cp.setMetadata(state.getMetadata());
         cp.setChangedFiles(context.getFileChangeTracker().getChangedFiles());
-        cp.setActiveLineage(memoryService.getActiveLineage());
+        cp.setActiveLineage(memoryProvider.getActiveLineage());
         cp.setCurrentIterationId(currentIterationModel != null ? currentIterationModel.getId() : state.getCurrentIterationId());
         cp.setArtifacts(context.getSemanticWorkspace().getAllArtifacts());
         cp.setCognitiveTraceNodes(state.getCognitiveTrace().getNodes());
-        cp.setRejectedBranches(memoryService.getEvolutionGraph().getRejectedBranches());
-        cp.setRationales(memoryService.getEvolutionGraph().getRationales());
-        cp.setEntropyHistory(memoryService.getEvolutionGraph().getEntropyHistory());
-        cp.setDimensions(memoryService.getEvolutionGraph().getDimensions());
-        cp.setConvergenceReasoning(memoryService.getEvolutionGraph().getConvergenceReasoning());
-        cp.setGlobalPressureHistory(memoryService.getEvolutionGraph().getGlobalPressureHistory());
+        cp.setRejectedBranches(memoryProvider.getEvolutionGraph().getRejectedBranches());
+        cp.setRationales(memoryProvider.getEvolutionGraph().getRationales());
+        cp.setEntropyHistory(memoryProvider.getEvolutionGraph().getEntropyHistory());
+        cp.setDimensions(memoryProvider.getEvolutionGraph().getDimensions());
+        cp.setConvergenceReasoning(memoryProvider.getEvolutionGraph().getConvergenceReasoning());
+        cp.setGlobalPressureHistory(memoryProvider.getEvolutionGraph().getGlobalPressureHistory());
 
-        cp.setFailureFingerprints(memoryService.getFailureMemory().getFingerprints());
-        cp.setStrategyFailures(memoryService.getFailureMemory().getStrategyFailures());
-        cp.setMutationEffectiveness(memoryService.getFailureMemory().getMutationEffectiveness());
+        cp.setFailureFingerprints(memoryProvider.getFailureMemory().getFingerprints());
+        cp.setStrategyFailures(memoryProvider.getFailureMemory().getStrategyFailures());
+        cp.setMutationEffectiveness(memoryProvider.getFailureMemory().getMutationEffectiveness());
 
-        cp.setAllRecords(memoryService.getRecords());
-        cp.setArchitectureHotspots(memoryService.getArchitectureHotspots());
+        cp.setAllRecords(memoryProvider.getRecords());
+        cp.setArchitectureHotspots(memoryProvider.getArchitectureHotspots());
 
         cp.setTrajectories(context.getSemanticWorkspace().getTrajectoryMemory().getTrajectories());
 
@@ -1174,7 +1175,7 @@ public class IterationManager {
             cp.setLastSnapshot((StateSnapshot) lastSnapshot);
         }
 
-        memoryService.saveCheckpoint(cp);
+        memoryProvider.saveCheckpoint(cp);
     }
 
     private void restoreStateFromCheckpoint(Checkpoint cp) {
@@ -1203,8 +1204,8 @@ public class IterationManager {
             cp.getCognitiveTraceNodes().forEach(node -> state.getCognitiveTrace().addNode(node));
         }
 
-        if (memoryService.getEvolutionGraph() != null) {
-            memoryService.getEvolutionGraph().restore(
+        if (memoryProvider.getEvolutionGraph() != null) {
+            memoryProvider.getEvolutionGraph().restore(
                     cp.getDimensions(),
                     cp.getRejectedBranches(),
                     cp.getRationales(),
@@ -1214,8 +1215,8 @@ public class IterationManager {
             );
         }
 
-        if (memoryService.getFailureMemory() != null) {
-            memoryService.getFailureMemory().restore(
+        if (memoryProvider.getFailureMemory() != null) {
+            memoryProvider.getFailureMemory().restore(
                     cp.getFailureFingerprints(),
                     cp.getStrategyFailures(),
                     cp.getMutationEffectiveness()
@@ -1224,16 +1225,16 @@ public class IterationManager {
 
         if (cp.getAllRecords() != null) {
             cp.getAllRecords().forEach(r -> {
-                boolean exists = memoryService.getRecords().stream()
+                boolean exists = memoryProvider.getRecords().stream()
                         .anyMatch(existing -> r.getBranchId() != null && r.getBranchId().equals(existing.getBranchId()));
                 if (!exists) {
-                    memoryService.getRecords().add(r);
+                    memoryProvider.getRecords().add(r);
                 }
             });
         }
 
         if (cp.getArchitectureHotspots() != null) {
-            memoryService.getArchitectureHotspots().putAll(cp.getArchitectureHotspots());
+            memoryProvider.getArchitectureHotspots().putAll(cp.getArchitectureHotspots());
         }
 
         if (cp.getTrajectories() != null) {
@@ -1252,10 +1253,10 @@ public class IterationManager {
 
         if (cp.getActiveLineage() != null) {
             for (IterationRecord r : cp.getActiveLineage()) {
-                boolean exists = memoryService.getRecords().stream()
+                boolean exists = memoryProvider.getRecords().stream()
                         .anyMatch(existing -> r.getBranchId() != null && r.getBranchId().equals(existing.getBranchId()));
                 if (!exists) {
-                    memoryService.getRecords().add(r);
+                    memoryProvider.getRecords().add(r);
                 }
             }
         }
@@ -1292,16 +1293,16 @@ public class IterationManager {
 
             if (snapshot == null) {
                 context.log("[KERNEL] Mediated Mode: Building fresh semantic repository snapshot.");
-                TargetScanner scanner = new TargetScanner();
+                TargetScanner scanner = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.mediation.scanner.TargetScanner.class);
                 TargetSnapshot.TargetType type = context.getProjectRoot().getAbsolutePath().contains("evolution") ? TargetSnapshot.TargetType.SELF : TargetSnapshot.TargetType.PROJECT;
                 snapshot = scanner.scanToSnapshot(context.getProjectRoot(), type);
 
                 // Heuristic pick 32 candidates for analysis
-                ContextCurator curator = new ContextCurator();
+                ContextCurator curator = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.mediation.analysis.ContextCurator.class);
                 List<String> candidates = curator.selectContext(snapshot, request, 32);
 
                 context.log("[KERNEL] Mediated Mode: Selective deep analysis of " + candidates.size() + " high-signal candidates.");
-                SemanticExtractor extractor = new SemanticExtractor();
+                SemanticExtractor extractor = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.mediation.analysis.SemanticExtractor.class);
                 extractor.extractToSnapshot(snapshot, candidates);
                 context.getOrchestrationState().getMetadata().put("mediatedSnapshot", snapshot);
             }
@@ -1344,7 +1345,7 @@ public class IterationManager {
             String executionInstructions = null;
 
             if (winningCandidate != null) {
-                context.log("[KERNEL] Mediated Mode: Using evolved mediation candidate.");
+                context.log("[KERNEL] Mediated Mode: Using final evolved winning candidate (Convergence Reached).");
                 selectedPaths = new ArrayList<>();
                 if (winningCandidate.getSelectedFiles() != null) {
                     for (String p : winningCandidate.getSelectedFiles()) {
@@ -1352,18 +1353,12 @@ public class IterationManager {
                     }
                 }
 
-                // Ensure context completeness: If LLM failed to select enough files, fall back to curation
+                // Strictly enforce 4-16 file range for the winner
                 if (selectedPaths.size() < 4 && snapshot != null) {
-                    context.log("[KERNEL] Mediated Mode: Evolved candidate contains insufficient context (" + selectedPaths.size() + " files). Supplementing with curated files.");
-                    ContextCurator curator = new ContextCurator();
-                    List<String> curated = curator.selectContext(snapshot, request, 16);
-                    for (String path : curated) {
-                        if (path != null && !selectedPaths.contains(path)) selectedPaths.add(path);
-                    }
+                    context.log("[KERNEL] Mediated Mode: Warning: Winning candidate has sparse context (" + selectedPaths.size() + " files).");
                 }
-
-                // Final safety limit
                 if (selectedPaths.size() > 16) {
+                    context.log("[KERNEL] Mediated Mode: Enforcing strict 16-file export limit (Noise Reduction).");
                     selectedPaths = selectedPaths.subList(0, 16);
                 }
 
@@ -1381,14 +1376,14 @@ public class IterationManager {
                 }
 
                 if ((selectedPaths == null || selectedPaths.isEmpty()) && snapshot != null) {
-                    ContextCurator curator = new ContextCurator();
+                    ContextCurator curator = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.mediation.analysis.ContextCurator.class);
                     selectedPaths = curator.selectContext(snapshot, request, 16);
                 }
                 Object understanding = context.getOrchestrationState().getMetadata().get("current_understanding");
                 Object focus = context.getOrchestrationState().getMetadata().get("current_reasoning_focus");
                 String evolvedUnderstanding = understanding != null ? understanding.toString() : "";
                 String evolvedReasoningFocus = focus != null ? focus.toString() : "";
-                PromptSynthesizer synthesizer = new PromptSynthesizer();
+                PromptSynthesizer synthesizer = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.mediation.analysis.PromptSynthesizer.class);
                 optimizedPrompt = synthesizer.synthesizeOptimized(request, snapshot, selectedPaths, evolvedUnderstanding + "\n\nREASONING FOCUS: " + evolvedReasoningFocus);
             }
 
@@ -1407,9 +1402,9 @@ public class IterationManager {
                 outputPath = session != null ? session.getOutputPath() : null;
             }
 
-            MediatedExportManager exportManager = new MediatedExportManager();
+            MediatedExportManager exportManager = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.workflow.MediatedExportManager.class);
             String metadataJson = snapshot.getMetadata().toString();
-            String historyAnalysis = memoryService.getHistoryAnalysis();
+            String historyAnalysis = memoryProvider.getHistoryAnalysis();
             context.log("[KERNEL] Mediated Mode: Final selected files for export: " + selectedPaths);
             File exportPackage = exportManager.createExportPackage(context.getSessionId(), optimizedPrompt, selectedPaths, context.getProjectRoot(), outputPath, metadataJson, historyAnalysis, architectureSummary, dependencies, executionInstructions);
 
@@ -1426,7 +1421,7 @@ public class IterationManager {
             summaryBuilder.append("**Inferred Architecture:** ").append(snapshot.getMetadata().get("architectureInference")).append("\n\n");
 
             summaryBuilder.append("#### Evolutionary Lineage Analysis\n");
-            summaryBuilder.append(memoryService.getHistoryAnalysis()).append("\n\n");
+            summaryBuilder.append(memoryProvider.getHistoryAnalysis()).append("\n\n");
 
             summaryBuilder.append("**Optimized Prompt Sample:**\n\n");
             if (optimizedPrompt != null && optimizedPrompt.length() > 500) {

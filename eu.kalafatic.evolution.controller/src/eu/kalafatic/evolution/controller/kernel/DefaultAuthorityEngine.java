@@ -6,7 +6,7 @@ import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 import eu.kalafatic.evolution.controller.supervision.AuthorityController;
 import eu.kalafatic.evolution.controller.supervision.EvolutionDecision;
 
-public class DefaultAuthorityEngine implements AuthorityEngine {
+public class DefaultAuthorityEngine implements IAuthorityEngine {
     private final AuthorityController controller;
 
     public DefaultAuthorityEngine(AuthorityController controller) {

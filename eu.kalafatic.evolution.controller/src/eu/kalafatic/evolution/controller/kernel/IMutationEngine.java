@@ -10,6 +10,6 @@ import eu.kalafatic.evolution.controller.trajectory.Trajectory;
 /**
  * Interface for generating branch variants.
  */
-public interface MutationEngine {
+public interface IMutationEngine {
     List<BranchVariant> generateVariants(String goal, StateSnapshot snapshot, FailureMemory failureMemory, Trajectory trajectory, EvolutionaryPressureVector pressure) throws Exception;
 }

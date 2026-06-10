@@ -5,7 +5,7 @@ import eu.kalafatic.evolution.controller.orchestration.EvolutionPhase;
 /**
  * Interface for managing evolutionary phases.
  */
-public interface PhaseEngine {
+public interface IPhaseEngine {
     EvolutionPhase getInitialPhase();
     EvolutionPhase next(EvolutionPhase current);
     boolean isTerminal(EvolutionPhase phase);
