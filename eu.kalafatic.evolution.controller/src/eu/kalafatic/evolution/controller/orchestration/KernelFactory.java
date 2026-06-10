@@ -30,8 +30,9 @@ public class KernelFactory {
                 context.getKernelContext().getMemoryService();
 
         SystemStateSignalProvider stateProvider = new SystemStateSignalProvider(context.getProjectRoot(), context);
-        DarwinEngine darwinEngine = new DarwinEngine(context, memoryService, stateProvider);
-        darwinEngine.setAiService(aiService);
+
+        eu.kalafatic.evolution.controller.orchestration.selfdev.IEvolutionEngine evolutionEngine = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.orchestration.selfdev.IEvolutionEngine.class);
+        if (evolutionEngine instanceof DarwinEngine) ((DarwinEngine)evolutionEngine).setAiService(aiService);
 
         // Register static capabilities
         try {
@@ -53,7 +54,7 @@ public class KernelFactory {
             aiService,
             taskPlanner,
             evaluator,
-            darwinEngine,
+            evolutionEngine,
             memoryService
         );
     }

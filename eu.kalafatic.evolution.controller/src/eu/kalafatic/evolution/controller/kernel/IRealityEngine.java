@@ -5,6 +5,6 @@ import eu.kalafatic.evolution.controller.orchestration.workspace.WorkspaceDeltaA
 /**
  * Interface for physical change verification (Reality Check).
  */
-public interface RealityEngine {
+public interface IRealityEngine {
     WorkspaceDeltaAnalyzer.DeltaAnalysis analyze(String baseCommit) throws Exception;
 }

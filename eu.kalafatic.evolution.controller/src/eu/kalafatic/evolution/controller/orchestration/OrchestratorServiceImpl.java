@@ -591,6 +591,7 @@ public class OrchestratorServiceImpl implements OrchestratorService {
     private static OrchestratorServiceImpl instance;
     public static synchronized OrchestratorServiceImpl getInstance() {
         if (instance == null) {
+            new eu.kalafatic.evolution.controller.registry.PluginLoader().loadDefaults();
             instance = new OrchestratorServiceImpl();
         }
         return instance;

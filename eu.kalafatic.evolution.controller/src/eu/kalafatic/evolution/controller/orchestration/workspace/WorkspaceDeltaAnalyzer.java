@@ -16,7 +16,7 @@ import eu.kalafatic.evolution.controller.tools.GitTool;
 public class WorkspaceDeltaAnalyzer {
     private final File projectRoot;
     private final TaskContext context;
-    private final GitTool gitTool = new GitTool();
+    private final eu.kalafatic.evolution.controller.tools.ITool gitTool = eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_GIT);
 
     public WorkspaceDeltaAnalyzer(File projectRoot, TaskContext context) {
         this.projectRoot = projectRoot;

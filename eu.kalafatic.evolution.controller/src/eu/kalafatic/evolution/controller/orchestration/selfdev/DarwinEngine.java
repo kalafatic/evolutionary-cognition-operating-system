@@ -37,7 +37,11 @@ import eu.kalafatic.evolution.controller.mediation.model.MediationCandidate;
 
 import eu.kalafatic.evolution.controller.orchestration.SessionManager;
 
-public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationContract {
+import eu.kalafatic.evolution.model.orchestration.EvaluationResult;
+import eu.kalafatic.evolution.controller.supervision.EvolutionDecision;
+import eu.kalafatic.evolution.controller.orchestration.DarwinFlow;
+
+public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationContract, IEvolutionEngine {
     private final TaskContext context;
     private final IterationMemoryService memoryService;
     private final SystemStateSignalProvider stateProvider;
@@ -96,6 +100,17 @@ public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationC
     }
 
     @Override
+    public EvaluationResult executeWinner(TaskContext context, EvolutionDecision decision, List<BranchVariant> variants, String goal) {
+        try {
+            return new DarwinFlow(aiService, null).executeWinner(context, decision, variants, goal);
+        } catch (Exception e) {
+            eu.kalafatic.evolution.model.orchestration.EvaluationResult res = eu.kalafatic.evolution.model.orchestration.OrchestrationFactory.eINSTANCE.createEvaluationResult();
+            res.setSuccess(false);
+            return res;
+        }
+    }
+
+    @Override
     public List<String> getSupportedContracts() {
         return Collections.singletonList(IMutationContract.ID);
     }
@@ -123,6 +138,20 @@ public class DarwinEngine extends BaseAiAgent implements ICapability, IMutationC
     @Override
     protected String getFooterInstructions() {
         return "CRITICAL: Return a valid JSON object for the requested Darwin evolutionary trajectory.";
+    }
+
+    @Override
+    public void setSessionContainer(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
+        this.sessionContainer = container;
+    }
+
+    @Override
+    public List<BranchVariant> generateProposals(TaskContext context, String goal) {
+        try {
+            return generateVariants(goal, null, null, null, null);
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
     }
 
     public List<BranchVariant> generateVariants(String goal, StateSnapshot snapshot, FailureMemory failureMemory, Trajectory trajectory, EvolutionaryPressureVector pressure) throws Exception {

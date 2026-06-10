@@ -511,10 +511,10 @@ public class EvolutionServer extends NanoHTTPD {
                 new JSONObject().put("error", "Access denied: Root directory is outside allowed scope.").toString());
         }
 
-        GitTool gitTool = new GitTool();
+        eu.kalafatic.evolution.controller.vcs.IRepositoryProvider repoProvider = eu.kalafatic.evolution.controller.registry.DefaultProviderResolver.resolve(eu.kalafatic.evolution.controller.vcs.IRepositoryProvider.class);
         List<String> branches = Collections.emptyList();
         try {
-            branches = gitTool.getBranches(root);
+            branches = repoProvider.getBranches(root);
         } catch (Exception e) {}
         JSONArray array = new JSONArray(branches);
 

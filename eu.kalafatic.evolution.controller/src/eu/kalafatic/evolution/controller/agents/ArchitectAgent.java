@@ -9,8 +9,8 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class ArchitectAgent extends BaseAiAgent {
     public ArchitectAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Architect", "Architect", container);
-        addTool(new FileTool());
-        addTool(new ShellTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_FILE));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_SHELL));
     }
 
     public void updateDesignModel(eu.kalafatic.evolution.controller.orchestration.TaskContext context, String designJson) {

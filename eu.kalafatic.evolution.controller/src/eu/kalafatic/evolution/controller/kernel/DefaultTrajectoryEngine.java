@@ -4,7 +4,7 @@ import eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemorySe
 import eu.kalafatic.evolution.controller.trajectory.Trajectory;
 import eu.kalafatic.evolution.controller.trajectory.TrajectoryAnalysisRecord;
 
-public class DefaultTrajectoryEngine implements TrajectoryEngine {
+public class DefaultTrajectoryEngine implements ITrajectoryEngine {
     private final IterationMemoryService memoryService;
 
     public DefaultTrajectoryEngine(IterationMemoryService memoryService) {

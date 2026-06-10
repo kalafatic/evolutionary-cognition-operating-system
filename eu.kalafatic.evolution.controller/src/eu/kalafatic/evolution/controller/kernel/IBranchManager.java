@@ -7,7 +7,7 @@ import eu.kalafatic.evolution.controller.orchestration.TaskContext;
 /**
  * Interface for managing branch provisioning and worktrees.
  */
-public interface BranchManager {
+public interface IBranchManager {
     void provisionBranch(String base, String newBranch) throws Exception;
     void createWorktree(String branch, String path) throws Exception;
     void removeWorktree(String path) throws Exception;

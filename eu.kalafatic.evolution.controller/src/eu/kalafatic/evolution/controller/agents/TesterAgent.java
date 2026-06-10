@@ -16,8 +16,8 @@ import eu.kalafatic.evolution.controller.tools.ShellTool;
 public class TesterAgent extends BaseAiAgent {
     public TesterAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Tester", "Tester", container);
-        addTool(new MavenTool());
-        addTool(new ShellTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_MAVEN));
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_SHELL));
     }
 
 

@@ -9,7 +9,7 @@ import eu.kalafatic.evolution.controller.orchestration.selfdev.EvolutionaryPress
 /**
  * Interface for evaluating and scoring variants.
  */
-public interface FitnessEngine {
+public interface IFitnessEngine {
     EvaluationResult evaluate(File projectRoot, TaskContext context, EvolutionaryPressureVector pressure) throws Exception;
     Evaluator.Evaluation evaluateWithSnapshot() throws Exception;
 }

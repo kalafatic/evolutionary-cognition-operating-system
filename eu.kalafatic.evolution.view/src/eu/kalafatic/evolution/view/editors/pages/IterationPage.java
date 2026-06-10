@@ -114,7 +114,7 @@ public class IterationPage extends AEvoPage {
             }
         }
         if (projectRoot != null) {
-            this.memoryService = new IterationMemoryService(projectRoot);
+            this.memoryService = new eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService(projectRoot);
         }
     }
 

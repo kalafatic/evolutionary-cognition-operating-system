@@ -32,8 +32,8 @@ public abstract class BaseAiAgent implements IAgent, IOrchestrationFlow {
     protected final String id;
     protected final String type;
     protected final List<ITool> tools = new ArrayList<>();
-    protected final LlmRouter llmRouter = new LlmRouter();
-    protected final SessionContainer sessionContainer;
+    protected final LlmRouter llmRouter = LlmRouter.getInstance();
+    protected SessionContainer sessionContainer;
     
     protected AiService aiService = new AiService();
     protected BestPracticesService bestPracticesService;
@@ -75,6 +75,11 @@ public abstract class BaseAiAgent implements IAgent, IOrchestrationFlow {
 
     public void setAiService(AiService aiService) {
         this.aiService = aiService;
+    }
+
+    @Override
+    public void setSessionContainer(SessionContainer container) {
+        this.sessionContainer = container;
     }
 
     protected String buildPrompt(String request, TaskContext context, String lastFeedback) {

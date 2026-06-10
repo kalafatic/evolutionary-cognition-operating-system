@@ -34,7 +34,7 @@ public interface SessionContainer {
     IterationManager getIterationManager();
     void setIterationManager(IterationManager manager);
     RuntimeCoordinator getRuntimeCoordinator();
-    eu.kalafatic.evolution.controller.orchestration.selfdev.IterationMemoryService getMemoryService(java.io.File projectRoot);
+    eu.kalafatic.evolution.controller.orchestration.selfdev.IMemoryProvider getMemoryService(java.io.File projectRoot);
     eu.kalafatic.evolution.controller.kernel.EvolutionaryPressureEngine getPressureEngine();
 
     void shutdown();

@@ -8,7 +8,7 @@ import eu.kalafatic.evolution.controller.tools.MavenTool;
 public class MavenAgent extends BaseAiAgent {
     public MavenAgent(eu.kalafatic.evolution.controller.orchestration.SessionContainer container) {
         super("Maven", "Maven", container);
-        addTool(new MavenTool());
+        addTool(eu.kalafatic.evolution.controller.tools.ToolFactory.getTool(eu.kalafatic.evolution.controller.orchestration.util.EvolutionConstants.TOOL_MAVEN));
     }
 
     @Override

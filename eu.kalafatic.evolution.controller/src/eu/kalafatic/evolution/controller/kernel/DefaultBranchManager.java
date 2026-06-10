@@ -1,6 +1,6 @@
 package eu.kalafatic.evolution.controller.kernel;
 
-public class DefaultBranchManager implements BranchManager {
+public class DefaultBranchManager implements IBranchManager {
 
     public DefaultBranchManager() {
     }
